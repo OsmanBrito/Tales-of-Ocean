@@ -1,0 +1,86 @@
+{
+  "interactables": [
+    {
+      "id": "capataz_da_bruma",
+      "type": "shop",
+      "label": "Capataz da Bruma",
+      "prompt": "Carrega E para mercar mantimentos e calafeto.",
+      "position": { "x": 980.0, "y": 520.0 },
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "5a7ba3",
+      "shop_id": "barraca_da_bruma"
+    },
+    {
+      "id": "mestre_do_sarga",
+      "type": "dialogue",
+      "label": "Mestre do Sarga",
+      "prompt": "Carrega E para ouvir o mestre da ilha.",
+      "position": { "x": 620.0, "y": 420.0 },
+      "radius": 90.0,
+      "draw_radius": 20.0,
+      "color": "476c9b",
+      "default_dialogue_id": "sarga_dito"
+    },
+    {
+      "id": "caravela_da_bruma",
+      "type": "dialogue",
+      "label": "Caravela da Bruma",
+      "prompt": "Carrega E para voltar a carta de marear.",
+      "position": { "x": 320.0, "y": 680.0 },
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "1f5d8b",
+      "default_dialogue_id": "abrir_carta"
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "sarga_dito",
+      "speaker": "Mestre do Sarga",
+      "text": "Nesta ilha o nevoeiro ensina paciencia. A pressa afoga mais homens do que a fome.",
+      "secondary_label": "Agradecer"
+    },
+    {
+      "id": "abrir_carta",
+      "speaker": "Mestre da Caravela",
+      "text": "O mar da bruma abre ou fecha conforme o vento. Quereis voltar a carta?",
+      "primary_label": "Abrir carta",
+      "secondary_label": "Ficar",
+      "actions": [
+        {
+          "type": "open_overworld_map"
+        }
+      ]
+    }
+  ],
+  "shops": [
+    {
+      "id": "barraca_da_bruma",
+      "name": "Barraca da Bruma",
+      "greeting": "Sacos de biscoito, breu e agua doce esperam quem chega de mar alto.",
+      "entries": [
+        {
+          "item_id": "battle_bread",
+          "price": 8
+        },
+        {
+          "item_id": "health_potion",
+          "price": 25
+        },
+        {
+          "item_id": "spirit_elixir",
+          "price": 30
+        },
+        {
+          "item_id": "mantimentos_de_bordo",
+          "price": 60
+        },
+        {
+          "item_id": "calafeto_de_mestra",
+          "price": 80
+        }
+      ]
+    }
+  ]
+}

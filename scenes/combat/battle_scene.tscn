@@ -243,9 +243,11 @@ autowrap_mode = 3
 theme_override_font_sizes/font_size = 14
 vertical_alignment = 1
 
-[node name="TopInfoSpacer" type="Control" parent="BattleFrame/RootVBox/TopStrip"]
+[node name="TopInfoSpacer" type="HBoxContainer" parent="BattleFrame/RootVBox/TopStrip"]
 layout_mode = 2
 size_flags_horizontal = 3
+alignment = 1
+theme_override_constants/separation = 8
 
 [node name="CurrentActorPanel" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip"]
 layout_mode = 2
@@ -509,12 +511,12 @@ text = "Escolhei mover, golpear, beber ou defender."
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="ActionButtons" type="GridContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn"]
+[node name="ActionButtons" type="GridContainer" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_constants/h_separation = 10
-theme_override_constants/v_separation = 10
-columns = 2
+theme_override_constants/v_separation = 0
+columns = 4
 
 [node name="BottomPanel" type="PanelContainer" parent="BattleFrame/RootVBox"]
 layout_mode = 2
@@ -557,32 +559,32 @@ custom_minimum_size = Vector2(180, 40)
 layout_mode = 2
 text = "Tornar"
 
-[node name="MoveButton" type="Button" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons"]
+[node name="MoveButton" type="Button" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(80, 80)
 text = ""
 
-[node name="AttackButton" type="Button" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons"]
+[node name="AttackButton" type="Button" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(80, 80)
 text = ""
 
-[node name="ItemButton" type="Button" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons"]
+[node name="ItemButton" type="Button" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(80, 80)
 text = ""
 
-[node name="DefendButton" type="Button" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons"]
+[node name="DefendButton" type="Button" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons"]
 unique_name_in_owner = true
 layout_mode = 2
 custom_minimum_size = Vector2(80, 80)
 text = ""
 
-[connection signal="pressed" from="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons/MoveButton" to="." method="_on_move_button_pressed"]
-[connection signal="pressed" from="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons/AttackButton" to="." method="_on_attack_button_pressed"]
-[connection signal="pressed" from="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons/ItemButton" to="." method="_on_item_button_pressed"]
-[connection signal="pressed" from="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons/DefendButton" to="." method="_on_defend_button_pressed"]
+[connection signal="pressed" from="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons/MoveButton" to="." method="_on_move_button_pressed"]
+[connection signal="pressed" from="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons/AttackButton" to="." method="_on_attack_button_pressed"]
+[connection signal="pressed" from="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons/ItemButton" to="." method="_on_item_button_pressed"]
+[connection signal="pressed" from="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons/DefendButton" to="." method="_on_defend_button_pressed"]
 [connection signal="pressed" from="BattleFrame/RootVBox/BottomPanel/BottomVBox/ResultRow/ContinueButton" to="." method="_on_continue_button_pressed"]

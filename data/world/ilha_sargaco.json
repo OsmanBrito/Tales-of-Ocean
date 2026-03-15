@@ -1,0 +1,86 @@
+{
+  "interactables": [
+    {
+      "id": "guardador_do_sargaco",
+      "type": "shop",
+      "label": "Guardador do Sargaco",
+      "prompt": "Carrega E para mercar mantimentos e madeira.",
+      "position": { "x": 980.0, "y": 520.0 },
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "5a7ba3",
+      "shop_id": "casa_do_sargaco"
+    },
+    {
+      "id": "barqueiro_do_rumo",
+      "type": "dialogue",
+      "label": "Barqueiro do Rumo",
+      "prompt": "Carrega E para ouvir o barqueiro.",
+      "position": { "x": 620.0, "y": 420.0 },
+      "radius": 90.0,
+      "draw_radius": 20.0,
+      "color": "476c9b",
+      "default_dialogue_id": "rumo_dito"
+    },
+    {
+      "id": "caravela_do_sargaco",
+      "type": "dialogue",
+      "label": "Caravela do Sargaco",
+      "prompt": "Carrega E para largar de novo na carta.",
+      "position": { "x": 320.0, "y": 680.0 },
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "1f5d8b",
+      "default_dialogue_id": "abrir_carta"
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "rumo_dito",
+      "speaker": "Barqueiro do Rumo",
+      "text": "O sargaco prende as lemes e cobra paciencia. Quem aprende aqui, vence mais longe.",
+      "secondary_label": "Agradecer"
+    },
+    {
+      "id": "abrir_carta",
+      "speaker": "Mestre da Caravela",
+      "text": "As velas estao prontas. Quereis voltar a carta de marear?",
+      "primary_label": "Abrir carta",
+      "secondary_label": "Ficar",
+      "actions": [
+        {
+          "type": "open_overworld_map"
+        }
+      ]
+    }
+  ],
+  "shops": [
+    {
+      "id": "casa_do_sargaco",
+      "name": "Casa do Sargaco",
+      "greeting": "Entre redes secas e sal preso, ainda ha biscoito e breu para quem chega do largo.",
+      "entries": [
+        {
+          "item_id": "battle_bread",
+          "price": 8
+        },
+        {
+          "item_id": "health_potion",
+          "price": 25
+        },
+        {
+          "item_id": "spirit_elixir",
+          "price": 30
+        },
+        {
+          "item_id": "mantimentos_de_bordo",
+          "price": 60
+        },
+        {
+          "item_id": "calafeto_de_mestra",
+          "price": 80
+        }
+      ]
+    }
+  ]
+}

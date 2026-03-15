@@ -83,6 +83,49 @@
             "type": "set_flag",
             "flag": "bandit_defeated",
             "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "fortim_da_barra",
+      "type": "encounter",
+      "label": "Fortim da Barra",
+      "prompt": "Carrega E para afrontar o Capitao da Barra.",
+      "position": { "x": 1640.0, "y": 260.0 },
+      "radius": 98.0,
+      "draw_radius": 30.0,
+      "color": "5b2b1d",
+      "conditions": {
+        "quest_state": {
+          "first_voyage": ["active"]
+        },
+        "world_flags": {
+          "bandit_defeated": true,
+          "lisboa_boss_defeated": false
+        }
+      },
+      "battle": {
+        "enemy_id": "capitao_da_barra",
+        "return_scene": "res://scenes/world/lisboa.tscn",
+        "return_button_text": "Tornar a Lisboa",
+        "battle_title": "Fortim da Barra",
+        "intro_text": "O Capitao da Barra, vendido ao ouro alheio, fecha o passo com ferro e soberba.",
+        "victory_text": "O capitulo do traidor fecha-se. A barra volta a ser de Lisboa.",
+        "defeat_text": "O fortim fecha-se sobre vos. Tornai com mais ordem e folego.",
+        "ally_start_cells": [[0, 1], [0, 2]],
+        "enemy_start_cells": [[5, 1], [6, 1]],
+        "terrain": {
+          "blocked_cells": [[2, 1], [3, 1], [3, 2]],
+          "water_cells": [[0, 0], [1, 0], [5, 3], [6, 3]],
+          "high_cells": [[4, 0], [5, 0], [6, 0]],
+          "note": "A muralha do fortim manda no centro; quem toma a altura dita o passo."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "lisboa_boss_defeated",
+            "value": true
           },
           {
             "type": "set_quest_state",
@@ -97,7 +140,7 @@
     {
       "id": "duarte_inicio",
       "speaker": "Capitao Duarte",
-      "text": "Pembah, Lisboa nao confia a rota do Oriente a qualquer homem. Um batedor salteador anda a vexar marinheiros junto da porta oriental. Vai, mede-te com ele, e regressa a mim; entao porei o meu selo na tua viagem.",
+      "text": "Pembah, Lisboa nao confia a rota do Oriente a qualquer homem. Um batedor salteador anda a vexar marinheiros junto da porta oriental, e um Capitao da Barra vendido ao ouro alheio cobre-lhe o passo. Vai, mede-te com ambos, e regressa a mim; entao porei o meu selo na tua viagem.",
       "primary_label": "Aceitar encargo",
       "secondary_label": "Fechar",
       "actions": [
@@ -110,7 +153,7 @@
     {
       "id": "duarte_em_curso",
       "speaker": "Capitao Duarte",
-      "text": "O batedor ainda respira. Nao voltes a mim sem cumprires o encargo que te foi confiado.",
+      "text": "O batedor ainda respira, e o Capitao da Barra ainda manda no fortim. Nao voltes a mim sem cumprires o encargo que te foi confiado.",
       "secondary_label": "Prosseguir"
     },
     {

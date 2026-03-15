@@ -1,0 +1,111 @@
+{
+  "interactables": [
+    {
+      "id": "capitao_da_armada",
+      "type": "dialogue",
+      "label": "Capitao da Armada",
+      "prompt": "Carrega E para falar com o Capitao da Armada.",
+      "position": { "x": 640.0, "y": 420.0 },
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "6b4a2a",
+      "dialogues_by_quest_state": {
+        "terra_de_vera_cruz": {
+          "active": "vera_cruz_chegada",
+          "ready_to_turn_in": "vera_cruz_chegada",
+          "completed": "vera_cruz_fecho"
+        }
+      }
+    },
+    {
+      "id": "guardiao_da_vera_cruz",
+      "type": "encounter",
+      "label": "Guardiao da Vera Cruz",
+      "prompt": "Carrega E para enfrentar o guardiao da terra nova.",
+      "position": { "x": 1460.0, "y": 520.0 },
+      "radius": 104.0,
+      "draw_radius": 32.0,
+      "color": "2a4a2b",
+      "conditions": {
+        "quest_state": {
+          "terra_de_vera_cruz": ["active"]
+        },
+        "world_flags": {
+          "vera_cruz_boss_defeated": false
+        }
+      },
+      "battle": {
+        "enemy_id": "guardiao_da_vera_cruz",
+        "return_scene": "res://scenes/world/terra_vera_cruz.tscn",
+        "return_button_text": "Tornar ao Acampamento",
+        "battle_title": "Guardiao da Vera Cruz",
+        "intro_text": "A mata abre-se e um guardiao da terra nova avanca, provando a vossa coragem.",
+        "victory_text": "Parabens, navegante! Venceste a prova e tocaste a Terra de Vera Cruz. A promessa do poente cumpriu-se, e o mar sabe agora o teu nome.",
+        "finale_message": "Parabens, navegante! Venceste a prova e tocaste a Terra de Vera Cruz. A promessa do poente cumpriu-se, e o mar sabe agora o teu nome. Aqui comeca a verdadeira jornada de Pembah!",
+        "finale_button_text": "Tornar ao menu",
+        "defeat_text": "A mata fecha-se e obriga-vos a recuar. Tornai quando estiverdes prontos.",
+        "ally_start_cells": [[0, 1], [0, 2]],
+        "enemy_start_cells": [[5, 1], [6, 1]],
+        "terrain": {
+          "blocked_cells": [[2, 1], [3, 1], [3, 2]],
+          "water_cells": [[0, 3], [1, 3], [5, 3], [6, 3]],
+          "high_cells": [[4, 0], [5, 0], [6, 0]],
+          "note": "A mata fecha a linha, mas a altura ainda manda na primeira troca."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "vera_cruz_boss_defeated",
+            "value": true
+          },
+          {
+            "type": "set_quest_state",
+            "quest_id": "terra_de_vera_cruz",
+            "status": "completed"
+          },
+          {
+            "type": "heal_party"
+          }
+        ]
+      }
+    },
+    {
+      "id": "caravela_do_retorno",
+      "type": "dialogue",
+      "label": "Caravela do Retorno",
+      "prompt": "Carrega E para voltar a carta de marear.",
+      "position": { "x": 320.0, "y": 680.0 },
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "1f5d8b",
+      "default_dialogue_id": "abrir_carta"
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "vera_cruz_chegada",
+      "speaker": "Capitao da Armada",
+      "text": "Eis a terra do poente. A mata guarda o seu senhor, e so depois da prova poderemos erguer o padrao de Vera Cruz.",
+      "secondary_label": "Prosseguir"
+    },
+    {
+      "id": "vera_cruz_fecho",
+      "speaker": "Capitao da Armada",
+      "text": "Cumpriste a promessa do poente. A terra nova ficou medida, o padrao erguido, e o mar conhece o teu nome.",
+      "secondary_label": "Prosseguir"
+    },
+    {
+      "id": "abrir_carta",
+      "speaker": "Mestre da Caravela",
+      "text": "As velas esperam vento. Quereis voltar a carta de marear?",
+      "primary_label": "Abrir carta",
+      "secondary_label": "Ficar",
+      "actions": [
+        {
+          "type": "open_overworld_map"
+        }
+      ]
+    }
+  ],
+  "shops": []
+}

@@ -194,5 +194,197 @@
     "teach_skill": "mare_do_levante",
     "description": "Arte do vento oriental e da vaga curta, pronta para quebrar roda de inimigos.",
     "value": 470
+  },
+  {
+    "id": "manual_corrente_da_barra",
+    "name": "Pergaminho da Corrente da Barra",
+    "type": "manual_skill",
+    "school": "Escola da Barra de Lisboa",
+    "quality": "white",
+    "min_level": 1,
+    "teach_skill": "corrente_da_barra",
+    "description": "Doutrina simples do golpe que segue a mare da barra.",
+    "value": 60
+  },
+  {
+    "id": "manual_mar_de_vidro",
+    "name": "Pergaminho do Mar de Vidro",
+    "type": "manual_skill",
+    "school": "Escola da Barra de Lisboa",
+    "quality": "green",
+    "min_level": 3,
+    "teach_skill": "mar_de_vidro",
+    "description": "Arte fria e medida, feita para quebrar o tino do adversario.",
+    "value": 120
+  },
+  {
+    "id": "manual_firmeza_da_pedra",
+    "name": "Livro da Firmeza da Pedra",
+    "type": "manual_passive",
+    "school": "Escola da Barra de Lisboa",
+    "quality": "green",
+    "min_level": 2,
+    "teach_passive": "firmeza_da_pedra",
+    "description": "Licao de barra e rochedo para quem deseja manter-se firme sob vaga curta.",
+    "value": 110
+  },
+  {
+    "id": "manual_cabo_da_ribeira",
+    "name": "Pergaminho do Cabo da Ribeira",
+    "type": "manual_skill",
+    "school": "Casa dos Pilotos do Douro",
+    "quality": "green",
+    "min_level": 3,
+    "teach_skill": "cabo_da_ribeira",
+    "description": "Doutrina de cabo e ribeira, que prende e rasga com tino.",
+    "value": 120
+  },
+  {
+    "id": "manual_pulso_da_ribeira",
+    "name": "Livro do Pulso da Ribeira",
+    "type": "manual_passive",
+    "school": "Casa dos Pilotos do Douro",
+    "quality": "green",
+    "min_level": 3,
+    "teach_passive": "pulso_da_ribeira",
+    "description": "Ensina a recuperar Espirito quando um inimigo cai ao convés.",
+    "value": 120
+  },
+  {
+    "id": "manual_quebra_mar_do_douro",
+    "name": "Pergaminho do Quebra-Mar do Douro",
+    "type": "manual_skill",
+    "school": "Casa dos Pilotos do Douro",
+    "quality": "blue",
+    "min_level": 4,
+    "teach_skill": "quebra_mar_do_douro",
+    "description": "Arte larga dos pilotos do norte, feita para varrer o flanco do inimigo.",
+    "value": 160
+  },
+  {
+    "id": "manual_ombros_do_cais",
+    "name": "Livro dos Ombros do Cais",
+    "type": "manual_passive",
+    "school": "Casa dos Pilotos do Douro",
+    "quality": "blue",
+    "min_level": 4,
+    "teach_passive": "ombros_do_cais",
+    "description": "Ensina a sustentar o peso do cais e a nao ceder com agua pelas canelas.",
+    "value": 160
+  },
+  {
+    "id": "manual_luz_do_cabo",
+    "name": "Pergaminho da Luz do Cabo",
+    "type": "manual_skill",
+    "school": "Irmandade do Farol de Sagres",
+    "quality": "purple",
+    "min_level": 5,
+    "teach_skill": "luz_do_cabo",
+    "description": "Arte do farol que reacende o Espirito e guia a mao.",
+    "value": 220
+  },
+  {
+    "id": "manual_grito_da_vigia",
+    "name": "Pergaminho do Grito da Vigia",
+    "type": "manual_skill",
+    "school": "Irmandade do Farol de Sagres",
+    "quality": "purple",
+    "min_level": 5,
+    "teach_skill": "grito_da_vigia",
+    "description": "Brado de vigia que quebra o passo de quem sobe ao promontorio.",
+    "value": 230
+  },
+  {
+    "id": "manual_chama_do_farol",
+    "name": "Livro da Chama do Farol",
+    "type": "manual_passive",
+    "school": "Irmandade do Farol de Sagres",
+    "quality": "purple",
+    "min_level": 5,
+    "teach_passive": "chama_do_farol",
+    "description": "Ensina a tomar altura e a manter a cabeca firme contra o atordoamento.",
+    "value": 230
+  },
+  {
+    "id": "manual_compasso_da_charola",
+    "name": "Pergaminho do Compasso da Charola",
+    "type": "manual_skill",
+    "school": "Circulo da Esfera de Tomar",
+    "quality": "gold",
+    "min_level": 7,
+    "teach_skill": "compasso_da_charola",
+    "description": "Arte dourada que roda sobre o centro marcado e fere a roda inimiga.",
+    "value": 340
+  },
+  {
+    "id": "manual_selo_do_nabao",
+    "name": "Pergaminho do Selo do Nabao",
+    "type": "manual_skill",
+    "school": "Circulo da Esfera de Tomar",
+    "quality": "gold",
+    "min_level": 8,
+    "teach_skill": "selo_do_nabao",
+    "description": "Selo de agua e pedra para quebrar o tino do adversario.",
+    "value": 360
+  },
+  {
+    "id": "manual_silencio_do_claustro",
+    "name": "Livro do Silencio do Claustro",
+    "type": "manual_passive",
+    "school": "Circulo da Esfera de Tomar",
+    "quality": "gold",
+    "min_level": 7,
+    "teach_passive": "silencio_do_claustro",
+    "description": "Doutrina de silencio e folego para quem aprende o centro de Tomar.",
+    "value": 330
+  },
+  {
+    "id": "manual_passo_da_muralha",
+    "name": "Pergaminho do Passo da Muralha",
+    "type": "manual_skill",
+    "school": "Guarda do Estreito de Ceuta",
+    "quality": "red",
+    "min_level": 9,
+    "teach_skill": "passo_da_muralha",
+    "description": "Arte vermelha que firma o passo e fecha a guarda no estreito.",
+    "value": 460
+  },
+  {
+    "id": "manual_ferro_da_ponte",
+    "name": "Pergaminho do Ferro da Ponte",
+    "type": "manual_skill",
+    "school": "Guarda do Estreito de Ceuta",
+    "quality": "red",
+    "min_level": 10,
+    "teach_skill": "ferro_da_ponte",
+    "description": "Golpe de ponte e ferro que abre caminho no estreito.",
+    "value": 500
+  },
+  {
+    "id": "manual_muralha_do_estreito",
+    "name": "Livro da Muralha do Estreito",
+    "type": "manual_passive",
+    "school": "Guarda do Estreito de Ceuta",
+    "quality": "red",
+    "min_level": 9,
+    "teach_passive": "muralha_do_estreito",
+    "description": "Ensina a fazer do corpo muralha e a sofrer menos com agua e ferro.",
+    "value": 440
+  },
+  {
+    "id": "mantimentos_de_bordo",
+    "name": "Mantimentos de Bordo",
+    "type": "ocean_supply",
+    "description": "Sacos de biscoito, agua e sal para reabastecer a nau.",
+    "supplies_gain": 35,
+    "value": 60
+  },
+  {
+    "id": "calafeto_de_mestra",
+    "name": "Calafeto de Mestra",
+    "type": "ocean_repair",
+    "description": "Madeira seca, breu e ferro para reforcar o casco.",
+    "ship_gain": 25,
+    "value": 80
   }
 ]

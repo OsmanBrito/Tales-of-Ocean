@@ -121,6 +121,50 @@
             "type": "set_flag",
             "flag": "ceuta_alcacova_secured",
             "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "senhor_do_estreito",
+      "type": "encounter",
+      "label": "Senhor do Estreito",
+      "prompt": "Carrega E para enfrentar o Senhor do Estreito.",
+      "position": { "x": 1620.0, "y": 560.0 },
+      "radius": 104.0,
+      "draw_radius": 32.0,
+      "color": "3b1f1e",
+      "conditions": {
+        "quest_state": {
+          "porta_de_ceuta": ["active"]
+        },
+        "world_flags": {
+          "ceuta_marina_secured": true,
+          "ceuta_alcacova_secured": true,
+          "ceuta_boss_defeated": false
+        }
+      },
+      "battle": {
+        "enemy_ids": ["senhor_do_estreito", "corsario_barbaresco"],
+        "return_scene": "res://scenes/world/ceuta.tscn",
+        "return_button_text": "Tornar a Ceuta",
+        "battle_title": "Terreiro da Muralha",
+        "intro_text": "O Senhor do Estreito desce ao terreiro, cercado de corsarios do levante.",
+        "victory_text": "O Senhor do Estreito cai. A fortaleza volta a mandar no passo.",
+        "defeat_text": "O estreito fecha-se sobre vos. Tornai com novo intento.",
+        "ally_start_cells": [[0, 1], [0, 2]],
+        "enemy_start_cells": [[5, 0], [5, 1], [6, 1], [6, 2]],
+        "terrain": {
+          "blocked_cells": [[2, 1], [3, 1], [3, 2]],
+          "water_cells": [[0, 3], [1, 3], [5, 3], [6, 3]],
+          "high_cells": [[4, 0], [5, 0], [6, 0], [4, 1]],
+          "note": "A muralha alta favorece quem segura o centro e corta o flanco cedo."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "ceuta_boss_defeated",
+            "value": true
           },
           {
             "type": "set_quest_state",
@@ -135,7 +179,7 @@
     {
       "id": "lourenco_inicio",
       "speaker": "Capitao Lourenco da Barra",
-      "text": "Ceuta vive de muralha, porto e vigia. Agora, porem, corsarios barbarescos apertam a Porta da Marina e um renegado da aduana sustem o Alto da Alcacova. Se lhes quebrardes o passo, a fortaleza abrira a Pembah os seus livros vermelhos do estreito.",
+      "text": "Ceuta vive de muralha, porto e vigia. Agora, porem, corsarios barbarescos apertam a Porta da Marina e um renegado da aduana sustem o Alto da Alcacova. Depois deles, o Senhor do Estreito guarda o terreiro. Se lhes quebrardes o passo, a fortaleza abrira a Pembah os seus livros vermelhos do estreito.",
       "primary_label": "Aceitar servico",
       "secondary_label": "Fechar",
       "actions": [
@@ -148,7 +192,7 @@
     {
       "id": "lourenco_em_curso",
       "speaker": "Capitao Lourenco da Barra",
-      "text": "Primeiro a Porta da Marina; depois, o Alto da Alcacova. So com ambos limpos se segura Ceuta e a boca do estreito.",
+      "text": "Primeiro a Porta da Marina; depois, o Alto da Alcacova. Quando ambos cederem, o Senhor do Estreito descera ao terreiro.",
       "secondary_label": "Prosseguir"
     },
     {
@@ -204,6 +248,24 @@
           "conditions": {
             "quest_state": {
               "porta_de_ceuta": ["active", "ready_to_turn_in", "completed"]
+            }
+          }
+        },
+        {
+          "item_id": "manual_ferro_da_ponte",
+          "price": 500,
+          "conditions": {
+            "quest_state": {
+              "porta_de_ceuta": ["completed"]
+            }
+          }
+        },
+        {
+          "item_id": "manual_muralha_do_estreito",
+          "price": 440,
+          "conditions": {
+            "quest_state": {
+              "porta_de_ceuta": ["completed"]
             }
           }
         }

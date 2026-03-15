@@ -71,6 +71,7 @@ const SCREEN_CENTER_WEIGHT: float = 0.1
 @onready var battle_frame: MarginContainer = $BattleFrame
 @onready var effects_layer: Control = %EffectsLayer
 @onready var header_panel: PanelContainer = $BattleFrame/RootVBox/HeaderPanel
+@onready var header_vbox: VBoxContainer = $BattleFrame/RootVBox/HeaderPanel/HeaderVBox
 @onready var current_actor_portrait_frame: PanelContainer = $BattleFrame/RootVBox/TopStrip/CurrentActorPanel/CurrentActorVBox/CurrentActorBody/CurrentActorPortraitFrame
 @onready var current_actor_portrait: TextureRect = %CurrentActorPortrait
 @onready var current_actor_hp_bar: ProgressBar = %CurrentActorHpBar
@@ -128,6 +129,16 @@ var battle_frame_base_scale: Vector2 = Vector2.ONE
 var cinematic_top_bar: ColorRect
 var cinematic_bottom_bar: ColorRect
 var current_shake_tween: Tween
+var finale_overlay: ColorRect
+var finale_label: Label
+var finale_button: Button
+var tutorial_overlay: ColorRect
+var tutorial_label: RichTextLabel
+var tutorial_next_button: Button
+var tutorial_skip_button: Button
+var tutorial_pages: Array[String] = []
+var tutorial_index: int = 0
+var tutorial_active: bool = false
 
 
 func _ready() -> void:
@@ -150,7 +161,10 @@ func _ready() -> void:
 	terrain_legend_label.text = _build_terrain_legend()
 	_write_log(battle_context.get("intro_text", "Erguem-se inimigos diante de vos."))
 	_refresh_status()
-	_start_round()
+	if _should_show_battle_tutorial():
+		_show_battle_tutorial()
+	else:
+		_start_round()
 
 
 func _rebalance_layout() -> void:
@@ -170,9 +184,11 @@ func _rebalance_layout() -> void:
 	current_actor_panel.custom_minimum_size = Vector2(296.0, 0.0)
 	field_hint_panel.custom_minimum_size.y = 68.0
 	bottom_panel.custom_minimum_size.y = 86.0
-	action_buttons.columns = 2
+	action_buttons.columns = 4
+	action_buttons.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+	action_buttons.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	action_buttons.add_theme_constant_override("h_separation", 10)
-	action_buttons.add_theme_constant_override("v_separation", 10)
+	action_buttons.add_theme_constant_override("v_separation", 0)
 	action_info_panel.visible = false
 
 
@@ -183,7 +199,7 @@ func _apply_visual_theme() -> void:
 	combat_log.add_theme_color_override("font_outline_color", Color(0.06, 0.09, 0.12, 0.8))
 	combat_log.add_theme_constant_override("outline_size", 1)
 	battle_grid.add_theme_constant_override("h_separation", 4)
-	battle_grid.add_theme_constant_override("v_separation", 2)
+	battle_grid.add_theme_constant_override("v_separation", 4)
 	_apply_portrait_theme(current_actor_portrait)
 	_apply_portrait_theme(target_portrait)
 	_apply_portrait_theme(player_portrait)
@@ -300,6 +316,36 @@ func _apply_hotbar_button_theme(button: Button) -> void:
 	button.add_theme_color_override("font_pressed_color", Color("fff0c2"))
 	button.add_theme_color_override("font_disabled_color", Color(0.53, 0.56, 0.6))
 	button.add_theme_font_size_override("font_size", 15)
+
+
+func _rarity_color(quality_id: String) -> Color:
+	match quality_id:
+		"white":
+			return Color(0.32, 0.32, 0.3, 0.98)
+		"green":
+			return Color(0.18, 0.34, 0.24, 0.98)
+		"blue":
+			return Color(0.16, 0.28, 0.44, 0.98)
+		"purple":
+			return Color(0.3, 0.22, 0.44, 0.98)
+		"gold":
+			return Color(0.44, 0.34, 0.18, 0.98)
+		"red":
+			return Color(0.42, 0.2, 0.2, 0.98)
+		_:
+			return Color(0.16, 0.18, 0.2, 0.98)
+
+
+func _apply_rarity_hotbar_theme(button: Button, quality_id: String) -> void:
+	if quality_id.is_empty():
+		return
+
+	var base: Color = _rarity_color(quality_id)
+	var border: Color = base.lightened(0.22)
+	button.add_theme_stylebox_override("normal", _make_button_style(base, border))
+	button.add_theme_stylebox_override("hover", _make_button_style(base.lightened(0.08), border.lightened(0.08)))
+	button.add_theme_stylebox_override("pressed", _make_button_style(base.darkened(0.1), border.lightened(0.18)))
+	button.add_theme_stylebox_override("disabled", _make_button_style(base.darkened(0.35), base.darkened(0.1)))
 
 
 func _make_button_style(fill: Color, border: Color) -> StyleBoxFlat:
@@ -421,6 +467,56 @@ func _apply_action_icon_button_theme(button: Button, icon: Texture2D, hint_text:
 	_ensure_action_button_count_badge(button)
 
 
+func _apply_tutorial_action_button_theme(button: Button) -> void:
+	if button == null:
+		return
+	var style_normal := StyleBoxFlat.new()
+	style_normal.bg_color = Color(0.15, 0.18, 0.22, 0.98)
+	style_normal.border_color = Color(1.0, 0.9, 0.62, 1.0)
+	style_normal.border_width_left = 3
+	style_normal.border_width_top = 3
+	style_normal.border_width_right = 3
+	style_normal.border_width_bottom = 3
+	style_normal.corner_radius_top_left = 28
+	style_normal.corner_radius_top_right = 28
+	style_normal.corner_radius_bottom_right = 28
+	style_normal.corner_radius_bottom_left = 28
+	style_normal.content_margin_left = 16
+	style_normal.content_margin_top = 16
+	style_normal.content_margin_right = 16
+	style_normal.content_margin_bottom = 16
+	style_normal.shadow_color = Color(1.0, 0.85, 0.45, 0.36)
+	style_normal.shadow_size = 14
+	var style_hover := style_normal.duplicate()
+	style_hover.bg_color = Color(0.2, 0.23, 0.3, 1.0)
+	style_hover.border_color = Color(1.0, 0.93, 0.7, 1.0)
+	var style_pressed := style_normal.duplicate()
+	style_pressed.bg_color = Color(0.23, 0.19, 0.13, 1.0)
+	style_pressed.border_color = Color(1.0, 0.9, 0.62, 1.0)
+	var style_disabled := style_normal.duplicate()
+	style_disabled.bg_color = Color(0.12, 0.14, 0.18, 0.95)
+	style_disabled.border_color = Color(0.88, 0.78, 0.5, 0.9)
+	button.add_theme_stylebox_override("normal", style_normal)
+	button.add_theme_stylebox_override("hover", style_hover)
+	button.add_theme_stylebox_override("pressed", style_pressed)
+	button.add_theme_stylebox_override("disabled", style_disabled)
+
+
+func _apply_tutorial_action_highlight(enable: bool) -> void:
+	if enable:
+		action_buttons.visible = true
+		move_button.disabled = true
+		attack_button.disabled = true
+		item_button.disabled = true
+		defend_button.disabled = true
+		_apply_tutorial_action_button_theme(move_button)
+		_apply_tutorial_action_button_theme(attack_button)
+		_apply_tutorial_action_button_theme(item_button)
+		_apply_tutorial_action_button_theme(defend_button)
+	else:
+		_configure_action_icon_buttons()
+
+
 func _ensure_action_button_key_badge(button: Button, key_text: String) -> void:
 	var badge: Label = button.get_node_or_null("KeyBadge") as Label
 	if badge == null:
@@ -509,14 +605,14 @@ func _make_grid_cell_style(fill: Color, border: Color) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = fill
 	style.border_color = border
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.corner_radius_top_left = 16
-	style.corner_radius_top_right = 16
-	style.corner_radius_bottom_right = 16
-	style.corner_radius_bottom_left = 16
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.corner_radius_top_left = 12
+	style.corner_radius_top_right = 12
+	style.corner_radius_bottom_right = 12
+	style.corner_radius_bottom_left = 12
 	return style
 
 
@@ -647,14 +743,14 @@ func _setup_grid_button_widgets(button: Button) -> void:
 	terrain_label.anchor_right = 0.0
 	terrain_label.anchor_bottom = 0.0
 	terrain_label.offset_left = 10.0
-	terrain_label.offset_top = 12.0
-	terrain_label.offset_right = 28.0
-	terrain_label.offset_bottom = 28.0
+	terrain_label.offset_top = 10.0
+	terrain_label.offset_right = 30.0
+	terrain_label.offset_bottom = 30.0
 	terrain_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	terrain_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	terrain_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_apply_label_theme(terrain_label)
-	terrain_label.add_theme_font_size_override("font_size", 16)
+	terrain_label.add_theme_font_size_override("font_size", 18)
 	button.add_child(terrain_label)
 
 	var hp_bar := ProgressBar.new()
@@ -664,9 +760,9 @@ func _setup_grid_button_widgets(button: Button) -> void:
 	hp_bar.anchor_right = 1.0
 	hp_bar.anchor_bottom = 0.0
 	hp_bar.offset_left = 18.0
-	hp_bar.offset_top = 14.0
+	hp_bar.offset_top = 60.0
 	hp_bar.offset_right = -18.0
-	hp_bar.offset_bottom = 20.0
+	hp_bar.offset_bottom = 66.0
 	_apply_progress_bar_theme(hp_bar, Color(0.25, 0.76, 0.45, 1.0))
 	button.add_child(hp_bar)
 
@@ -677,9 +773,9 @@ func _setup_grid_button_widgets(button: Button) -> void:
 	sp_bar.anchor_right = 1.0
 	sp_bar.anchor_bottom = 0.0
 	sp_bar.offset_left = 18.0
-	sp_bar.offset_top = 22.0
+	sp_bar.offset_top = 68.0
 	sp_bar.offset_right = -18.0
-	sp_bar.offset_bottom = 28.0
+	sp_bar.offset_bottom = 74.0
 	_apply_progress_bar_theme(sp_bar, Color(0.26, 0.64, 0.94, 1.0))
 	button.add_child(sp_bar)
 
@@ -1134,10 +1230,19 @@ func _setup_skill_buttons(actor: Dictionary) -> void:
 		button.custom_minimum_size = Vector2(104.0, 34.0)
 		var effective_cost: int = _get_skill_cost_for_actor(active_actor_id, skill_id)
 		var listed_name: String = str(skill.get("name", skill_id))
-		button.text = "%s [%d]" % [listed_name, effective_cost]
+		var status_effect: Dictionary = skill.get("status_effect", {})
+		var status_icon: String = ""
+		if not status_effect.is_empty():
+			match str(status_effect.get("id", "")):
+				"bleed":
+					status_icon = " [B]"
+				"stun":
+					status_icon = " [S]"
+		button.text = "%s [%d]%s" % [listed_name, effective_cost, status_icon]
 		button.alignment = HORIZONTAL_ALIGNMENT_CENTER
 		button.autowrap_mode = TextServer.AUTOWRAP_OFF
 		_apply_hotbar_button_theme(button)
+		_apply_rarity_hotbar_theme(button, str(skill.get("quality", "")))
 		var tooltip_parts: Array[String] = []
 		var description: String = str(skill.get("description", ""))
 		if not description.is_empty():
@@ -1151,7 +1256,6 @@ func _setup_skill_buttons(actor: Dictionary) -> void:
 			tooltip_parts.append("Fere toda a fileira")
 		if int(skill.get("area_radius", 0)) > 0:
 			tooltip_parts.append("Area %d" % int(skill.get("area_radius", 0)))
-		var status_effect: Dictionary = skill.get("status_effect", {})
 		if not status_effect.is_empty():
 			tooltip_parts.append("Causa %s" % _get_status_name(str(status_effect.get("id", ""))))
 		if actor_sp < effective_cost:
@@ -1240,13 +1344,14 @@ func _build_enemy_status_card(enemy: Dictionary, focus_target_actor_id: String, 
 
 	var cell: Vector2i = enemy.get("cell", Vector2i.ZERO)
 	var enemy_actor_id: String = enemy.get("actor_id", "")
+	var accent: Color = _get_actor_accent_color(enemy_actor_id)
 	var prefix: String = ""
 	if enemy_actor_id == focus_target_actor_id and _is_target_preview_mode():
 		prefix = ">> "
 	elif preview_target_ids.has(enemy_actor_id):
 		prefix = "*> "
 
-	content.add_child(_make_enemy_status_label("%s%s" % [prefix, enemy.get("name", "Inimigo")], 17, Color("f6e0c0")))
+	content.add_child(_make_enemy_status_label("%s%s" % [prefix, enemy.get("name", "Inimigo")], 17, accent.lerp(Color("f6e0c0"), 0.45)))
 	content.add_child(_make_enemy_status_label("PV %d/%d" % [
 		enemy.get("hp", 0),
 		enemy.get("max_hp", 0)
@@ -1319,14 +1424,16 @@ func _refresh_battle_grid() -> void:
 		for col in range(GRID_COLS):
 			var cell: Vector2i = Vector2i(col, row)
 			var button: Button = Button.new()
-			button.custom_minimum_size = Vector2(96.0, 72.0)
+			button.custom_minimum_size = Vector2(96.0, 96.0)
 			button.focus_mode = Control.FOCUS_NONE
 			button.flat = true
 			button.tooltip_text = _build_cell_tooltip(cell)
-			button.add_theme_stylebox_override("normal", _make_grid_cell_style(Color(0.0, 0.0, 0.0, 0.01), Color(0.0, 0.0, 0.0, 0.0)))
-			button.add_theme_stylebox_override("hover", _make_grid_cell_style(Color(0.0, 0.0, 0.0, 0.01), Color(0.0, 0.0, 0.0, 0.0)))
-			button.add_theme_stylebox_override("pressed", _make_grid_cell_style(Color(0.0, 0.0, 0.0, 0.01), Color(0.0, 0.0, 0.0, 0.0)))
-			button.add_theme_stylebox_override("disabled", _make_grid_cell_style(Color(0.0, 0.0, 0.0, 0.01), Color(0.0, 0.0, 0.0, 0.0)))
+			var base_fill := Color(0.08, 0.09, 0.12, 0.68)
+			var base_border := Color(0.22, 0.25, 0.31, 0.9)
+			button.add_theme_stylebox_override("normal", _make_grid_cell_style(base_fill, base_border))
+			button.add_theme_stylebox_override("hover", _make_grid_cell_style(base_fill.lightened(0.08), base_border.lightened(0.18)))
+			button.add_theme_stylebox_override("pressed", _make_grid_cell_style(base_fill.darkened(0.08), base_border))
+			button.add_theme_stylebox_override("disabled", _make_grid_cell_style(base_fill.darkened(0.16), base_border.darkened(0.2)))
 			button.pressed.connect(_on_grid_cell_pressed.bind(cell))
 			button.mouse_entered.connect(_on_grid_cell_hovered.bind(cell))
 			button.mouse_exited.connect(_on_grid_cell_unhovered.bind(cell))
@@ -1993,6 +2100,13 @@ func _refresh_action_buttons() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	if battle_over:
+		return
+	if tutorial_active:
+		if event is InputEventKey and event.pressed and not event.echo:
+			if event.keycode == KEY_ESCAPE:
+				_on_tutorial_skip_pressed()
+			elif event.keycode in [KEY_ENTER, KEY_KP_ENTER, KEY_SPACE]:
+				_on_tutorial_next_pressed()
 		return
 	if not (event is InputEventKey):
 		return
@@ -3270,6 +3384,10 @@ func _victory() -> void:
 	continue_button.visible = true
 	action_buttons.visible = false
 	skill_buttons.visible = false
+	var finale_message: String = str(battle_context.get("finale_message", "")).strip_edges()
+	if not finale_message.is_empty():
+		_show_finale_message(finale_message)
+		continue_button.visible = false
 	_refresh_status()
 
 
@@ -3322,3 +3440,178 @@ func _on_continue_button_pressed() -> void:
 	if battle_result == "defeat":
 		next_scene = battle_context.get("defeat_return_scene", next_scene)
 	get_tree().change_scene_to_file(next_scene)
+
+
+func _show_finale_message(message: String) -> void:
+	if message.is_empty():
+		return
+
+	if finale_overlay == null:
+		finale_overlay = ColorRect.new()
+		finale_overlay.name = "FinaleOverlay"
+		finale_overlay.color = Color(0.0, 0.0, 0.0, 0.96)
+		finale_overlay.anchor_left = 0.0
+		finale_overlay.anchor_top = 0.0
+		finale_overlay.anchor_right = 1.0
+		finale_overlay.anchor_bottom = 1.0
+		finale_overlay.offset_left = 0.0
+		finale_overlay.offset_top = 0.0
+		finale_overlay.offset_right = 0.0
+		finale_overlay.offset_bottom = 0.0
+		finale_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+
+		var layout := VBoxContainer.new()
+		layout.anchor_left = 0.5
+		layout.anchor_top = 0.5
+		layout.anchor_right = 0.5
+		layout.anchor_bottom = 0.5
+		layout.offset_left = -360.0
+		layout.offset_top = -140.0
+		layout.offset_right = 360.0
+		layout.offset_bottom = 140.0
+		layout.alignment = BoxContainer.ALIGNMENT_CENTER
+		layout.add_theme_constant_override("separation", 20)
+		finale_overlay.add_child(layout)
+
+		finale_label = Label.new()
+		finale_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		finale_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		finale_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		finale_label.add_theme_font_size_override("font_size", 22)
+		finale_label.add_theme_color_override("font_color", Color("f8f3e4"))
+		layout.add_child(finale_label)
+
+		finale_button = Button.new()
+		finale_button.custom_minimum_size = Vector2(220.0, 44.0)
+		_apply_button_theme(finale_button)
+		finale_button.pressed.connect(_on_finale_button_pressed)
+		layout.add_child(finale_button)
+
+		add_child(finale_overlay)
+
+	finale_label.text = message
+	finale_button.text = str(battle_context.get("finale_button_text", "Tornar ao menu"))
+	finale_overlay.visible = true
+	finale_overlay.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	var fade_tween := create_tween()
+	fade_tween.tween_property(finale_overlay, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+func _on_finale_button_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
+
+
+func _should_show_battle_tutorial() -> bool:
+	return not bool(GameState.world_state.get("battle_tutorial_seen", false))
+
+
+func _show_battle_tutorial() -> void:
+	tutorial_pages = [
+		"[b]Bem-vindo ao recontro[/b]\nAqui medeis a vossa arte na quadricula. Vencei ao tombar todos os inimigos.\n[i]Enter prossegue  |  Esc salta[/i]",
+		"[b]Ordem da ronda[/b]\nNo topo vedeis quem age primeiro. Cada aliado move e age uma vez por ronda.\n[i]Enter prossegue  |  Esc salta[/i]",
+		"[b]Comandos[/b]\n1 mover  |  2 golpear  |  3 pocao  |  4 defender\nAs artes especiais surgem na barra de acoes.\n[i]Enter prossegue  |  Esc salta[/i]"
+	]
+	tutorial_index = 0
+	tutorial_active = true
+	battle_mode = "tutorial"
+	_apply_tutorial_action_highlight(true)
+	skill_buttons.visible = false
+
+	if tutorial_overlay == null:
+		tutorial_overlay = ColorRect.new()
+		tutorial_overlay.name = "TutorialOverlay"
+		tutorial_overlay.color = Color(0.0, 0.0, 0.0, 0.78)
+		tutorial_overlay.anchor_left = 0.0
+		tutorial_overlay.anchor_top = 0.0
+		tutorial_overlay.anchor_right = 1.0
+		tutorial_overlay.anchor_bottom = 1.0
+		tutorial_overlay.offset_left = 0.0
+		tutorial_overlay.offset_top = 0.0
+		tutorial_overlay.offset_right = 0.0
+		tutorial_overlay.offset_bottom = 0.0
+		tutorial_overlay.mouse_filter = Control.MOUSE_FILTER_STOP
+
+		var frame := PanelContainer.new()
+		frame.anchor_left = 0.5
+		frame.anchor_top = 0.5
+		frame.anchor_right = 0.5
+		frame.anchor_bottom = 0.5
+		frame.offset_left = -360.0
+		frame.offset_top = -160.0
+		frame.offset_right = 360.0
+		frame.offset_bottom = 160.0
+		frame.add_theme_stylebox_override("panel", _make_panel_style("focus"))
+		tutorial_overlay.add_child(frame)
+
+		var layout := VBoxContainer.new()
+		layout.add_theme_constant_override("separation", 18)
+		layout.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		frame.add_child(layout)
+
+		tutorial_label = RichTextLabel.new()
+		tutorial_label.bbcode_enabled = true
+		tutorial_label.fit_content = true
+		tutorial_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		tutorial_label.scroll_active = false
+		tutorial_label.custom_minimum_size = Vector2(620.0, 0.0)
+		tutorial_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		tutorial_label.add_theme_font_size_override("normal_font_size", 19)
+		tutorial_label.add_theme_color_override("default_color", Color("f4ead4"))
+		layout.add_child(tutorial_label)
+
+		var button_row := HBoxContainer.new()
+		button_row.alignment = BoxContainer.ALIGNMENT_CENTER
+		button_row.add_theme_constant_override("separation", 16)
+		layout.add_child(button_row)
+
+		tutorial_skip_button = Button.new()
+		tutorial_skip_button.custom_minimum_size = Vector2(160.0, 40.0)
+		_apply_button_theme(tutorial_skip_button)
+		tutorial_skip_button.text = "Saltar"
+		tutorial_skip_button.pressed.connect(_on_tutorial_skip_pressed)
+		button_row.add_child(tutorial_skip_button)
+
+		tutorial_next_button = Button.new()
+		tutorial_next_button.custom_minimum_size = Vector2(200.0, 40.0)
+		_apply_button_theme(tutorial_next_button)
+		tutorial_next_button.pressed.connect(_on_tutorial_next_pressed)
+		button_row.add_child(tutorial_next_button)
+
+		add_child(tutorial_overlay)
+
+	_set_tutorial_page()
+	tutorial_overlay.visible = true
+	tutorial_overlay.modulate = Color(1.0, 1.0, 1.0, 0.0)
+	var fade := create_tween()
+	fade.tween_property(tutorial_overlay, "modulate", Color(1.0, 1.0, 1.0, 1.0), 0.35).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+
+
+func _set_tutorial_page() -> void:
+	if tutorial_label == null:
+		return
+	var clamped_index: int = clampi(tutorial_index, 0, tutorial_pages.size() - 1)
+	tutorial_label.text = tutorial_pages[clamped_index]
+	if tutorial_next_button != null:
+		tutorial_next_button.text = "Entrar em combate" if clamped_index >= tutorial_pages.size() - 1 else "Prosseguir"
+
+
+func _on_tutorial_next_pressed() -> void:
+	tutorial_index += 1
+	if tutorial_index >= tutorial_pages.size():
+		_finish_battle_tutorial()
+		return
+	_set_tutorial_page()
+
+
+func _on_tutorial_skip_pressed() -> void:
+	_finish_battle_tutorial()
+
+
+func _finish_battle_tutorial() -> void:
+	tutorial_active = false
+	if tutorial_overlay != null:
+		tutorial_overlay.visible = false
+	_apply_tutorial_action_highlight(false)
+	GameState.world_state["battle_tutorial_seen"] = true
+	GameState.state_changed.emit()
+	_start_round()

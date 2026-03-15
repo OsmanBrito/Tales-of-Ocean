@@ -5,17 +5,25 @@
       "name": "Lisboa",
       "scene": "res://scenes/world/lisboa.tscn",
       "description": "Capital do reino e porto primeiro da vossa derrota.",
-      "map_position": { "x": 430.0, "y": 664.0 }
+      "map_position": {
+        "x": 430.0,
+        "y": 664.0
+      }
     },
     {
       "id": "porto",
       "name": "Porto",
       "scene": "res://scenes/world/porto.tscn",
       "description": "Cidade mercantil do norte, guardada por homens rijos do cais.",
-      "map_position": { "x": 420.0, "y": 374.0 },
+      "map_position": {
+        "x": 420.0,
+        "y": 374.0
+      },
       "conditions": {
         "quest_state": {
-          "first_voyage": ["completed"]
+          "first_voyage": [
+            "completed"
+          ]
         }
       }
     },
@@ -24,10 +32,15 @@
       "name": "Sagres",
       "scene": "res://scenes/world/sagres.tscn",
       "description": "Promontorio austero do farol, onde o rumo do sul se mede pelo vento e pela chama.",
-      "map_position": { "x": 256.0, "y": 888.0 },
+      "map_position": {
+        "x": 256.0,
+        "y": 888.0
+      },
       "conditions": {
         "quest_state": {
-          "porto_alliance": ["completed"]
+          "porto_alliance": [
+            "completed"
+          ]
         }
       }
     },
@@ -36,10 +49,15 @@
       "name": "Tomar",
       "scene": "res://scenes/world/tomar.tscn",
       "description": "Cidade mistica do interior, onde convento, rio e cartas celestes se cruzam.",
-      "map_position": { "x": 632.0, "y": 564.0 },
+      "map_position": {
+        "x": 632.0,
+        "y": 564.0
+      },
       "conditions": {
         "quest_state": {
-          "luz_de_sagres": ["completed"]
+          "luz_de_sagres": [
+            "completed"
+          ]
         }
       }
     },
@@ -48,10 +66,71 @@
       "name": "Ceuta",
       "scene": "res://scenes/world/ceuta.tscn",
       "description": "Fortaleza africana do estreito, onde porto, aduana e muralha se medem com corso e ferro.",
-      "map_position": { "x": 900.0, "y": 930.0 },
+      "map_position": {
+        "x": 900.0,
+        "y": 930.0
+      },
       "conditions": {
         "quest_state": {
-          "roda_de_tomar": ["completed"]
+          "roda_de_tomar": [
+            "completed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ilha_bruma",
+      "name": "Ilha da Bruma",
+      "scene": "res://scenes/world/ilha_bruma.tscn",
+      "description": "Ancoradouro pequeno onde o nevoeiro esconde o mar alto.",
+      "map_position": {
+        "x": 460.0,
+        "y": 930.0
+      },
+      "conditions": {
+        "quest_state": {
+          "luz_de_sagres": [
+            "active",
+            "ready_to_turn_in",
+            "completed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "ilha_sargaco",
+      "name": "Ilha do Sargaco",
+      "scene": "res://scenes/world/ilha_sargaco.tscn",
+      "description": "Ilha de redes secas e agua doce, guardada pelo sargaco.",
+      "map_position": {
+        "x": 650.0,
+        "y": 946.0
+      },
+      "conditions": {
+        "quest_state": {
+          "luz_de_sagres": [
+            "active",
+            "ready_to_turn_in",
+            "completed"
+          ]
+        }
+      }
+    },
+    {
+      "id": "terra_vera_cruz",
+      "name": "Terra de Vera Cruz",
+      "scene": "res://scenes/world/terra_vera_cruz.tscn",
+      "description": "Primeira terra do poente, de mata grossa e agua doce.",
+      "map_position": {
+        "x": 160.0,
+        "y": 520.0
+      },
+      "conditions": {
+        "quest_state": {
+          "terra_de_vera_cruz": [
+            "active",
+            "completed"
+          ]
         }
       }
     }
@@ -64,11 +143,26 @@
       "label": "Costa do Norte",
       "encounter_chance": 0.24,
       "points": [
-        { "x": 430.0, "y": 664.0 },
-        { "x": 416.0, "y": 576.0 },
-        { "x": 412.0, "y": 496.0 },
-        { "x": 416.0, "y": 430.0 },
-        { "x": 420.0, "y": 374.0 }
+        {
+          "x": 430.0,
+          "y": 664.0
+        },
+        {
+          "x": 416.0,
+          "y": 576.0
+        },
+        {
+          "x": 412.0,
+          "y": 496.0
+        },
+        {
+          "x": 416.0,
+          "y": 430.0
+        },
+        {
+          "x": 420.0,
+          "y": 374.0
+        }
       ],
       "encounters": [
         {
@@ -76,13 +170,93 @@
           "intro_text": "Uma lancha de corso sai da cerração e procura tomar-vos a borda.",
           "victory_text": "A lancha quebra e foge para norte. O canal fica livre por ora.",
           "defeat_text": "Os corsarios forcais retirada para o ultimo porto seguro.",
-          "enemy_ids": ["corsair_raider", "bandit_scout"],
-          "ally_start_cells": [[0, 1], [0, 2]],
-          "enemy_start_cells": [[5, 1], [5, 2], [6, 1], [6, 2]],
+          "enemy_ids": [
+            "corsair_raider",
+            "bandit_scout"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              1
+            ],
+            [
+              5,
+              2
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              6,
+              2
+            ]
+          ],
           "terrain": {
-            "blocked_cells": [[2, 1], [3, 1], [3, 2]],
-            "water_cells": [[0, 3], [1, 3], [2, 3], [4, 3], [5, 3], [6, 3]],
-            "high_cells": [[4, 0], [5, 0], [6, 0]],
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                1
+              ],
+              [
+                3,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                2,
+                3
+              ],
+              [
+                4,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ]
+            ],
             "note": "O tombadilho alto manda no convés, mas a agua corta o recuo."
           }
         },
@@ -91,13 +265,78 @@
           "intro_text": "Uma barca baixa mete-vos o ferro, cheia de salteadores de costa e marinheiros renegados.",
           "victory_text": "A barca rende-se e dispersa-se na bruma costeira.",
           "defeat_text": "Sois forcados a arribar e a recompor a companhia em terra segura.",
-          "enemy_ids": ["bandit_scout", "bandit_scout", "corsair_raider"],
-          "ally_start_cells": [[0, 1], [1, 2]],
-          "enemy_start_cells": [[5, 0], [5, 2], [6, 1], [6, 2]],
+          "enemy_ids": [
+            "bandit_scout",
+            "bandit_scout",
+            "corsair_raider"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              0
+            ],
+            [
+              5,
+              2
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              6,
+              2
+            ]
+          ],
           "terrain": {
-            "blocked_cells": [[2, 2], [3, 1]],
-            "water_cells": [[0, 3], [1, 3], [5, 3], [6, 3]],
-            "high_cells": [[4, 0], [5, 0]],
+            "blocked_cells": [
+              [
+                2,
+                2
+              ],
+              [
+                3,
+                1
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ]
+            ],
             "note": "O mar molha a popa e a barca inimiga entra enviesada na peleja."
           }
         }
@@ -110,11 +349,26 @@
       "label": "Volta do Cabo do Sul",
       "encounter_chance": 0.28,
       "points": [
-        { "x": 430.0, "y": 664.0 },
-        { "x": 396.0, "y": 742.0 },
-        { "x": 340.0, "y": 820.0 },
-        { "x": 294.0, "y": 864.0 },
-        { "x": 256.0, "y": 888.0 }
+        {
+          "x": 430.0,
+          "y": 664.0
+        },
+        {
+          "x": 396.0,
+          "y": 742.0
+        },
+        {
+          "x": 340.0,
+          "y": 820.0
+        },
+        {
+          "x": 294.0,
+          "y": 864.0
+        },
+        {
+          "x": 256.0,
+          "y": 888.0
+        }
       ],
       "encounters": [
         {
@@ -122,13 +376,89 @@
           "intro_text": "Corsarios da ponta negra descem de vela curta para vos fechar o rumo do sul.",
           "victory_text": "A ponta torna a respirar; os corsarios cortam pano e fogem.",
           "defeat_text": "A nau e batida para norte e procura abrigo fora do alcance inimigo.",
-          "enemy_ids": ["corsair_raider", "corsair_raider"],
-          "ally_start_cells": [[0, 1], [0, 2]],
-          "enemy_start_cells": [[5, 0], [5, 1], [6, 1], [6, 2]],
+          "enemy_ids": [
+            "corsair_raider",
+            "corsair_raider"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              0
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              6,
+              2
+            ]
+          ],
           "terrain": {
-            "blocked_cells": [[2, 1], [3, 2]],
-            "water_cells": [[0, 3], [1, 3], [2, 3], [5, 3], [6, 3]],
-            "high_cells": [[4, 0], [5, 0], [6, 0], [4, 1]],
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                2,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ],
+              [
+                4,
+                1
+              ]
+            ],
             "note": "A vaga do sul empurra o combate para a borda e favorece quem toma a altura."
           }
         },
@@ -137,13 +467,89 @@
           "intro_text": "Um bombardeiro renegado cobre uma barca redonda de alcatrao aceso e vem buscar o vosso casco.",
           "victory_text": "O lume afoga-se no mar e a barca inimiga perde todo o tino.",
           "defeat_text": "O alcatrao fecha-vos a linha e obriga a procurar abrigo no norte.",
-          "enemy_ids": ["bombardeiro_renegado", "corsair_raider"],
-          "ally_start_cells": [[0, 1], [1, 2]],
-          "enemy_start_cells": [[5, 1], [5, 2], [6, 0], [6, 1]],
+          "enemy_ids": [
+            "bombardeiro_renegado",
+            "corsair_raider"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              1
+            ],
+            [
+              5,
+              2
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              6,
+              1
+            ]
+          ],
           "terrain": {
-            "blocked_cells": [[2, 1], [3, 1], [4, 2]],
-            "water_cells": [[0, 3], [1, 3], [4, 3], [5, 3], [6, 3]],
-            "high_cells": [[4, 0], [5, 0], [6, 0]],
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                1
+              ],
+              [
+                4,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                4,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ]
+            ],
             "note": "O lume corre pelas bordas baixas, e o castelo de popa domina a troca."
           }
         }
@@ -156,11 +562,26 @@
       "label": "Costa Comprida",
       "encounter_chance": 0.3,
       "points": [
-        { "x": 420.0, "y": 374.0 },
-        { "x": 416.0, "y": 486.0 },
-        { "x": 408.0, "y": 606.0 },
-        { "x": 360.0, "y": 754.0 },
-        { "x": 256.0, "y": 888.0 }
+        {
+          "x": 420.0,
+          "y": 374.0
+        },
+        {
+          "x": 416.0,
+          "y": 486.0
+        },
+        {
+          "x": 408.0,
+          "y": 606.0
+        },
+        {
+          "x": 360.0,
+          "y": 754.0
+        },
+        {
+          "x": 256.0,
+          "y": 888.0
+        }
       ],
       "encounters": [
         {
@@ -168,13 +589,86 @@
           "intro_text": "Renegados do largo caem sobre vossa derrota com ferros de abordagem e muita soberba.",
           "victory_text": "O largo clareia e a derrota fica de novo em vossa mao.",
           "defeat_text": "A companhia e forcada a largar rumo para o porto mais seguro.",
-          "enemy_ids": ["corsair_raider", "bandit_scout", "bandit_scout"],
-          "ally_start_cells": [[0, 1], [1, 2]],
-          "enemy_start_cells": [[5, 0], [5, 2], [6, 1], [6, 2]],
+          "enemy_ids": [
+            "corsair_raider",
+            "bandit_scout",
+            "bandit_scout"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              0
+            ],
+            [
+              5,
+              2
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              6,
+              2
+            ]
+          ],
           "terrain": {
-            "blocked_cells": [[2, 1], [3, 2]],
-            "water_cells": [[0, 3], [1, 3], [2, 3], [5, 3], [6, 3]],
-            "high_cells": [[4, 0], [5, 0], [6, 0]],
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                2,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ]
+            ],
             "note": "A vaga longa castiga as bordas baixas e favorece a linha alta."
           }
         },
@@ -183,13 +677,90 @@
           "intro_text": "Uma barca de alcatrao e ferro tenta tomar-vos a meio da costa, ao abrigo de vento duro.",
           "victory_text": "A barca rompe-se e o mar leva consigo os seus ferros.",
           "defeat_text": "O alcatrao força retirada e quebra a viagem desta vez.",
-          "enemy_ids": ["bombardeiro_renegado", "corsair_raider", "bandit_scout"],
-          "ally_start_cells": [[0, 1], [0, 2]],
-          "enemy_start_cells": [[5, 1], [5, 2], [6, 1], [6, 2]],
+          "enemy_ids": [
+            "bombardeiro_renegado",
+            "corsair_raider",
+            "bandit_scout"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              1
+            ],
+            [
+              5,
+              2
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              6,
+              2
+            ]
+          ],
           "terrain": {
-            "blocked_cells": [[2, 1], [3, 1], [3, 2]],
-            "water_cells": [[0, 3], [1, 3], [5, 3], [6, 3]],
-            "high_cells": [[4, 0], [5, 0], [6, 0], [4, 1]],
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                1
+              ],
+              [
+                3,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ],
+              [
+                4,
+                1
+              ]
+            ],
             "note": "A fumaça suja encobre o flanco, mas a altura continua a mandar no tiro."
           }
         }
@@ -202,11 +773,26 @@
       "label": "Subida do Tejo",
       "encounter_chance": 0.22,
       "points": [
-        { "x": 430.0, "y": 664.0 },
-        { "x": 500.0, "y": 628.0 },
-        { "x": 560.0, "y": 600.0 },
-        { "x": 602.0, "y": 582.0 },
-        { "x": 632.0, "y": 564.0 }
+        {
+          "x": 430.0,
+          "y": 664.0
+        },
+        {
+          "x": 500.0,
+          "y": 628.0
+        },
+        {
+          "x": 560.0,
+          "y": 600.0
+        },
+        {
+          "x": 602.0,
+          "y": 582.0
+        },
+        {
+          "x": 632.0,
+          "y": 564.0
+        }
       ],
       "encounters": [
         {
@@ -214,13 +800,93 @@
           "intro_text": "Salteadores do estuario fecham a passagem em barca chata e pedem peita sem honra.",
           "victory_text": "O estuario abre-se e a corrente volta a favorecer o vosso rumo.",
           "defeat_text": "A passagem fecha-se e convem tornar ao ancoradouro mais seguro.",
-          "enemy_ids": ["bandit_scout", "bandit_scout"],
-          "ally_start_cells": [[0, 1], [1, 2]],
-          "enemy_start_cells": [[5, 1], [6, 1], [6, 2], [5, 2]],
+          "enemy_ids": [
+            "bandit_scout",
+            "bandit_scout"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              6,
+              2
+            ],
+            [
+              5,
+              2
+            ]
+          ],
           "terrain": {
-            "blocked_cells": [[2, 1], [4, 1]],
-            "water_cells": [[0, 3], [1, 3], [2, 3], [3, 3], [4, 3], [5, 3], [6, 3]],
-            "high_cells": [[3, 0], [4, 0], [5, 0]],
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                4,
+                1
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                2,
+                3
+              ],
+              [
+                3,
+                3
+              ],
+              [
+                4,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                3,
+                0
+              ],
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ]
+            ],
             "note": "A margem alta favorece tiro e vigia, mas a agua fecha todo o fundo."
           }
         }
@@ -233,11 +899,26 @@
       "label": "Caminho dos Besteiros",
       "encounter_chance": 0.25,
       "points": [
-        { "x": 420.0, "y": 374.0 },
-        { "x": 486.0, "y": 440.0 },
-        { "x": 548.0, "y": 494.0 },
-        { "x": 594.0, "y": 534.0 },
-        { "x": 632.0, "y": 564.0 }
+        {
+          "x": 420.0,
+          "y": 374.0
+        },
+        {
+          "x": 486.0,
+          "y": 440.0
+        },
+        {
+          "x": 548.0,
+          "y": 494.0
+        },
+        {
+          "x": 594.0,
+          "y": 534.0
+        },
+        {
+          "x": 632.0,
+          "y": 564.0
+        }
       ],
       "encounters": [
         {
@@ -245,13 +926,85 @@
           "intro_text": "Besteiros renegados guardam a via do interior e cobram passagem a ferro e seta.",
           "victory_text": "A estrada do interior fica limpa e a marcha torna a ser vossa.",
           "defeat_text": "A companhia cede a estrada e recua para porto seguro.",
-          "enemy_ids": ["besteiro_renegado", "bandit_scout"],
-          "ally_start_cells": [[0, 1], [0, 2]],
-          "enemy_start_cells": [[5, 0], [5, 2], [6, 1], [6, 2]],
+          "enemy_ids": [
+            "besteiro_renegado",
+            "bandit_scout"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              0
+            ],
+            [
+              5,
+              2
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              6,
+              2
+            ]
+          ],
           "terrain": {
-            "blocked_cells": [[2, 1], [2, 2], [4, 1]],
-            "water_cells": [[1, 3], [2, 3], [5, 3], [6, 3]],
-            "high_cells": [[4, 0], [5, 0], [6, 0]],
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                2,
+                2
+              ],
+              [
+                4,
+                1
+              ]
+            ],
+            "water_cells": [
+              [
+                1,
+                3
+              ],
+              [
+                2,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ]
+            ],
             "note": "A ladeira alta favorece as setas e prende quem marcha pelo fundo."
           }
         }
@@ -264,11 +1017,26 @@
       "label": "Rota do Nabao",
       "encounter_chance": 0.28,
       "points": [
-        { "x": 256.0, "y": 888.0 },
-        { "x": 350.0, "y": 784.0 },
-        { "x": 450.0, "y": 688.0 },
-        { "x": 552.0, "y": 612.0 },
-        { "x": 632.0, "y": 564.0 }
+        {
+          "x": 256.0,
+          "y": 888.0
+        },
+        {
+          "x": 350.0,
+          "y": 784.0
+        },
+        {
+          "x": 450.0,
+          "y": 688.0
+        },
+        {
+          "x": 552.0,
+          "y": 612.0
+        },
+        {
+          "x": 632.0,
+          "y": 564.0
+        }
       ],
       "encounters": [
         {
@@ -276,13 +1044,85 @@
           "intro_text": "Apostatas da carta negra tomam a passagem do interior e procuram fechar-vos o passo antes de Tomar.",
           "victory_text": "A passagem abre-se e o compasso de Tomar fica mais perto.",
           "defeat_text": "Os apostatas quebram a vossa marcha e forcam retirada para porto seguro.",
-          "enemy_ids": ["frade_apostata", "besteiro_renegado"],
-          "ally_start_cells": [[0, 1], [1, 2]],
-          "enemy_start_cells": [[5, 1], [5, 2], [6, 0], [6, 1]],
+          "enemy_ids": [
+            "frade_apostata",
+            "besteiro_renegado"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              1
+            ],
+            [
+              5,
+              2
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              6,
+              1
+            ]
+          ],
           "terrain": {
-            "blocked_cells": [[2, 1], [3, 1], [3, 2]],
-            "water_cells": [[0, 3], [1, 3], [2, 3]],
-            "high_cells": [[4, 0], [5, 0], [6, 0], [4, 1]],
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                1
+              ],
+              [
+                3,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                2,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ],
+              [
+                4,
+                1
+              ]
+            ],
             "note": "A ponte manda no vau e a altura sustem o responso inimigo."
           }
         },
@@ -291,13 +1131,81 @@
           "intro_text": "Um astronomo negro mede-vos a distancia e tenta quebrar a viagem antes da cidade santa.",
           "victory_text": "A sombra da esfera dispersa-se e o rumo de Tomar fica em vossa mao.",
           "defeat_text": "A esfera vedada tolda o caminho e obriga a tornar atras.",
-          "enemy_ids": ["astronomo_negro", "frade_apostata"],
-          "ally_start_cells": [[0, 1], [0, 2]],
-          "enemy_start_cells": [[5, 0], [5, 1], [6, 1], [6, 2]],
+          "enemy_ids": [
+            "astronomo_negro",
+            "frade_apostata"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              0
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              6,
+              2
+            ]
+          ],
           "terrain": {
-            "blocked_cells": [[2, 2], [3, 1], [4, 2]],
-            "water_cells": [[1, 3], [2, 3], [5, 3]],
-            "high_cells": [[4, 0], [5, 0], [6, 0]],
+            "blocked_cells": [
+              [
+                2,
+                2
+              ],
+              [
+                3,
+                1
+              ],
+              [
+                4,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                1,
+                3
+              ],
+              [
+                2,
+                3
+              ],
+              [
+                5,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ]
+            ],
             "note": "A plataforma alta favorece o po da esfera, mas o fundo prende a manobra."
           }
         }
@@ -313,12 +1221,30 @@
       "speed_multiplier": 0.72,
       "encounter_chance": 0.26,
       "points": [
-        { "x": 256.0, "y": 888.0 },
-        { "x": 360.0, "y": 930.0 },
-        { "x": 500.0, "y": 962.0 },
-        { "x": 654.0, "y": 956.0 },
-        { "x": 790.0, "y": 944.0 },
-        { "x": 900.0, "y": 930.0 }
+        {
+          "x": 256.0,
+          "y": 888.0
+        },
+        {
+          "x": 360.0,
+          "y": 930.0
+        },
+        {
+          "x": 500.0,
+          "y": 962.0
+        },
+        {
+          "x": 654.0,
+          "y": 956.0
+        },
+        {
+          "x": 790.0,
+          "y": 944.0
+        },
+        {
+          "x": 900.0,
+          "y": 930.0
+        }
       ],
       "encounters": [
         {
@@ -326,13 +1252,93 @@
           "intro_text": "Velas baixas e rapidas saem do levante para vos tomar o costado em mar alto.",
           "victory_text": "As velas do levante quebram a roda e fogem para sul.",
           "defeat_text": "A travessia perde-se e convem arribar de novo a Sagres.",
-          "enemy_ids": ["corsario_barbaresco", "corsair_raider"],
-          "ally_start_cells": [[0, 1], [0, 2]],
-          "enemy_start_cells": [[5, 0], [5, 1], [6, 1], [6, 2]],
+          "enemy_ids": [
+            "corsario_barbaresco",
+            "corsair_raider"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              0
+            ],
+            [
+              5,
+              1
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              6,
+              2
+            ]
+          ],
           "terrain": {
-            "blocked_cells": [[2, 1], [3, 1], [4, 2]],
-            "water_cells": [[0, 3], [1, 3], [2, 3], [4, 3], [5, 3], [6, 3]],
-            "high_cells": [[4, 0], [5, 0], [6, 0]],
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                1
+              ],
+              [
+                4,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                2,
+                3
+              ],
+              [
+                4,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ]
+            ],
             "note": "Em mar alto, o castelo da popa vale mais do que um palmo de convés baixo."
           }
         },
@@ -341,13 +1347,89 @@
           "intro_text": "Atalaiadores zenetes medem-vos em mar duro e caem com azagaias do alto das bordas.",
           "victory_text": "As azagaias falham e o estreito fica mais perto da vossa proa.",
           "defeat_text": "O mar e a azagaia obrigam a cortar rumo e tornar a porto seguro.",
-          "enemy_ids": ["atalaiador_zenete", "corsario_barbaresco"],
-          "ally_start_cells": [[0, 1], [1, 2]],
-          "enemy_start_cells": [[5, 0], [5, 2], [6, 1], [6, 2]],
+          "enemy_ids": [
+            "atalaiador_zenete",
+            "corsario_barbaresco"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              1,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              0
+            ],
+            [
+              5,
+              2
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              6,
+              2
+            ]
+          ],
           "terrain": {
-            "blocked_cells": [[2, 1], [3, 2]],
-            "water_cells": [[0, 3], [1, 3], [2, 3], [5, 3], [6, 3]],
-            "high_cells": [[4, 0], [5, 0], [6, 0], [4, 1]],
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                2,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ],
+              [
+                4,
+                1
+              ]
+            ],
             "note": "A borda alta sustem a azagaia, mas o convés molhado cobra caro a quem cede o centro."
           }
         },
@@ -356,14 +1438,649 @@
           "intro_text": "Uma barca armada da aduana vem coberta de brasa, ferro e renegados do estreito.",
           "victory_text": "A barca arde e afunda-se, deixando livre a boca do estreito.",
           "defeat_text": "O fogo corre pela borda e obriga a quebrar a travessia.",
-          "enemy_ids": ["renegado_da_aduana", "corsario_barbaresco"],
-          "ally_start_cells": [[0, 1], [0, 2]],
-          "enemy_start_cells": [[5, 1], [5, 2], [6, 0], [6, 1]],
+          "enemy_ids": [
+            "renegado_da_aduana",
+            "corsario_barbaresco"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              1
+            ],
+            [
+              5,
+              2
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              6,
+              1
+            ]
+          ],
           "terrain": {
-            "blocked_cells": [[2, 1], [3, 1], [3, 2]],
-            "water_cells": [[0, 3], [1, 3], [4, 3], [5, 3], [6, 3]],
-            "high_cells": [[4, 0], [5, 0], [6, 0], [4, 1]],
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                1
+              ],
+              [
+                3,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                4,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ],
+              [
+                4,
+                1
+              ]
+            ],
             "note": "O fogo de aduana manda no meio do convés, mas o castelo alto ainda decide a peleja."
+          }
+        }
+      ]
+    },
+    {
+      "id": "rota_sagres_bruma",
+      "from": "sagres",
+      "to": "ilha_bruma",
+      "label": "Lance de Bruma",
+      "description": "Primeiro lanço de mar alto, onde o nevoeiro encobre o rumo.",
+      "travel_kind": "mar_alto",
+      "speed_multiplier": 0.78,
+      "encounter_chance": 0.22,
+      "points": [
+        {
+          "x": 256.0,
+          "y": 888.0
+        },
+        {
+          "x": 340.0,
+          "y": 912.0
+        },
+        {
+          "x": 420.0,
+          "y": 926.0
+        },
+        {
+          "x": 460.0,
+          "y": 930.0
+        }
+      ],
+      "encounters": [
+        {
+          "battle_title": "Neblina de Barbas",
+          "intro_text": "Do nevoeiro saltam corsarios de barba cerrada, sedentos de presa.",
+          "victory_text": "A neblina abre-se e os corsarios fogem sem honra.",
+          "defeat_text": "A emboscada obriga a nau a tornar a Sagres.",
+          "enemy_ids": [
+            "corsario_barbaresco",
+            "corsair_raider"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              0
+            ],
+            [
+              5,
+              2
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              6,
+              2
+            ]
+          ],
+          "terrain": {
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ]
+            ],
+            "note": "A neblina favorece quem toma altura e fecha o flanco cedo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "rota_bruma_sargaco",
+      "from": "ilha_bruma",
+      "to": "ilha_sargaco",
+      "label": "Entre Sargaços",
+      "description": "Mar de sargaco e corrente lenta, que prende o passo e o leme.",
+      "travel_kind": "mar_alto",
+      "speed_multiplier": 0.76,
+      "encounter_chance": 0.24,
+      "points": [
+        {
+          "x": 460.0,
+          "y": 930.0
+        },
+        {
+          "x": 560.0,
+          "y": 940.0
+        },
+        {
+          "x": 650.0,
+          "y": 946.0
+        }
+      ],
+      "encounters": [
+        {
+          "battle_title": "Rede do Sargaco",
+          "intro_text": "Uma rede pesada prende o convés. Corsarios aproveitam-se da vaga lenta.",
+          "victory_text": "A rede corta-se e o sargaco cede a vossa proa.",
+          "defeat_text": "A rede prende-vos e obriga a retornar a ilha anterior.",
+          "enemy_ids": [
+            "corsario_barbaresco",
+            "atalaiador_zenete"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              1
+            ],
+            [
+              5,
+              2
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              6,
+              2
+            ]
+          ],
+          "terrain": {
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                1
+              ],
+              [
+                4,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ]
+            ],
+            "note": "O sargaco prende o passo; quem toma altura dita o ritmo."
+          }
+        }
+      ]
+    },
+    {
+      "id": "rota_sargaco_ceuta",
+      "from": "ilha_sargaco",
+      "to": "ceuta",
+      "label": "Boca do Estreito",
+      "description": "Ultimo lanço ate Ceuta, com vento cruzado e vigias de aduana.",
+      "travel_kind": "mar_alto",
+      "speed_multiplier": 0.72,
+      "encounter_chance": 0.26,
+      "points": [
+        {
+          "x": 650.0,
+          "y": 946.0
+        },
+        {
+          "x": 740.0,
+          "y": 940.0
+        },
+        {
+          "x": 820.0,
+          "y": 936.0
+        },
+        {
+          "x": 900.0,
+          "y": 930.0
+        }
+      ],
+      "encounters": [
+        {
+          "battle_title": "Aduana das Velas Curtas",
+          "intro_text": "Uma barca de aduana tenta fechar-vos o rumo junto ao estreito.",
+          "victory_text": "A aduana perde o tino e a boca do estreito fica livre.",
+          "defeat_text": "A aduana obriga-vos a quebrar o rumo e tornar a ilha.",
+          "enemy_ids": [
+            "renegado_da_aduana",
+            "corsario_barbaresco"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              1
+            ],
+            [
+              5,
+              2
+            ],
+            [
+              6,
+              0
+            ],
+            [
+              6,
+              1
+            ]
+          ],
+          "terrain": {
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                1
+              ],
+              [
+                3,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                4,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ]
+            ],
+            "note": "O vento cruzado favorece quem segura a altura e o centro."
+          }
+        }
+      ]
+    },
+    {
+      "id": "rota_sagres_vera_cruz",
+      "from": "sagres",
+      "to": "terra_vera_cruz",
+      "label": "Derrota do Poente",
+      "description": "Travessia longa para a terra nova alem do mar conhecido.",
+      "travel_kind": "mar_alto",
+      "speed_multiplier": 0.6,
+      "encounter_chance": 0.3,
+      "points": [
+        {
+          "x": 256.0,
+          "y": 888.0
+        },
+        {
+          "x": 230.0,
+          "y": 760.0
+        },
+        {
+          "x": 210.0,
+          "y": 640.0
+        },
+        {
+          "x": 180.0,
+          "y": 560.0
+        },
+        {
+          "x": 160.0,
+          "y": 520.0
+        }
+      ],
+      "encounters": [
+        {
+          "battle_title": "Vento da Volta",
+          "intro_text": "O vento roda e tranca o pano. Corsarios aproveitam o desvio para vos cercar.",
+          "victory_text": "O vento endireita-se e a derrota retoma o rumo do poente.",
+          "defeat_text": "A volta forcada quebra o pano e obriga a recuar.",
+          "enemy_ids": [
+            "corsair_raider",
+            "corsario_barbaresco"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              0
+            ],
+            [
+              5,
+              2
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              6,
+              2
+            ]
+          ],
+          "terrain": {
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                1
+              ],
+              [
+                3,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ]
+            ],
+            "note": "O vento de volta empurra a linha; quem toma altura segura o pano."
+          }
+        },
+        {
+          "battle_title": "Madeira no Leme",
+          "intro_text": "A madeira do leme range e um renegado da aduana tenta tomar o convés.",
+          "victory_text": "A madeira firma-se e o convés volta ao vosso mando.",
+          "defeat_text": "O leme cede e o mar obriga a quebrar o rumo.",
+          "enemy_ids": [
+            "renegado_da_aduana",
+            "atalaiador_zenete"
+          ],
+          "ally_start_cells": [
+            [
+              0,
+              1
+            ],
+            [
+              0,
+              2
+            ]
+          ],
+          "enemy_start_cells": [
+            [
+              5,
+              0
+            ],
+            [
+              5,
+              2
+            ],
+            [
+              6,
+              1
+            ],
+            [
+              6,
+              2
+            ]
+          ],
+          "terrain": {
+            "blocked_cells": [
+              [
+                2,
+                1
+              ],
+              [
+                3,
+                2
+              ]
+            ],
+            "water_cells": [
+              [
+                0,
+                3
+              ],
+              [
+                1,
+                3
+              ],
+              [
+                5,
+                3
+              ],
+              [
+                6,
+                3
+              ]
+            ],
+            "high_cells": [
+              [
+                4,
+                0
+              ],
+              [
+                5,
+                0
+              ],
+              [
+                6,
+                0
+              ],
+              [
+                4,
+                1
+              ]
+            ],
+            "note": "O leme prende o passo; a altura dita o primeiro golpe."
           }
         }
       ]

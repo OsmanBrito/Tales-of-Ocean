@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=2 format=3 uid="uid://ck6020cdp7332"]
 
-[ext_resource type="Script" path="res://scripts/main_menu.gd" id="1"]
+[ext_resource type="Script" uid="uid://1pg2k53veuqr" path="res://scripts/main_menu.gd" id="1"]
 
 [node name="MainMenu" type="Control"]
 layout_mode = 3
@@ -31,6 +31,8 @@ offset_left = -280.0
 offset_top = -220.0
 offset_right = 280.0
 offset_bottom = 220.0
+grow_horizontal = 2
+grow_vertical = 2
 
 [node name="VBox" type="VBoxContainer" parent="Panel"]
 layout_mode = 2
@@ -51,8 +53,8 @@ horizontal_alignment = 1
 [node name="StatusLabel" type="Label" parent="Panel/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
-autowrap_mode = 3
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="NewGameButton" type="Button" parent="Panel/VBox"]
 layout_mode = 2

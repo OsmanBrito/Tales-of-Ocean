@@ -59,7 +59,8 @@ func reset_new_game() -> void:
 		"porto_alliance": "not_started",
 		"luz_de_sagres": "not_started",
 		"roda_de_tomar": "not_started",
-		"porta_de_ceuta": "not_started"
+		"porta_de_ceuta": "not_started",
+		"terra_de_vera_cruz": "not_started"
 	}
 	world_state = {
 		"current_scene": "res://scenes/world/lisboa.tscn",
@@ -68,22 +69,33 @@ func reset_new_game() -> void:
 			"porto": {"x": 300.0, "y": 640.0},
 			"sagres": {"x": 280.0, "y": 640.0},
 			"tomar": {"x": 880.0, "y": 760.0},
-			"ceuta": {"x": 320.0, "y": 710.0}
+			"ceuta": {"x": 320.0, "y": 710.0},
+			"ilha_bruma": {"x": 860.0, "y": 520.0},
+			"ilha_sargaco": {"x": 860.0, "y": 520.0},
+			"terra_vera_cruz": {"x": 860.0, "y": 520.0}
 		},
+		"ocean_state": _build_default_ocean_state(),
 		"overworld_current_node_id": "lisboa",
 		"overworld_origin_scene": "res://scenes/world/lisboa.tscn",
 		"overworld_travel_state": {},
+		"battle_tutorial_seen": false,
 		"bandit_defeated": false,
+		"lisboa_boss_defeated": false,
 		"captain_dialogue_seen": false,
 		"porto_duelist_defeated": false,
 		"porto_mourisco_defeated": false,
+		"porto_boss_defeated": false,
 		"joao_recruited": false,
 		"sagres_corsair_defeated": false,
 		"sagres_bombard_defeated": false,
+		"sagres_boss_defeated": false,
 		"tomar_claustro_purged": false,
 		"tomar_nabao_purged": false,
+		"tomar_boss_defeated": false,
 		"ceuta_marina_secured": false,
-		"ceuta_alcacova_secured": false
+		"ceuta_alcacova_secured": false,
+		"ceuta_boss_defeated": false,
+		"vera_cruz_boss_defeated": false
 	}
 	current_battle_context = {}
 	last_battle_outcome = ""
@@ -207,6 +219,37 @@ func get_player_equipped_skills() -> Array[String]:
 	return skills
 
 
+func get_member_xp_progress(member_id: String) -> Dictionary:
+	if member_id == "pembah":
+		return get_player_xp_progress()
+	var member: Dictionary = get_companion(member_id)
+	if member.is_empty():
+		return {"current": 0, "needed": 0, "total": 0}
+	var level: int = int(member.get("level", 1))
+	var current_floor: int = _xp_required_for_level(level)
+	var next_goal: int = _xp_required_for_level(level + 1)
+	var total_xp: int = int(member.get("xp", 0))
+	return {
+		"current": total_xp - current_floor,
+		"needed": next_goal - current_floor,
+		"total": total_xp
+	}
+
+
+func get_member_learned_skills(member_id: String) -> Array[String]:
+	if member_id == "pembah":
+		return get_player_learned_skills()
+	var member: Dictionary = get_companion(member_id)
+	return _to_string_array(member.get("learned_skills", member.get("skills", [])))
+
+
+func get_member_equipped_skills(member_id: String) -> Array[String]:
+	if member_id == "pembah":
+		return get_player_equipped_skills()
+	var member: Dictionary = get_companion(member_id)
+	return _to_string_array(member.get("equipped_skills", member.get("skills", [])))
+
+
 func get_player_learned_passives() -> Array[String]:
 	var passives: Array[String] = []
 	for raw_passive_id in get_player().get("learned_passives", []):
@@ -253,6 +296,14 @@ func can_buy_item(item_id: String, price: int, quantity: int = 1) -> Dictionary:
 			return {"ok": false, "reason": "Pembah ja assimilou essa passiva."}
 		if get_item_quantity(item_id) > 0:
 			return {"ok": false, "reason": "Ja tendes esse manual no bornal."}
+	elif item_type == "ocean_supply":
+		var ocean: Dictionary = _ensure_ocean_state()
+		if int(ocean.get("supplies", 0)) >= int(ocean.get("supplies_max", 0)):
+			return {"ok": false, "reason": "Os poroes ja estao bem abastecidos."}
+	elif item_type == "ocean_repair":
+		var ocean: Dictionary = _ensure_ocean_state()
+		if int(ocean.get("ship", 0)) >= int(ocean.get("ship_max", 0)):
+			return {"ok": false, "reason": "O casco ja esta firme e seguro."}
 
 	return {"ok": true, "reason": "Podeis comprar %s." % item.get("name", item_id)}
 
@@ -264,6 +315,28 @@ func buy_item(item_id: String, price: int, quantity: int = 1) -> Dictionary:
 
 	var item: Dictionary = item_defs.get(item_id, {})
 	var total_price: int = max(0, price) * quantity
+	var item_type: String = str(item.get("type", ""))
+	if item_type == "ocean_supply" or item_type == "ocean_repair":
+		var ocean: Dictionary = _ensure_ocean_state()
+		if item_type == "ocean_supply":
+			var gain: int = int(item.get("supplies_gain", 0)) * quantity
+			var supplies_max: int = int(ocean.get("supplies_max", 0))
+			ocean["supplies"] = min(supplies_max, int(ocean.get("supplies", 0)) + gain)
+			ocean["last_event"] = "Mantimentos renovados em terra."
+			_set_ocean_state(ocean)
+			gold -= total_price
+			state_changed.emit()
+			return {"ok": true, "reason": "Reabastecestes a nau por %d de oiro." % total_price}
+		if item_type == "ocean_repair":
+			var repair: int = int(item.get("ship_gain", 0)) * quantity
+			var ship_max: int = int(ocean.get("ship_max", 0))
+			ocean["ship"] = min(ship_max, int(ocean.get("ship", 0)) + repair)
+			ocean["last_event"] = "Calafeto e madeira firme reforcam o casco."
+			_set_ocean_state(ocean)
+			gold -= total_price
+			state_changed.emit()
+			return {"ok": true, "reason": "Reparastes o casco por %d de oiro." % total_price}
+
 	gold -= total_price
 	add_item(item_id, quantity)
 	state_changed.emit()
@@ -408,6 +481,40 @@ func toggle_player_passive_equip(passive_id: String) -> Dictionary:
 	return {"ok": true, "reason": "%s passa a guiar Pembah." % passive_name}
 
 
+func toggle_member_skill_equip(member_id: String, skill_id: String) -> Dictionary:
+	if member_id == "pembah":
+		return toggle_player_skill_equip(skill_id)
+
+	var companion: Dictionary = get_companion(member_id)
+	if companion.is_empty():
+		return {"ok": false, "reason": "Nao ha companheiro para aparelhar."}
+
+	var companion_name: String = str(companion.get("name", member_id))
+	var learned_skills: Array[String] = _to_string_array(companion.get("learned_skills", companion.get("skills", [])))
+	if not learned_skills.has(skill_id):
+		return {"ok": false, "reason": "%s nao conhece essa arte." % companion_name}
+
+	var equipped_skills: Array[String] = _to_string_array(companion.get("equipped_skills", companion.get("skills", [])))
+	var skill_name: String = str(skill_defs.get(skill_id, {}).get("name", skill_id))
+	if equipped_skills.has(skill_id):
+		equipped_skills.erase(skill_id)
+		companion["equipped_skills"] = equipped_skills
+		companion["skills"] = equipped_skills.duplicate(true)
+		party[member_id] = companion
+		state_changed.emit()
+		return {"ok": true, "reason": "%s baixa %s." % [companion_name, skill_name]}
+
+	if equipped_skills.size() >= ACTIVE_SKILL_LIMIT:
+		return {"ok": false, "reason": "%s nao pode levar mais artes." % companion_name}
+
+	equipped_skills.append(skill_id)
+	companion["equipped_skills"] = equipped_skills
+	companion["skills"] = equipped_skills.duplicate(true)
+	party[member_id] = companion
+	state_changed.emit()
+	return {"ok": true, "reason": "%s passa a levar %s." % [companion_name, skill_name]}
+
+
 func award_player_xp(amount: int) -> void:
 	if amount <= 0:
 		return
@@ -518,6 +625,28 @@ func _normalize_player_data(player: Dictionary) -> Dictionary:
 	return _recalculate_player_stats(player, true)
 
 
+func _normalize_companion_data(companion: Dictionary) -> Dictionary:
+	var learned_skills: Array[String] = _to_string_array(companion.get("learned_skills", companion.get("skills", [])))
+	if learned_skills.is_empty():
+		learned_skills = _to_string_array(companion.get("skills", []))
+	companion["learned_skills"] = learned_skills
+
+	var equipped_skills: Array[String] = _to_string_array(companion.get("equipped_skills", companion.get("skills", [])))
+	if equipped_skills.is_empty():
+		equipped_skills = learned_skills.duplicate(true)
+	else:
+		var filtered: Array[String] = []
+		for skill_id in equipped_skills:
+			if learned_skills.has(skill_id) and not filtered.has(skill_id):
+				filtered.append(skill_id)
+		equipped_skills = filtered
+
+	companion["equipped_skills"] = equipped_skills.slice(0, ACTIVE_SKILL_LIMIT)
+	companion["skills"] = companion["equipped_skills"].duplicate(true)
+	companion["defending"] = companion.get("defending", false)
+	return companion
+
+
 func _recalculate_player_stats(player: Dictionary, preserve_progress: bool) -> Dictionary:
 	var previous_max_hp: int = int(player.get("max_hp", player.get("base_max_hp", 120)))
 	var previous_max_sp: int = int(player.get("max_sp", player.get("base_max_sp", 40)))
@@ -593,6 +722,9 @@ func recruit_companion(companion_id: String) -> void:
 	companion["hp"] = companion.get("max_hp", 0)
 	companion["sp"] = companion.get("max_sp", 0)
 	companion["defending"] = false
+	companion["learned_skills"] = _to_string_array(companion.get("skills", []))
+	companion["equipped_skills"] = companion["learned_skills"].slice(0, ACTIVE_SKILL_LIMIT)
+	companion["skills"] = companion["equipped_skills"].duplicate(true)
 	party[companion_id] = companion
 	party_order.append(companion_id)
 	if companion_id == "joao":
@@ -612,6 +744,19 @@ func update_scene_position(scene_id: String, position: Vector2) -> void:
 	var scene_positions: Dictionary = world_state.get("scene_positions", {})
 	scene_positions[scene_id] = {"x": position.x, "y": position.y}
 	world_state["scene_positions"] = scene_positions
+
+
+func get_ocean_state() -> Dictionary:
+	return world_state.get("ocean_state", {})
+
+
+func _set_ocean_state(state: Dictionary) -> void:
+	world_state["ocean_state"] = state
+
+
+func set_ocean_state(state: Dictionary) -> void:
+	_set_ocean_state(state)
+	state_changed.emit()
 
 
 func set_overworld_current_node(node_id: String) -> void:
@@ -862,7 +1007,7 @@ func _ensure_runtime_defaults() -> void:
 	if party.has("joao") and not party_order.has("joao"):
 		party_order.append("joao")
 	if party.has("joao"):
-		party["joao"] = _merge_member_defaults(companion_defs.get("joao", {}), party["joao"])
+		party["joao"] = _normalize_companion_data(_merge_member_defaults(companion_defs.get("joao", {}), party["joao"]))
 	if not quest_states.has("first_voyage"):
 		quest_states["first_voyage"] = "not_started"
 	if not quest_states.has("porto_alliance"):
@@ -873,14 +1018,20 @@ func _ensure_runtime_defaults() -> void:
 		quest_states["roda_de_tomar"] = "not_started"
 	if not quest_states.has("porta_de_ceuta"):
 		quest_states["porta_de_ceuta"] = "not_started"
+	if not quest_states.has("terra_de_vera_cruz"):
+		quest_states["terra_de_vera_cruz"] = "not_started"
 	if not world_state.has("current_scene"):
 		world_state["current_scene"] = "res://scenes/world/lisboa.tscn"
 	if not world_state.has("scene_positions"):
 		world_state["scene_positions"] = {}
+	if not world_state.has("ocean_state"):
+		world_state["ocean_state"] = _build_default_ocean_state()
 	if not world_state.has("overworld_current_node_id"):
 		world_state["overworld_current_node_id"] = "lisboa"
 	if not world_state.has("overworld_origin_scene"):
 		world_state["overworld_origin_scene"] = "res://scenes/world/lisboa.tscn"
+	if not world_state.has("battle_tutorial_seen"):
+		world_state["battle_tutorial_seen"] = false
 	if not world_state.has("overworld_travel_state"):
 		world_state["overworld_travel_state"] = {}
 
@@ -895,24 +1046,65 @@ func _ensure_runtime_defaults() -> void:
 		scene_positions["tomar"] = {"x": 880.0, "y": 760.0}
 	if not scene_positions.has("ceuta"):
 		scene_positions["ceuta"] = {"x": 320.0, "y": 710.0}
+	if not scene_positions.has("ilha_bruma"):
+		scene_positions["ilha_bruma"] = {"x": 860.0, "y": 520.0}
+	if not scene_positions.has("ilha_sargaco"):
+		scene_positions["ilha_sargaco"] = {"x": 860.0, "y": 520.0}
+	if not scene_positions.has("terra_vera_cruz"):
+		scene_positions["terra_vera_cruz"] = {"x": 860.0, "y": 520.0}
 	if not world_state.has("bandit_defeated"):
 		world_state["bandit_defeated"] = false
+	if not world_state.has("lisboa_boss_defeated"):
+		world_state["lisboa_boss_defeated"] = false
 	if not world_state.has("porto_duelist_defeated"):
 		world_state["porto_duelist_defeated"] = false
 	if not world_state.has("porto_mourisco_defeated"):
 		world_state["porto_mourisco_defeated"] = false
+	if not world_state.has("porto_boss_defeated"):
+		world_state["porto_boss_defeated"] = false
 	if not world_state.has("sagres_corsair_defeated"):
 		world_state["sagres_corsair_defeated"] = false
 	if not world_state.has("sagres_bombard_defeated"):
 		world_state["sagres_bombard_defeated"] = false
+	if not world_state.has("sagres_boss_defeated"):
+		world_state["sagres_boss_defeated"] = false
 	if not world_state.has("tomar_claustro_purged"):
 		world_state["tomar_claustro_purged"] = false
 	if not world_state.has("tomar_nabao_purged"):
 		world_state["tomar_nabao_purged"] = false
+	if not world_state.has("tomar_boss_defeated"):
+		world_state["tomar_boss_defeated"] = false
 	if not world_state.has("ceuta_marina_secured"):
 		world_state["ceuta_marina_secured"] = false
 	if not world_state.has("ceuta_alcacova_secured"):
 		world_state["ceuta_alcacova_secured"] = false
+	if not world_state.has("ceuta_boss_defeated"):
+		world_state["ceuta_boss_defeated"] = false
+	if not world_state.has("vera_cruz_boss_defeated"):
+		world_state["vera_cruz_boss_defeated"] = false
 	if not world_state.has("joao_recruited"):
 		world_state["joao_recruited"] = party.has("joao")
 	world_state["scene_positions"] = scene_positions
+
+
+func _ensure_ocean_state() -> Dictionary:
+	var ocean: Dictionary = world_state.get("ocean_state", {})
+	if ocean.is_empty():
+		ocean = _build_default_ocean_state()
+		world_state["ocean_state"] = ocean
+	return ocean
+
+
+func _build_default_ocean_state() -> Dictionary:
+	return {
+		"supplies": 100,
+		"supplies_max": 100,
+		"ship": 100,
+		"ship_max": 100,
+		"wind": "manso",
+		"wind_label": "Manso",
+		"wind_speed": 1.0,
+		"days": 0,
+		"last_event": "A nau repousa em porto seguro.",
+		"event_log": []
+	}

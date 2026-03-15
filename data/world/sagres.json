@@ -19,6 +19,29 @@
       }
     },
     {
+      "id": "capitao_do_poente",
+      "type": "dialogue",
+      "label": "Capitao do Poente",
+      "prompt": "Carrega E para falar com o Capitao do Poente.",
+      "position": { "x": 980.0, "y": 260.0 },
+      "radius": 92.0,
+      "draw_radius": 24.0,
+      "color": "3f6c8a",
+      "conditions": {
+        "quest_state": {
+          "porta_de_ceuta": ["completed"]
+        }
+      },
+      "dialogues_by_quest_state": {
+        "terra_de_vera_cruz": {
+          "not_started": "poente_inicio",
+          "active": "poente_em_curso",
+          "ready_to_turn_in": "poente_em_curso",
+          "completed": "poente_fecho"
+        }
+      }
+    },
+    {
       "id": "merceeira_beatriz",
       "type": "shop",
       "label": "Beatriz da Ribeira",
@@ -121,6 +144,50 @@
             "type": "set_flag",
             "flag": "sagres_bombard_defeated",
             "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "mestre_do_nevoeiro",
+      "type": "encounter",
+      "label": "Mestre do Nevoeiro",
+      "prompt": "Carrega E para enfrentar o Mestre do Nevoeiro.",
+      "position": { "x": 1660.0, "y": 460.0 },
+      "radius": 104.0,
+      "draw_radius": 32.0,
+      "color": "2f1f2e",
+      "conditions": {
+        "quest_state": {
+          "luz_de_sagres": ["active"]
+        },
+        "world_flags": {
+          "sagres_corsair_defeated": true,
+          "sagres_bombard_defeated": true,
+          "sagres_boss_defeated": false
+        }
+      },
+      "battle": {
+        "enemy_ids": ["mestre_do_nevoeiro", "corsair_raider"],
+        "return_scene": "res://scenes/world/sagres.tscn",
+        "return_button_text": "Tornar a Sagres",
+        "battle_title": "Coroa do Promontorio",
+        "intro_text": "O Mestre do Nevoeiro sobe a crista e fecha o mar com arte e engano.",
+        "victory_text": "O nevoeiro cede e o promontorio volta a ter luz franca.",
+        "defeat_text": "O nevoeiro tolda-vos o passo. Tornai com novo intento.",
+        "ally_start_cells": [[0, 1], [0, 2]],
+        "enemy_start_cells": [[5, 0], [5, 1], [6, 1], [6, 2]],
+        "terrain": {
+          "blocked_cells": [[2, 1], [3, 1], [3, 2]],
+          "water_cells": [[0, 3], [1, 3], [5, 3], [6, 3]],
+          "high_cells": [[4, 0], [5, 0], [6, 0], [4, 1]],
+          "note": "A crista manda no vento e no fogo; quem a toma dita o rumo."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "sagres_boss_defeated",
+            "value": true
           },
           {
             "type": "set_quest_state",
@@ -135,7 +202,7 @@
     {
       "id": "lourenco_inicio",
       "speaker": "Mestre Lourenco",
-      "text": "Sagres nao guarda so pedra e vento; guarda rumo. Os corsarios do nevoeiro toldaram-nos a costa, tomaram a atalaia quebrada e acenderam alcatrao onde devia arder luz de aviso. Se limpares o promontorio, abrirei a Pembah os livros maiores da irmandade.",
+      "text": "Sagres nao guarda so pedra e vento; guarda rumo. Os corsarios do nevoeiro toldaram-nos a costa, tomaram a atalaia quebrada e acenderam alcatrao onde devia arder luz de aviso. Depois deles, o Mestre do Nevoeiro fecha a crista. Se limpares o promontorio e o derrubares, abrirei a Pembah os livros maiores da irmandade.",
       "primary_label": "Aceitar servico",
       "secondary_label": "Fechar",
       "actions": [
@@ -148,7 +215,7 @@
     {
       "id": "lourenco_em_curso",
       "speaker": "Mestre Lourenco",
-      "text": "Primeiro a Atalaia Quebrada; depois a Bateria do Alcatrao. So com ambas limpas podera o farol falar de novo ao mar.",
+      "text": "Primeiro a Atalaia Quebrada; depois a Bateria do Alcatrao. Quando ambas cairem, o Mestre do Nevoeiro subira a crista. So entao o farol falara de novo ao mar.",
       "secondary_label": "Prosseguir"
     },
     {
@@ -178,6 +245,40 @@
       "speaker": "Peregrino das Cartas",
       "text": "Ha cartas que mostram costa e ha cartas que mostram homens. As segundas mudam mais depressa, por isso exigem melhor juizo.",
       "secondary_label": "Agradecer"
+    },
+    {
+      "id": "poente_inicio",
+      "speaker": "Capitao do Poente",
+      "text": "Com o estreito seguro, Sagres volta o olhar para o poente. El-Rei quer medir a terra nova e erguer o padrao da Vera Cruz. Se estais pronto, largai comigo.",
+      "primary_label": "Largar para o poente",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "start_quest",
+          "quest_id": "terra_de_vera_cruz"
+        },
+        {
+          "type": "open_overworld_map"
+        }
+      ]
+    },
+    {
+      "id": "poente_em_curso",
+      "speaker": "Capitao do Poente",
+      "text": "A derrota do poente aguarda. O mar alto cobrara o que prometeu, e so na terra nova ficara selada a vossa promessa.",
+      "primary_label": "Abrir carta",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "open_overworld_map"
+        }
+      ]
+    },
+    {
+      "id": "poente_fecho",
+      "speaker": "Capitao do Poente",
+      "text": "A Vera Cruz ficou medida e o mar alto conhece agora o vosso nome.",
+      "secondary_label": "Prosseguir"
     }
   ],
   "shops": [
@@ -204,6 +305,33 @@
           "conditions": {
             "quest_state": {
               "luz_de_sagres": ["active", "ready_to_turn_in", "completed"]
+            }
+          }
+        },
+        {
+          "item_id": "manual_luz_do_cabo",
+          "price": 220,
+          "conditions": {
+            "quest_state": {
+              "luz_de_sagres": ["active", "ready_to_turn_in", "completed"]
+            }
+          }
+        },
+        {
+          "item_id": "manual_grito_da_vigia",
+          "price": 230,
+          "conditions": {
+            "quest_state": {
+              "luz_de_sagres": ["completed"]
+            }
+          }
+        },
+        {
+          "item_id": "manual_chama_do_farol",
+          "price": 230,
+          "conditions": {
+            "quest_state": {
+              "luz_de_sagres": ["completed"]
             }
           }
         }

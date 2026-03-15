@@ -18,6 +18,7 @@ const TRAVEL_MAP_PATH := "res://data/world/travel_map.json"
 @onready var inventory_panel: PanelContainer = %InventoryPanel
 @onready var inventory_text: RichTextLabel = %InventoryText
 @onready var character_panel: PanelContainer = %CharacterPanel
+@onready var character_filter_row = get_node_or_null("CanvasLayer/CharacterPanel/CharacterVBox/CharacterFilterRow")
 @onready var build_school_filter: OptionButton = %BuildSchoolFilter
 @onready var build_quality_filter: OptionButton = %BuildQualityFilter
 @onready var build_state_filter: OptionButton = %BuildStateFilter
@@ -25,6 +26,7 @@ const TRAVEL_MAP_PATH := "res://data/world/travel_map.json"
 @onready var character_summary_text: RichTextLabel = %CharacterSummaryText
 @onready var character_build_list: VBoxContainer = %CharacterBuildList
 @onready var character_manual_list: VBoxContainer = %CharacterManualList
+@onready var character_content = get_node_or_null("CanvasLayer/CharacterPanel/CharacterVBox/CharacterScroll/CharacterContent")
 @onready var character_inventory_text: RichTextLabel = %CharacterInventoryText
 @onready var character_footer_label: Label = %CharacterFooterLabel
 @onready var shop_panel: PanelContainer = %ShopPanel
@@ -49,6 +51,11 @@ var character_school_filter_value: String = "all"
 var character_quality_filter_value: String = "all"
 var character_build_filter_value: String = "all"
 var character_manual_filter_value: String = "all"
+var character_focus_id: String = "pembah"
+var character_focus_select
+var companion_column
+var companion_summary_text
+var companion_skill_list
 
 
 func _ready() -> void:
@@ -61,6 +68,8 @@ func _ready() -> void:
 	player.position = GameState.get_scene_position(scene_id, default_spawn_position)
 	GameState.state_changed.connect(_refresh_ui)
 	GameState.inventory_changed.connect(_refresh_inventory)
+	_ensure_character_focus_selector()
+	_ensure_companion_panel()
 	_setup_character_filters()
 	_refresh_ui()
 	_refresh_inventory()
@@ -330,7 +339,14 @@ func _update_prompt() -> void:
 		prompt_label.text = "Mercado aberto  |  Esgotai o oiro com tento  |  Fechar no painel"
 		return
 	if character_panel.visible:
-		prompt_label.text = "Personagem aberta  |  C fechar  |  Estudar, equipar e ordenar a via de Pembah"
+		var focus_id: String = _get_focus_member_id()
+		var focus_name: String = "Pembah"
+		if focus_id != "pembah":
+			focus_name = str(GameState.get_companion(focus_id).get("name", focus_id))
+		prompt_label.text = "Personagem aberta  |  C fechar  |  Ordenai as artes de %s" % focus_name
+		return
+	if inventory_panel.visible:
+		prompt_label.text = "Inventario aberto  |  I fechar  |  Consultai os bens e provisoes"
 		return
 
 	var interactable: Dictionary = _find_nearest_interactable()
@@ -424,7 +440,7 @@ func _toggle_character_panel() -> void:
 		pause_panel.visible = false
 		shop_panel.visible = false
 		if character_status_message.is_empty():
-			character_status_message = "Ordenai as artes, passivas e manuais de Pembah."
+			character_status_message = "Ordenai as artes, passivas e manuais da vossa companhia."
 		_refresh_character_panel()
 
 
@@ -551,17 +567,202 @@ func _refresh_ui() -> void:
 
 
 func _refresh_inventory() -> void:
-	var lines: Array[String] = ["[b]Inventario[/b]"]
+	var lines: Array = [
+		"[b]Inventario[/b]",
+		"Oiro: %d" % GameState.gold,
+		""
+	]
+
+	var grouped: Dictionary = {}
 	for raw_stack in GameState.inventory:
 		var stack: Dictionary = raw_stack
-		var item: Dictionary = GameState.item_defs.get(stack["id"], {})
-		lines.append("%s x%d" % [item.get("name", stack["id"]), stack["quantity"]])
-	if lines.size() == 1:
+		var item_id: String = str(stack.get("id", ""))
+		var item: Dictionary = GameState.item_defs.get(item_id, {})
+		var item_type: String = str(item.get("type", "misc"))
+		if not grouped.has(item_type):
+			grouped[item_type] = []
+		grouped[item_type].append({"item": item, "stack": stack})
+
+	var type_order: Array = [
+		"consumable",
+		"accessory",
+		"ocean_supply",
+		"ocean_repair",
+		"manual_skill",
+		"manual_passive",
+		"misc"
+	]
+	var type_labels: Dictionary = {
+		"consumable": "Consumiveis",
+		"accessory": "Acessorios",
+		"ocean_supply": "Mantimentos de Mar",
+		"ocean_repair": "Reparos de Casco",
+		"manual_skill": "Manuais de Arte",
+		"manual_passive": "Manuais de Passiva",
+		"misc": "Outros"
+	}
+
+	var has_items: bool = false
+	for item_type in type_order:
+		if not grouped.has(item_type):
+			continue
+		var entries: Array = grouped[item_type]
+		if entries.is_empty():
+			continue
+		has_items = true
+		lines.append("[b]%s[/b]" % type_labels.get(item_type, "Outros"))
+		for entry in entries:
+			var item: Dictionary = entry.get("item", {})
+			var stack: Dictionary = entry.get("stack", {})
+			lines.append("- %s x%d" % [item.get("name", stack.get("id", "")), stack.get("quantity", 0)])
+		lines.append("")
+
+	if not has_items:
 		lines.append("Vazio")
-	lines.append("\nOs manuais podem ser estudados no ecra de Personagem.")
+	lines.append("Os manuais podem ser estudados no ecra de Personagem.")
 	inventory_text.text = "\n".join(lines)
 	_refresh_character_panel()
 	_refresh_shop_panel()
+
+
+func _ensure_character_focus_selector() -> void:
+	if character_filter_row == null:
+		return
+	var existing = character_filter_row.get_node_or_null("CharacterFocus")
+	if existing == null:
+		existing = OptionButton.new()
+		existing.name = "CharacterFocus"
+		existing.custom_minimum_size = Vector2(180.0, 0.0)
+		character_filter_row.add_child(existing)
+		character_filter_row.move_child(existing, 0)
+		existing.item_selected.connect(_on_character_focus_item_selected)
+	character_focus_select = existing
+
+
+func _ensure_companion_panel() -> void:
+	if character_content == null:
+		return
+	var existing = character_content.get_node_or_null("CompanionColumn")
+	if existing == null:
+		existing = VBoxContainer.new()
+		existing.name = "CompanionColumn"
+		existing.custom_minimum_size = Vector2(280.0, 0.0)
+		existing.add_theme_constant_override("separation", 8)
+
+		var title = Label.new()
+		title.text = "Companheiro"
+		title.add_theme_font_size_override("font_size", 20)
+		existing.add_child(title)
+
+		var summary := RichTextLabel.new()
+		summary.name = "CompanionSummary"
+		summary.bbcode_enabled = true
+		summary.fit_content = true
+		summary.scroll_active = false
+		summary.custom_minimum_size = Vector2(260.0, 0.0)
+		existing.add_child(summary)
+
+		var list := VBoxContainer.new()
+		list.name = "CompanionSkills"
+		list.add_theme_constant_override("separation", 8)
+		existing.add_child(list)
+
+		character_content.add_child(existing)
+	if companion_summary_text == null:
+		companion_summary_text = existing.get_node_or_null("CompanionSummary")
+	if companion_skill_list == null:
+		companion_skill_list = existing.get_node_or_null("CompanionSkills")
+	companion_column = existing
+
+
+func _refresh_character_focus_options() -> void:
+	if character_focus_select == null:
+		return
+	var focus_options: Array = [
+		{"label": "Pembah", "value": "pembah"}
+	]
+	if GameState.has_companion("joao"):
+		focus_options.append({"label": "Joao Tempestade", "value": "joao"})
+	if character_focus_id != "pembah" and not GameState.has_companion(character_focus_id):
+		character_focus_id = "pembah"
+	_rebuild_option_button(character_focus_select, focus_options, character_focus_id)
+
+
+func _on_character_focus_item_selected(index: int) -> void:
+	if character_focus_select == null:
+		return
+	character_focus_id = str(character_focus_select.get_item_metadata(index))
+	character_status_message = ""
+	_refresh_character_panel()
+
+
+func _get_focus_member_id() -> String:
+	if character_focus_id != "pembah" and not GameState.has_companion(character_focus_id):
+		return "pembah"
+	return character_focus_id
+
+
+func _refresh_companion_panel() -> void:
+	if companion_column == null or companion_summary_text == null or companion_skill_list == null:
+		return
+
+	for child in companion_skill_list.get_children():
+		child.queue_free()
+
+	if not GameState.has_companion("joao"):
+		companion_summary_text.text = "[b]Sem companheiro[/b]\nNenhum aliado segue a vossa nau."
+		return
+
+	var companion: Dictionary = GameState.get_companion("joao")
+	var xp_progress: Dictionary = GameState.get_member_xp_progress("joao")
+	var equipped_skills: Array = GameState.get_member_equipped_skills("joao")
+	var learned_skills: Array = GameState.get_member_learned_skills("joao")
+
+	var summary_lines: Array = [
+		"[b]%s[/b]" % companion.get("name", "Companheiro"),
+		"%s" % companion.get("role", "Companheiro"),
+		"",
+		"Nv.%d  |  XP %d/%d" % [
+			companion.get("level", 1),
+			xp_progress.get("current", 0),
+			xp_progress.get("needed", 0)
+		],
+		"Saude %d/%d" % [companion.get("hp", 0), companion.get("max_hp", 0)],
+		"Espirito %d/%d" % [companion.get("sp", 0), companion.get("max_sp", 0)],
+		"ATQ %d  |  DEF %d  |  VEL %d" % [
+			companion.get("atk", 0),
+			companion.get("def", 0),
+			companion.get("spd", 0)
+		],
+		"Artes equipadas: %d/%d" % [equipped_skills.size(), GameState.get_active_skill_limit()]
+	]
+	companion_summary_text.text = "\n".join(summary_lines)
+
+	var title = Label.new()
+	title.text = "Artes do companheiro"
+	title.add_theme_font_size_override("font_size", 18)
+	companion_skill_list.add_child(title)
+
+	for skill_id in learned_skills:
+		var skill: Dictionary = GameState.skill_defs.get(skill_id, {})
+		if skill.is_empty():
+			continue
+
+		var button: Button = Button.new()
+		button.custom_minimum_size = Vector2(0.0, 52.0)
+		var equipped_text: String = "Retirar" if equipped_skills.has(skill_id) else "Equipar"
+		var status_marker: String = _status_marker_for_skill(skill)
+		button.text = "%s: %s%s\n%s | %s" % [
+			equipped_text,
+			skill.get("name", skill_id),
+			status_marker,
+			skill.get("school", "Arte sem escola"),
+			_quality_name(str(skill.get("quality", "white")))
+		]
+		button.tooltip_text = skill.get("description", "")
+		_apply_rarity_button_theme(button, str(skill.get("quality", "white")))
+		button.pressed.connect(_on_character_skill_button_pressed.bind(skill_id, "joao"))
+		companion_skill_list.add_child(button)
 
 
 func _setup_character_filters() -> void:
@@ -569,7 +770,8 @@ func _setup_character_filters() -> void:
 
 
 func _refresh_character_filters() -> void:
-	var school_options: Array[Dictionary] = [{"label": "Todas as escolas", "value": "all"}]
+	_refresh_character_focus_options()
+	var school_options: Array = [{"label": "Todas as escolas", "value": "all"}]
 	for school_name in _collect_character_school_options():
 		school_options.append({"label": school_name, "value": school_name})
 	_rebuild_option_button(build_school_filter, school_options, character_school_filter_value)
@@ -595,36 +797,44 @@ func _refresh_character_filters() -> void:
 		{"label": "So estudaveis", "value": "studyable"},
 		{"label": "Acima do nivel", "value": "above_level"}
 	], character_manual_filter_value)
+	manual_state_filter.disabled = _get_focus_member_id() != "pembah"
 
 
-func _collect_character_school_options() -> Array[String]:
-	var schools: Array[String] = []
-	for school_name in GameState.get_player_known_schools():
-		if not schools.has(school_name):
-			schools.append(school_name)
+func _collect_character_school_options() -> Array:
+	var schools: Array = []
+	var focus_id: String = _get_focus_member_id()
+	if focus_id == "pembah":
+		for school_name in GameState.get_player_known_schools():
+			if not schools.has(school_name):
+				schools.append(school_name)
 
-	for skill_id in GameState.get_player_learned_skills():
-		var school_name: String = str(GameState.skill_defs.get(skill_id, {}).get("school", ""))
-		if not school_name.is_empty() and not schools.has(school_name):
-			schools.append(school_name)
+		for skill_id in GameState.get_player_learned_skills():
+			var school_name: String = str(GameState.skill_defs.get(skill_id, {}).get("school", ""))
+			if not school_name.is_empty() and not schools.has(school_name):
+				schools.append(school_name)
 
-	for passive_id in GameState.get_player_learned_passives():
-		var school_name: String = str(GameState.passive_defs.get(passive_id, {}).get("school", ""))
-		if not school_name.is_empty() and not schools.has(school_name):
-			schools.append(school_name)
+		for passive_id in GameState.get_player_learned_passives():
+			var school_name: String = str(GameState.passive_defs.get(passive_id, {}).get("school", ""))
+			if not school_name.is_empty() and not schools.has(school_name):
+				schools.append(school_name)
 
-	for raw_stack in GameState.inventory:
-		var stack: Dictionary = raw_stack
-		var item: Dictionary = GameState.item_defs.get(stack.get("id", ""), {})
-		var school_name: String = str(item.get("school", ""))
-		if not school_name.is_empty() and not schools.has(school_name):
-			schools.append(school_name)
+		for raw_stack in GameState.inventory:
+			var stack: Dictionary = raw_stack
+			var item: Dictionary = GameState.item_defs.get(stack.get("id", ""), {})
+			var school_name: String = str(item.get("school", ""))
+			if not school_name.is_empty() and not schools.has(school_name):
+				schools.append(school_name)
+	else:
+		for skill_id in GameState.get_member_learned_skills(focus_id):
+			var school_name: String = str(GameState.skill_defs.get(skill_id, {}).get("school", ""))
+			if not school_name.is_empty() and not schools.has(school_name):
+				schools.append(school_name)
 
 	schools.sort()
 	return schools
 
 
-func _rebuild_option_button(button: OptionButton, options: Array[Dictionary], selected_value: String) -> void:
+func _rebuild_option_button(button: OptionButton, options: Array, selected_value: String) -> void:
 	button.clear()
 	var selected_index: int = 0
 	for option_index in range(options.size()):
@@ -639,33 +849,43 @@ func _rebuild_option_button(button: OptionButton, options: Array[Dictionary], se
 func _refresh_character_panel() -> void:
 	_refresh_character_filters()
 
-	var player_data: Dictionary = GameState.get_player()
-	var xp_progress: Dictionary = GameState.get_player_xp_progress()
-	var schools: Array[String] = GameState.get_player_known_schools()
-	var equipped_skills: Array[String] = GameState.get_player_equipped_skills()
-	var learned_skills: Array[String] = GameState.get_player_learned_skills()
-	var equipped_passives: Array[String] = GameState.get_player_equipped_passives()
-	var learned_passives: Array[String] = GameState.get_player_learned_passives()
+	var focus_id: String = _get_focus_member_id()
+	var is_player: bool = focus_id == "pembah"
+	var focus_data: Dictionary = GameState.get_player() if is_player else GameState.get_companion(focus_id)
+	var xp_progress: Dictionary = GameState.get_member_xp_progress(focus_id)
+	var equipped_skills: Array = GameState.get_member_equipped_skills(focus_id)
+	var learned_skills: Array = GameState.get_member_learned_skills(focus_id)
+	var equipped_passives: Array = GameState.get_player_equipped_passives() if is_player else []
+	var learned_passives: Array = GameState.get_player_learned_passives() if is_player else []
+	var schools: Array = []
+	if is_player:
+		schools = GameState.get_player_known_schools()
+	else:
+		for skill_id in learned_skills:
+			var school_name: String = str(GameState.skill_defs.get(skill_id, {}).get("school", ""))
+			if not school_name.is_empty() and not schools.has(school_name):
+				schools.append(school_name)
+		schools.sort()
 
-	var summary_lines: Array[String] = [
-		"[b]Pembah[/b]",
-		"%s" % player_data.get("role", "Navegador"),
+	var summary_lines: Array = [
+		"[b]%s[/b]" % focus_data.get("name", "Companheiro"),
+		"%s" % focus_data.get("role", "Companheiro"),
 		"",
 		"Nv.%d  |  XP %d/%d" % [
-			player_data.get("level", 1),
+			focus_data.get("level", 1),
 			xp_progress.get("current", 0),
 			xp_progress.get("needed", 0)
 		],
-		"Saude %d/%d" % [player_data.get("hp", 0), player_data.get("max_hp", 0)],
-		"Espirito %d/%d" % [player_data.get("sp", 0), player_data.get("max_sp", 0)],
+		"Saude %d/%d" % [focus_data.get("hp", 0), focus_data.get("max_hp", 0)],
+		"Espirito %d/%d" % [focus_data.get("sp", 0), focus_data.get("max_sp", 0)],
 		"ATQ %d  |  DEF %d  |  VEL %d" % [
-			player_data.get("atk", 0),
-			player_data.get("def", 0),
-			player_data.get("spd", 0)
+			focus_data.get("atk", 0),
+			focus_data.get("def", 0),
+			focus_data.get("spd", 0)
 		],
 		"Passo %d  |  Alcance %d" % [
-			player_data.get("move_range", 0),
-			player_data.get("attack_range", 0)
+			focus_data.get("move_range", 0),
+			focus_data.get("attack_range", 0)
 		],
 		"",
 		"Artes equipadas: %d/%d" % [equipped_skills.size(), GameState.get_active_skill_limit()],
@@ -690,14 +910,16 @@ func _refresh_character_panel() -> void:
 		var button: Button = Button.new()
 		button.custom_minimum_size = Vector2(0.0, 62.0)
 		var equipped_text: String = "Retirar" if equipped_skills.has(skill_id) else "Equipar"
+		var status_marker: String = _status_marker_for_skill(skill)
 		button.text = "%s: %s\n%s | %s" % [
 			equipped_text,
-			skill.get("name", skill_id),
+			"%s%s" % [skill.get("name", skill_id), status_marker],
 			skill.get("school", "Arte sem escola"),
 			_quality_name(str(skill.get("quality", "white")))
 		]
 		button.tooltip_text = skill.get("description", "")
-		button.pressed.connect(_on_character_skill_button_pressed.bind(skill_id))
+		_apply_rarity_button_theme(button, str(skill.get("quality", "white")))
+		button.pressed.connect(_on_character_skill_button_pressed.bind(skill_id, focus_id))
 		character_build_list.add_child(button)
 		shown_skills += 1
 	if learned_skills.is_empty():
@@ -707,73 +929,88 @@ func _refresh_character_panel() -> void:
 
 	_add_character_section(character_build_list, "Passivas")
 	var shown_passives: int = 0
-	for passive_id in learned_passives:
-		var passive: Dictionary = GameState.passive_defs.get(passive_id, {})
-		if passive.is_empty():
-			continue
-		if not _matches_character_entry(str(passive.get("school", "")), str(passive.get("quality", "white")), equipped_passives.has(passive_id)):
-			continue
+	if not is_player:
+		_add_character_hint(character_build_list, "Este companheiro nao segue passivas de escola.")
+	else:
+		for passive_id in learned_passives:
+			var passive: Dictionary = GameState.passive_defs.get(passive_id, {})
+			if passive.is_empty():
+				continue
+			if not _matches_character_entry(str(passive.get("school", "")), str(passive.get("quality", "white")), equipped_passives.has(passive_id)):
+				continue
 
-		var button: Button = Button.new()
-		button.custom_minimum_size = Vector2(0.0, 62.0)
-		var passive_text: String = "Retirar" if equipped_passives.has(passive_id) else "Equipar"
-		button.text = "%s: %s\n%s | %s" % [
-			passive_text,
-			passive.get("name", passive_id),
-			passive.get("school", "Escola velada"),
-			_quality_name(str(passive.get("quality", "white")))
-		]
-		button.tooltip_text = passive.get("description", "")
-		button.pressed.connect(_on_character_passive_button_pressed.bind(passive_id))
-		character_build_list.add_child(button)
-		shown_passives += 1
-	if learned_passives.is_empty():
-		_add_character_hint(character_build_list, "Ainda nao assimilastes passivas de escola.")
-	elif shown_passives == 0:
-		_add_character_hint(character_build_list, "Nenhuma passiva casa com os filtros presentes.")
+			var button: Button = Button.new()
+			button.custom_minimum_size = Vector2(0.0, 62.0)
+			var passive_text: String = "Retirar" if equipped_passives.has(passive_id) else "Equipar"
+			button.text = "%s: %s\n%s | %s" % [
+				passive_text,
+				passive.get("name", passive_id),
+				passive.get("school", "Escola velada"),
+				_quality_name(str(passive.get("quality", "white")))
+			]
+			button.tooltip_text = passive.get("description", "")
+			_apply_rarity_button_theme(button, str(passive.get("quality", "white")))
+			button.pressed.connect(_on_character_passive_button_pressed.bind(passive_id))
+			character_build_list.add_child(button)
+			shown_passives += 1
+		if learned_passives.is_empty():
+			_add_character_hint(character_build_list, "Ainda nao assimilastes passivas de escola.")
+		elif shown_passives == 0:
+			_add_character_hint(character_build_list, "Nenhuma passiva casa com os filtros presentes.")
 
 	for child in character_manual_list.get_children():
 		child.queue_free()
 	_add_character_section(character_manual_list, "Livros e Pergaminhos")
 	var has_manuals: bool = false
 	var shown_manuals: int = 0
-	for raw_stack in GameState.inventory:
-		var stack: Dictionary = raw_stack
-		var item_id: String = str(stack.get("id", ""))
-		var item: Dictionary = GameState.item_defs.get(item_id, {})
-		var item_type: String = str(item.get("type", ""))
-		if item_type != "manual_skill" and item_type != "manual_passive":
-			continue
+	if not is_player:
+		_add_character_hint(character_manual_list, "Os companheiros nao estudam manuais.")
+	else:
+		for raw_stack in GameState.inventory:
+			var stack: Dictionary = raw_stack
+			var item_id: String = str(stack.get("id", ""))
+			var item: Dictionary = GameState.item_defs.get(item_id, {})
+			var item_type: String = str(item.get("type", ""))
+			if item_type != "manual_skill" and item_type != "manual_passive":
+				continue
 
-		has_manuals = true
-		var check: Dictionary = GameState.can_learn_manual(item_id)
-		if not _matches_manual_entry(item, check):
-			continue
+			has_manuals = true
+			var check: Dictionary = GameState.can_learn_manual(item_id)
+			if not _matches_manual_entry(item, check):
+				continue
 
-		var button: Button = Button.new()
-		button.custom_minimum_size = Vector2(0.0, 72.0)
-		button.text = "Estudar: %s x%d\n%s | %s | Nv.%d" % [
-			item.get("name", item_id),
-			stack.get("quantity", 0),
-			item.get("school", "Escola oculta"),
-			_quality_name(str(item.get("quality", "white"))),
-			int(item.get("min_level", 1))
-		]
-		button.tooltip_text = "%s\n%s" % [
-			item.get("description", ""),
-			check.get("reason", "")
-		]
-		button.disabled = not bool(check.get("ok", false))
-		if not button.disabled:
-			button.pressed.connect(_on_study_manual_button_pressed.bind(item_id))
-		character_manual_list.add_child(button)
-		shown_manuals += 1
-	if not has_manuals:
-		_add_character_hint(character_manual_list, "Nao tendes livros nem pergaminhos de escola.")
-	elif shown_manuals == 0:
-		_add_character_hint(character_manual_list, "Nenhum manual casa com o crivo actual.")
+			var button: Button = Button.new()
+			button.custom_minimum_size = Vector2(0.0, 72.0)
+			var manual_status_marker: String = ""
+			if item_type == "manual_skill":
+				var manual_skill_id: String = str(item.get("teach_skill", ""))
+				var manual_skill: Dictionary = GameState.skill_defs.get(manual_skill_id, {})
+				manual_status_marker = _status_marker_for_skill(manual_skill)
+			button.text = "Estudar: %s x%d\n%s | %s | Nv.%d" % [
+				"%s%s" % [item.get("name", item_id), manual_status_marker],
+				stack.get("quantity", 0),
+				item.get("school", "Escola oculta"),
+				_quality_name(str(item.get("quality", "white"))),
+				int(item.get("min_level", 1))
+			]
+			button.tooltip_text = "%s\n%s" % [
+				item.get("description", ""),
+				check.get("reason", "")
+			]
+			_apply_rarity_button_theme(button, str(item.get("quality", "white")))
+			button.disabled = not bool(check.get("ok", false))
+			if not button.disabled:
+				button.pressed.connect(_on_study_manual_button_pressed.bind(item_id))
+			character_manual_list.add_child(button)
+			shown_manuals += 1
+		if not has_manuals:
+			_add_character_hint(character_manual_list, "Nao tendes livros nem pergaminhos de escola.")
+		elif shown_manuals == 0:
+			_add_character_hint(character_manual_list, "Nenhum manual casa com o crivo actual.")
 
-	var inventory_lines: Array[String] = ["[b]Bornal[/b]"]
+	_refresh_companion_panel()
+
+	var inventory_lines: Array = ["[b]Bornal[/b]"]
 	for raw_stack in GameState.inventory:
 		var stack: Dictionary = raw_stack
 		var item: Dictionary = GameState.item_defs.get(stack.get("id", ""), {})
@@ -784,7 +1021,12 @@ func _refresh_character_panel() -> void:
 	if inventory_lines.size() == 1:
 		inventory_lines.append("Vazio")
 	character_inventory_text.text = "\n".join(inventory_lines)
-	character_footer_label.text = character_status_message if not character_status_message.is_empty() else "C fecha. Podeis filtrar por escola, qualidade e prontidao de estudo."
+	if not character_status_message.is_empty():
+		character_footer_label.text = character_status_message
+	elif is_player:
+		character_footer_label.text = "C fecha. Podeis filtrar por escola, qualidade e prontidao de estudo."
+	else:
+		character_footer_label.text = "C fecha. Podeis filtrar as artes do companheiro."
 
 
 func _matches_character_entry(school_name: String, quality_id: String, is_equipped: bool) -> bool:
@@ -846,6 +1088,72 @@ func _quality_name(quality_id: String) -> String:
 			return "Branco"
 
 
+func _quality_color(quality_id: String) -> Color:
+	match quality_id:
+		"white":
+			return Color(0.32, 0.32, 0.3, 0.92)
+		"green":
+			return Color(0.18, 0.32, 0.22, 0.92)
+		"blue":
+			return Color(0.18, 0.28, 0.42, 0.92)
+		"purple":
+			return Color(0.3, 0.22, 0.42, 0.92)
+		"gold":
+			return Color(0.42, 0.34, 0.2, 0.92)
+		"red":
+			return Color(0.42, 0.2, 0.2, 0.92)
+		_:
+			return Color(0.2, 0.22, 0.24, 0.92)
+
+
+func _status_marker_for_skill(skill: Dictionary) -> String:
+	var status_effect: Dictionary = skill.get("status_effect", {})
+	if status_effect.is_empty():
+		return ""
+	match str(status_effect.get("id", "")):
+		"bleed":
+			return " [B]"
+		"stun":
+			return " [S]"
+		_:
+			return ""
+
+
+func _apply_rarity_button_theme(button: Button, quality_id: String) -> void:
+	if quality_id.is_empty():
+		return
+
+	var base: Color = _quality_color(quality_id)
+	var border: Color = base.lightened(0.2)
+	button.add_theme_stylebox_override("normal", _make_shop_button_style(base, border))
+	button.add_theme_stylebox_override("hover", _make_shop_button_style(base.lightened(0.08), border.lightened(0.08)))
+	button.add_theme_stylebox_override("pressed", _make_shop_button_style(base.darkened(0.1), border.lightened(0.16)))
+	button.add_theme_stylebox_override("disabled", _make_shop_button_style(base.darkened(0.35), base.darkened(0.1)))
+	button.add_theme_color_override("font_color", Color("f8f3e4"))
+	button.add_theme_color_override("font_hover_color", Color("fff7e3"))
+	button.add_theme_color_override("font_pressed_color", Color("fff1c8"))
+	button.add_theme_color_override("font_disabled_color", Color(0.62, 0.62, 0.62))
+
+
+func _make_shop_button_style(fill: Color, border: Color) -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = fill
+	style.border_color = border
+	style.border_width_left = 2
+	style.border_width_top = 2
+	style.border_width_right = 2
+	style.border_width_bottom = 2
+	style.corner_radius_top_left = 16
+	style.corner_radius_top_right = 16
+	style.corner_radius_bottom_right = 16
+	style.corner_radius_bottom_left = 16
+	style.content_margin_left = 12
+	style.content_margin_top = 10
+	style.content_margin_right = 12
+	style.content_margin_bottom = 10
+	return style
+
+
 func _refresh_shop_panel() -> void:
 	if shop_list == null:
 		return
@@ -888,6 +1196,8 @@ func _refresh_shop_panel() -> void:
 			price,
 			item.get("school", item.get("type", "mercadoria"))
 		]
+		var quality_id: String = str(item.get("quality", ""))
+		_apply_rarity_button_theme(button, quality_id)
 		button.tooltip_text = "%s\n%s" % [item.get("description", ""), check.get("reason", "")]
 		button.disabled = not bool(check.get("ok", false))
 		if not button.disabled:
@@ -933,8 +1243,8 @@ func _on_manual_state_filter_item_selected(index: int) -> void:
 	_refresh_character_panel()
 
 
-func _on_character_skill_button_pressed(skill_id: String) -> void:
-	var result: Dictionary = GameState.toggle_player_skill_equip(skill_id)
+func _on_character_skill_button_pressed(skill_id: String, member_id: String) -> void:
+	var result: Dictionary = GameState.toggle_member_skill_equip(member_id, skill_id)
 	character_status_message = str(result.get("reason", ""))
 	_refresh_character_panel()
 

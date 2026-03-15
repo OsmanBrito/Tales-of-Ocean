@@ -131,5 +131,111 @@
         "value": 1
       }
     ]
+  },
+  {
+    "id": "firmeza_da_pedra",
+    "name": "Firmeza da Pedra",
+    "school": "Escola da Barra de Lisboa",
+    "quality": "green",
+    "description": "A barra ensina firmeza. Quem a conhece nao cede a primeira vaga nem ao primeiro corte.",
+    "bonuses": {
+      "max_hp": 10,
+      "def": 1
+    },
+    "effects": [
+      {
+        "id": "water_guard",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "pulso_da_ribeira",
+    "name": "Pulso da Ribeira",
+    "school": "Casa dos Pilotos do Douro",
+    "quality": "green",
+    "description": "O pulso do cais ensina a recuperar folego quando um inimigo cai ao convés.",
+    "bonuses": {
+      "max_sp": 4,
+      "spd": 1
+    },
+    "effects": [
+      {
+        "id": "sp_on_defeat",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "id": "ombros_do_cais",
+    "name": "Ombros do Cais",
+    "school": "Casa dos Pilotos do Douro",
+    "quality": "blue",
+    "description": "Quem foi de estiva e de chuva leva o peso do cais sem quebrar, mesmo com agua pelo joelho.",
+    "bonuses": {
+      "max_hp": 14,
+      "def": 1
+    },
+    "effects": [
+      {
+        "id": "water_guard",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "id": "chama_do_farol",
+    "name": "Chama do Farol",
+    "school": "Irmandade do Farol de Sagres",
+    "quality": "purple",
+    "description": "A chama de Sagres eleva o golpe quando se toma altura e guarda a cabeca contra o atordoamento.",
+    "bonuses": {
+      "atk": 2,
+      "spd": 1
+    },
+    "effects": [
+      {
+        "id": "high_ground_mastery",
+        "value": 4
+      },
+      {
+        "id": "stun_resist",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "silencio_do_claustro",
+    "name": "Silencio do Claustro",
+    "school": "Circulo da Esfera de Tomar",
+    "quality": "gold",
+    "description": "O claustro ensina a poupar folego e a firmar o centro antes do golpe cair.",
+    "bonuses": {
+      "max_sp": 8,
+      "atk": 1
+    },
+    "effects": [
+      {
+        "id": "first_skill_discount",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "id": "muralha_do_estreito",
+    "name": "Muralha do Estreito",
+    "school": "Guarda do Estreito de Ceuta",
+    "quality": "red",
+    "description": "O estreito ensina a fazer do corpo muralha. A agua pesa menos e o ferro bate menos fundo.",
+    "bonuses": {
+      "max_hp": 18,
+      "def": 2
+    },
+    "effects": [
+      {
+        "id": "water_guard",
+        "value": 3
+      }
+    ]
   }
 ]

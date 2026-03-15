@@ -121,6 +121,50 @@
             "type": "set_flag",
             "flag": "tomar_nabao_purged",
             "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "prior_da_sombra",
+      "type": "encounter",
+      "label": "Prior da Sombra",
+      "prompt": "Carrega E para enfrentar o Prior da Sombra.",
+      "position": { "x": 1140.0, "y": 650.0 },
+      "radius": 104.0,
+      "draw_radius": 32.0,
+      "color": "2b2f3b",
+      "conditions": {
+        "quest_state": {
+          "roda_de_tomar": ["active"]
+        },
+        "world_flags": {
+          "tomar_claustro_purged": true,
+          "tomar_nabao_purged": true,
+          "tomar_boss_defeated": false
+        }
+      },
+      "battle": {
+        "enemy_ids": ["prior_da_sombra", "frade_apostata"],
+        "return_scene": "res://scenes/world/tomar.tscn",
+        "return_button_text": "Tornar a Tomar",
+        "battle_title": "Nave da Charola",
+        "intro_text": "O Prior da Sombra surge entre colunas, guardado por um frade apostata.",
+        "victory_text": "A sombra da charola desfaz-se. Tomar volta ao seu centro.",
+        "defeat_text": "O prior fecha a nave e obriga-vos a recuar.",
+        "ally_start_cells": [[0, 1], [0, 2]],
+        "enemy_start_cells": [[5, 0], [5, 1], [6, 1], [6, 2]],
+        "terrain": {
+          "blocked_cells": [[2, 1], [3, 1], [3, 2]],
+          "water_cells": [[0, 3], [1, 3], [5, 3], [6, 3]],
+          "high_cells": [[4, 0], [5, 0], [6, 0], [4, 1]],
+          "note": "A nave alta da charola favorece quem segura o centro e o alto."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "tomar_boss_defeated",
+            "value": true
           },
           {
             "type": "set_quest_state",
@@ -135,7 +179,7 @@
     {
       "id": "gabriel_inicio",
       "speaker": "Mestre Gabriel da Esfera",
-      "text": "Tomar nao mede so pedra e devoção; mede ceu, numero e rumo. Um punhado de apostatas da carta negra furtou instrumentos da esfera e fechou-se no Claustro da Charola e na Azenha do Nabao. Se lhes quebrardes a roda, abrirei a Pembah os livros dourados de Tomar.",
+      "text": "Tomar nao mede so pedra e devoção; mede ceu, numero e rumo. Um punhado de apostatas da carta negra furtou instrumentos da esfera e fechou-se no Claustro da Charola e na Azenha do Nabao. Depois deles, o Prior da Sombra guarda o centro. Se lhes quebrardes a roda, abrirei a Pembah os livros dourados de Tomar.",
       "primary_label": "Aceitar encargo",
       "secondary_label": "Fechar",
       "actions": [
@@ -148,7 +192,7 @@
     {
       "id": "gabriel_em_curso",
       "speaker": "Mestre Gabriel da Esfera",
-      "text": "Primeiro limpai o Claustro da Charola; depois descei a roda da azenha sobre o Nabao. So entao se fechara o circulo de Tomar.",
+      "text": "Primeiro limpai o Claustro da Charola; depois descei a roda da azenha sobre o Nabao. Quando ambos cederem, o Prior da Sombra saira da nave.",
       "secondary_label": "Prosseguir"
     },
     {
@@ -204,6 +248,33 @@
           "conditions": {
             "quest_state": {
               "roda_de_tomar": ["active", "ready_to_turn_in", "completed"]
+            }
+          }
+        },
+        {
+          "item_id": "manual_compasso_da_charola",
+          "price": 340,
+          "conditions": {
+            "quest_state": {
+              "roda_de_tomar": ["active", "ready_to_turn_in", "completed"]
+            }
+          }
+        },
+        {
+          "item_id": "manual_silencio_do_claustro",
+          "price": 330,
+          "conditions": {
+            "quest_state": {
+              "roda_de_tomar": ["completed"]
+            }
+          }
+        },
+        {
+          "item_id": "manual_selo_do_nabao",
+          "price": 360,
+          "conditions": {
+            "quest_state": {
+              "roda_de_tomar": ["completed"]
             }
           }
         }

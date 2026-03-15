@@ -2,12 +2,35 @@ extends Control
 
 const TRAVEL_MAP_PATH := "res://data/world/travel_map.json"
 const BATTLE_SCENE_PATH := "res://scenes/combat/battle_scene.tscn"
+const OCEAN_SUPPLIES_MAX := 100
+const OCEAN_SHIP_MAX := 100
+const OCEAN_EVENT_CHANCE := 0.22
+const OCEAN_EVENT_LOG_LIMIT := 4
+const OCEAN_WIND_TABLE := [
+	{"id": "bonanca", "label": "Bonanca", "speed": 1.12, "weight": 0.22},
+	{"id": "manso", "label": "Manso", "speed": 1.0, "weight": 0.34},
+	{"id": "rijo", "label": "Rijo", "speed": 0.9, "weight": 0.2},
+	{"id": "contrario", "label": "Contrario", "speed": 0.75, "weight": 0.16},
+	{"id": "temporal", "label": "Temporal", "speed": 0.6, "weight": 0.08}
+]
+const OCEAN_EVENT_TABLE := [
+	{"id": "vento_favoravel", "weight": 0.16},
+	{"id": "vento_contrario", "weight": 0.12},
+	{"id": "mar_bravo", "weight": 0.14},
+	{"id": "pesca_farta", "weight": 0.14},
+	{"id": "agua_podre", "weight": 0.14},
+	{"id": "reparos_rapidos", "weight": 0.14},
+	{"id": "vela_suspeita", "weight": 0.16}
+]
 
 @onready var destination_layer: Control = %DestinationLayer
 @onready var status_label: Label = %StatusLabel
 @onready var detail_label: Label = %DetailLabel
 @onready var close_button: Button = %CloseButton
 @onready var help_label: Label = %HelpLabel
+@onready var sea_panel: PanelContainer = %SeaPanel
+@onready var sea_stats_label: Label = %SeaStatsLabel
+@onready var sea_event_label: Label = %SeaEventLabel
 
 var destinations: Dictionary = {}
 var routes: Array = []
@@ -45,6 +68,7 @@ func _ready() -> void:
 	_update_detail_label()
 	_rebuild_destination_buttons()
 	_update_help_label()
+	_update_sea_panel()
 	queue_redraw()
 
 
@@ -73,7 +97,7 @@ func _unhandled_input(event: InputEvent) -> void:
 
 
 func _apply_theme() -> void:
-	for panel_name in ["StatusPanel", "LegendPanel"]:
+	for panel_name in ["StatusPanel", "LegendPanel", "SeaPanel"]:
 		var panel: PanelContainer = get_node_or_null("%s" % panel_name)
 		if panel == null:
 			continue
@@ -94,7 +118,7 @@ func _apply_theme() -> void:
 		style.content_margin_bottom = 12
 		panel.add_theme_stylebox_override("panel", style)
 
-	for label_name in ["TitleLabel", "StatusLabel", "DetailLabel", "HelpLabel", "LegendLabel"]:
+	for label_name in ["TitleLabel", "StatusLabel", "DetailLabel", "HelpLabel", "LegendLabel", "SeaTitleLabel", "SeaStatsLabel", "SeaEventLabel"]:
 		var label: Label = get_node_or_null("%%%s" % label_name)
 		if label == null:
 			continue
@@ -410,6 +434,7 @@ func _begin_travel(destination_id: String) -> void:
 		"ship_position": path_points[0],
 		"encounter_table": encounter_tables,
 		"encounter_chance": encounter_chance_total / max(1, route_chain.size()),
+		"encounter_bonus": 0.0,
 		"speed_multiplier": speed_multiplier,
 		"travel_kind": travel_kind,
 		"route_descriptions": route_descriptions,
@@ -417,6 +442,7 @@ func _begin_travel(destination_id: String) -> void:
 		"paused_for_battle": false
 	}
 	ship_position = _vector_from_dict(path_points[0])
+	_prepare_ocean_for_departure()
 	GameState.set_overworld_travel_state(travel_state)
 	status_label.text = "Largastes de %s rumo a %s." % [
 		destinations.get(origin_node_id, {}).get("name", origin_node_id.capitalize()),
@@ -428,6 +454,7 @@ func _begin_travel(destination_id: String) -> void:
 	_update_detail_label()
 	_rebuild_destination_buttons()
 	_update_help_label()
+	_update_sea_panel()
 	queue_redraw()
 
 
@@ -440,6 +467,9 @@ func _advance_travel(delta: float) -> void:
 
 	var target_position: Vector2 = _vector_from_dict(path_points[route_index])
 	var travel_speed: float = 150.0 * float(travel_state.get("speed_multiplier", 1.0))
+	if str(travel_state.get("travel_kind", "")) == "mar_alto":
+		_ensure_ocean_state()
+		travel_speed *= _get_ocean_speed_factor()
 	ship_position = ship_position.move_toward(target_position, travel_speed * delta)
 	travel_state["ship_position"] = {"x": ship_position.x, "y": ship_position.y}
 	GameState.set_overworld_travel_state(travel_state)
@@ -458,10 +488,15 @@ func _advance_travel(delta: float) -> void:
 		_arrive_destination()
 		return
 
+	if str(travel_state.get("travel_kind", "")) == "mar_alto":
+		if _apply_ocean_step():
+			return
+
 	if _maybe_trigger_encounter():
 		return
 
 	status_label.text = "A nau segue a derrota de %s." % destinations.get(str(travel_state.get("destination_id", "")), {}).get("name", "destino")
+	_update_sea_panel()
 	queue_redraw()
 
 
@@ -471,7 +506,9 @@ func _maybe_trigger_encounter() -> bool:
 	var encounter_table: Array = travel_state.get("encounter_table", [])
 	if encounter_table.is_empty():
 		return false
-	if rng.randf() > float(travel_state.get("encounter_chance", 0.0)):
+	var encounter_chance: float = float(travel_state.get("encounter_chance", 0.0)) + float(travel_state.get("encounter_bonus", 0.0))
+	travel_state["encounter_bonus"] = 0.0
+	if rng.randf() > encounter_chance:
 		return false
 
 	var encounter_index: int = rng.randi_range(0, encounter_table.size() - 1)
@@ -492,12 +529,16 @@ func _maybe_trigger_encounter() -> bool:
 func _arrive_destination() -> void:
 	var destination_id: String = str(travel_state.get("destination_id", current_node_id))
 	var destination_scene: String = str(travel_state.get("destination_scene", GameState.get_overworld_origin_scene()))
+	var ocean: Dictionary = travel_state.get("ocean", {})
+	if not ocean.is_empty():
+		GameState.set_ocean_state(ocean)
 	current_node_id = destination_id
 	GameState.set_overworld_current_node(destination_id)
 	GameState.set_overworld_origin_scene(destination_scene)
 	GameState.clear_overworld_travel_state()
 	travel_state = {}
 	status_label.text = "Aportastes a %s." % destinations.get(destination_id, {}).get("name", destination_id.capitalize())
+	_update_sea_panel()
 	queue_redraw()
 	get_tree().change_scene_to_file(destination_scene)
 
@@ -547,12 +588,240 @@ func _update_help_label() -> void:
 		help_label.text = "Escolhei um porto na carta ou carregai Esc/M para tornar ao local presente."
 		close_button.text = "Tornar a %s" % destinations.get(current_node_id, {}).get("name", current_node_id.capitalize())
 		close_button.disabled = false
+		_update_sea_panel()
 		return
 	if str(travel_state.get("travel_kind", "")) == "mar_alto":
 		help_label.text = "A nau segue em mar alto. O levante, o corso e o fogo de bordo fazem esta travessia mais dura."
 	else:
 		help_label.text = "A nau segue a derrota. Em viagem podem surgir corsarios, salteadores e outros homens de mau viver."
 	close_button.disabled = true
+	_update_sea_panel()
+
+
+func _ensure_ocean_state() -> void:
+	if str(travel_state.get("travel_kind", "")) != "mar_alto":
+		return
+	var ocean: Dictionary = travel_state.get("ocean", {})
+	if ocean.is_empty():
+		ocean = GameState.get_ocean_state()
+		if ocean.is_empty():
+			ocean = _build_default_ocean_state()
+			GameState.set_ocean_state(ocean)
+		travel_state["ocean"] = ocean
+		GameState.set_overworld_travel_state(travel_state)
+
+
+func _prepare_ocean_for_departure() -> void:
+	if str(travel_state.get("travel_kind", "")) != "mar_alto":
+		return
+	var ocean: Dictionary = GameState.get_ocean_state()
+	if ocean.is_empty():
+		ocean = _build_default_ocean_state()
+	ocean["days"] = 0
+	ocean["event_log"] = []
+	_roll_wind(ocean, true)
+	travel_state["ocean"] = ocean
+	GameState.set_ocean_state(ocean)
+
+
+func _build_default_ocean_state() -> Dictionary:
+	var ocean := {
+		"supplies": OCEAN_SUPPLIES_MAX,
+		"supplies_max": OCEAN_SUPPLIES_MAX,
+		"ship": OCEAN_SHIP_MAX,
+		"ship_max": OCEAN_SHIP_MAX,
+		"wind": "manso",
+		"wind_label": "Manso",
+		"wind_speed": 1.0,
+		"days": 0,
+		"last_event": "A nau toma o mar alto.",
+		"event_log": []
+	}
+	_roll_wind(ocean, true)
+	return ocean
+
+
+func _roll_wind(ocean: Dictionary, announce: bool = false) -> void:
+	var pick: float = rng.randf()
+	var cumulative: float = 0.0
+	var chosen: Dictionary = {}
+	for entry in OCEAN_WIND_TABLE:
+		cumulative += float(entry.get("weight", 0.0))
+		if pick <= cumulative:
+			chosen = entry
+			break
+	if chosen.is_empty():
+		chosen = OCEAN_WIND_TABLE[OCEAN_WIND_TABLE.size() - 1]
+	ocean["wind"] = str(chosen.get("id", "manso"))
+	ocean["wind_label"] = str(chosen.get("label", "Manso"))
+	ocean["wind_speed"] = float(chosen.get("speed", 1.0))
+	if announce:
+		ocean["last_event"] = "O vento vira para %s." % ocean.get("wind_label", "Manso")
+
+
+func _set_wind_by_id(ocean: Dictionary, wind_id: String) -> void:
+	for entry in OCEAN_WIND_TABLE:
+		if str(entry.get("id", "")) == wind_id:
+			ocean["wind"] = str(entry.get("id", wind_id))
+			ocean["wind_label"] = str(entry.get("label", wind_id.capitalize()))
+			ocean["wind_speed"] = float(entry.get("speed", 1.0))
+			return
+
+
+func _get_ocean_speed_factor() -> float:
+	var ocean: Dictionary = travel_state.get("ocean", {})
+	if ocean.is_empty():
+		return 1.0
+	var wind_factor: float = float(ocean.get("wind_speed", 1.0))
+	var ship_max: float = float(ocean.get("ship_max", OCEAN_SHIP_MAX))
+	var ship_ratio: float = 1.0 if ship_max <= 0.0 else float(ocean.get("ship", ship_max)) / ship_max
+	ship_ratio = clampf(ship_ratio, 0.0, 1.0)
+	var ship_factor: float = lerpf(0.6, 1.0, ship_ratio)
+	var supply_factor: float = 0.85 if int(ocean.get("supplies", 0)) <= 0 else 1.0
+	return wind_factor * ship_factor * supply_factor
+
+
+func _apply_ocean_step() -> bool:
+	var ocean: Dictionary = travel_state.get("ocean", {})
+	if ocean.is_empty():
+		ocean = _build_default_ocean_state()
+
+	ocean["days"] = int(ocean.get("days", 0)) + 1
+	var supplies: int = int(ocean.get("supplies", 0))
+	var wind_id: String = str(ocean.get("wind", "manso"))
+	var extra_use: int = 1 if wind_id in ["temporal", "contrario"] else 0
+	supplies = max(0, supplies - 1 - extra_use)
+	ocean["supplies"] = supplies
+
+	if supplies == 0:
+		ocean["ship"] = max(0, int(ocean.get("ship", OCEAN_SHIP_MAX)) - 2)
+		if int(ocean.get("days", 0)) % 2 == 0:
+			_push_ocean_event(ocean, "Mantimentos em falta: a tripulacao enfraquece e o casco sofre.")
+
+	if rng.randf() < OCEAN_EVENT_CHANCE:
+		var event_text: String = _trigger_ocean_event(ocean)
+		if not event_text.is_empty():
+			_push_ocean_event(ocean, event_text)
+
+	travel_state["ocean"] = ocean
+	GameState.set_overworld_travel_state(travel_state)
+	GameState.set_ocean_state(ocean)
+
+	if int(ocean.get("ship", 0)) <= 0:
+		_force_return_to_origin("A nau quebra-se no mar alto. So resta arribar ao porto seguro.")
+		return true
+
+	_update_sea_panel()
+	return false
+
+
+func _trigger_ocean_event(ocean: Dictionary) -> String:
+	var pick: float = rng.randf()
+	var cumulative: float = 0.0
+	var chosen_id: String = ""
+	for entry in OCEAN_EVENT_TABLE:
+		cumulative += float(entry.get("weight", 0.0))
+		if pick <= cumulative:
+			chosen_id = str(entry.get("id", ""))
+			break
+	if chosen_id.is_empty() and not OCEAN_EVENT_TABLE.is_empty():
+		chosen_id = str(OCEAN_EVENT_TABLE[OCEAN_EVENT_TABLE.size() - 1].get("id", ""))
+	return _apply_ocean_event(chosen_id, ocean)
+
+
+func _apply_ocean_event(event_id: String, ocean: Dictionary) -> String:
+	match event_id:
+		"vento_favoravel":
+			_set_wind_by_id(ocean, "bonanca")
+			return "Vento de feicao: a nau ganha folego e o pano enche."
+		"vento_contrario":
+			_set_wind_by_id(ocean, "contrario")
+			return "Vento contrario: a proa range e o rumo custa."
+		"mar_bravo":
+			var damage: int = rng.randi_range(6, 12)
+			ocean["ship"] = max(0, int(ocean.get("ship", OCEAN_SHIP_MAX)) - damage)
+			return "Mar bravo quebra a cinta: perdeis %d de casco." % damage
+		"pesca_farta":
+			var gain: int = rng.randi_range(8, 14)
+			var supplies_max: int = int(ocean.get("supplies_max", OCEAN_SUPPLIES_MAX))
+			ocean["supplies"] = min(supplies_max, int(ocean.get("supplies", 0)) + gain)
+			return "Pesca farta no alto: +%d mantimentos." % gain
+		"agua_podre":
+			var loss: int = rng.randi_range(8, 14)
+			ocean["supplies"] = max(0, int(ocean.get("supplies", 0)) - loss)
+			return "Agua podre no barril: perdeis %d mantimentos." % loss
+		"reparos_rapidos":
+			var repair: int = rng.randi_range(6, 12)
+			var ship_max: int = int(ocean.get("ship_max", OCEAN_SHIP_MAX))
+			ocean["ship"] = min(ship_max, int(ocean.get("ship", ship_max)) + repair)
+			return "Carpinteiros firmam as tabuas: +%d casco." % repair
+		"vela_suspeita":
+			travel_state["encounter_bonus"] = float(travel_state.get("encounter_bonus", 0.0)) + 0.12
+			return "Vela suspeita no horizonte: mantenham as armas a mao."
+		_:
+			return ""
+
+
+func _push_ocean_event(ocean: Dictionary, event_text: String) -> void:
+	ocean["last_event"] = event_text
+	var log: Array = ocean.get("event_log", [])
+	log.append(event_text)
+	if log.size() > OCEAN_EVENT_LOG_LIMIT:
+		log = log.slice(log.size() - OCEAN_EVENT_LOG_LIMIT, log.size())
+	ocean["event_log"] = log
+
+
+func _force_return_to_origin(reason: String) -> void:
+	var origin_scene: String = str(travel_state.get("origin_scene", GameState.get_overworld_origin_scene()))
+	travel_state = {}
+	GameState.clear_overworld_travel_state()
+	status_label.text = reason
+	_update_sea_panel()
+	queue_redraw()
+	get_tree().change_scene_to_file(origin_scene)
+
+
+func _update_sea_panel() -> void:
+	if sea_panel == null:
+		return
+	if travel_state.is_empty() or str(travel_state.get("travel_kind", "")) != "mar_alto":
+		sea_panel.visible = false
+		return
+
+	sea_panel.visible = true
+	var ocean: Dictionary = travel_state.get("ocean", {})
+	if ocean.is_empty():
+		ocean = _build_default_ocean_state()
+		travel_state["ocean"] = ocean
+		GameState.set_overworld_travel_state(travel_state)
+		GameState.set_ocean_state(ocean)
+
+	var supplies: int = int(ocean.get("supplies", 0))
+	var supplies_max: int = int(ocean.get("supplies_max", OCEAN_SUPPLIES_MAX))
+	var ship: int = int(ocean.get("ship", 0))
+	var ship_max: int = int(ocean.get("ship_max", OCEAN_SHIP_MAX))
+	var wind_label: String = str(ocean.get("wind_label", "Manso"))
+	var days: int = int(ocean.get("days", 0))
+	var ship_ratio: float = 1.0 if ship_max <= 0 else float(ship) / float(ship_max)
+	var ship_state: String = "Firme"
+	if ship_ratio < 0.25:
+		ship_state = "A romper"
+	elif ship_ratio < 0.45:
+		ship_state = "Ferido"
+	elif ship_ratio < 0.7:
+		ship_state = "Cansado"
+	elif ship_ratio < 0.9:
+		ship_state = "Seguro"
+
+	sea_stats_label.text = "Mantimentos: %d/%d\nEstado da Nau: %s (%d%%)\nVento: %s\nDias no mar: %d" % [
+		supplies,
+		supplies_max,
+		ship_state,
+		int(round(ship_ratio * 100.0)),
+		wind_label,
+		days
+	]
+	sea_event_label.text = str(ocean.get("last_event", "Sem travessia longa em curso."))
 
 
 func _route_labels(route_chain: Array[String]) -> Array[String]:
