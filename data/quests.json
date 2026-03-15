@@ -1,0 +1,103 @@
+[
+  {
+    "id": "first_voyage",
+    "name": "A Primeira Viagem",
+    "giver": "Capitao Duarte",
+    "description": "Vence o batedor salteador junto da porta oriental e prova que estas apto a seguir viagem.",
+    "objective": "Parte para a porta oriental e derrota o salteador.",
+    "journal": {
+      "not_started": "Feito principal: fala com o Capitao Duarte em Lisboa.",
+      "active": "Feito principal: vence o batedor salteador junto da porta oriental.",
+      "ready_to_turn_in": "Feito principal: torna ao Capitao Duarte para receberes o teu soldo.",
+      "completed": "Feito principal concluido: Pembah esta pronto para partir de Lisboa."
+    },
+    "reward_xp": 100,
+    "reward_gold": 40,
+    "reward_item": "merchant_ring",
+    "reward_items": [
+      "manual_corte_da_sonda",
+      "manual_brisa_da_alvorada"
+    ]
+  },
+  {
+    "id": "porto_alliance",
+    "name": "Alianca do Porto",
+    "giver": "Joao Tempestade",
+    "description": "Chegado ao Porto, ajuda Joao a limpar o cais de ameacas castelhanas e mouriscas; se o fizeres, ele jurara seguir convosco.",
+    "objective": "Fala com Joao Tempestade e auxilia-o a assegurar o cais.",
+    "journal": {
+      "not_started": "Feito principal: em Porto, busca Joao Tempestade junto das tabernas do cais.",
+      "active": "Feito principal: vence o duelista de Castela e o guerreiro mourisco que afligem o cais.",
+      "ready_to_turn_in": "Feito principal: torna a Joao Tempestade para selar a alianca.",
+      "completed": "Feito principal concluido: Joao Tempestade juntou-se a vossa companhia."
+    },
+    "reward_xp": 140,
+    "reward_gold": 55,
+    "reward_item": "",
+    "reward_items": [
+      "manual_onda_em_arco",
+      "manual_pele_salgada",
+      "manual_clarim_do_farol"
+    ]
+  },
+  {
+    "id": "luz_de_sagres",
+    "name": "Luz de Sagres",
+    "giver": "Mestre Lourenco",
+    "description": "No promontorio de Sagres, a irmandade do farol pede ajuda para quebrar a ronda de corsarios do nevoeiro e reacender a senda da costa.",
+    "objective": "Fala com Mestre Lourenco, limpa a Atalaia Quebrada e a Bateria do Alcatrao, e torna ao farol.",
+    "journal": {
+      "not_started": "Feito principal: em Sagres, busca Mestre Lourenco junto ao farol.",
+      "active": "Feito principal: limpa a Atalaia Quebrada e a Bateria do Alcatrao dos corsarios do nevoeiro.",
+      "ready_to_turn_in": "Feito principal: torna a Mestre Lourenco para receber a doutrina do farol.",
+      "completed": "Feito principal concluido: a Irmandade do Farol abriu a Pembah os seus livros maiores."
+    },
+    "reward_xp": 180,
+    "reward_gold": 70,
+    "reward_item": "",
+    "reward_items": [
+      "manual_olho_da_estrela_polar",
+      "manual_circulo_da_almenara"
+    ]
+  },
+  {
+    "id": "roda_de_tomar",
+    "name": "A Roda de Tomar",
+    "giver": "Mestre Gabriel da Esfera",
+    "description": "Em Tomar, um circulo de apostatas furtou cartas e instrumentos da esfera. Limpai o Claustro da Charola e a Azenha do Nabao, e restituireis a ordem da cidade.",
+    "objective": "Fala com Mestre Gabriel da Esfera, limpa o Claustro da Charola e a Azenha do Nabao, e torna ao convento.",
+    "journal": {
+      "not_started": "Feito principal: em Tomar, busca Mestre Gabriel da Esfera junto ao convento.",
+      "active": "Feito principal: limpa o Claustro da Charola e a Azenha do Nabao dos apostatas.",
+      "ready_to_turn_in": "Feito principal: torna a Mestre Gabriel para receber a doutrina de Tomar.",
+      "completed": "Feito principal concluido: Pembah ganhou entrada nos livros dourados de Tomar."
+    },
+    "reward_xp": 220,
+    "reward_gold": 90,
+    "reward_item": "",
+    "reward_items": [
+      "manual_roda_do_astrolabio",
+      "manual_regra_da_charola"
+    ]
+  },
+  {
+    "id": "porta_de_ceuta",
+    "name": "A Porta de Ceuta",
+    "giver": "Capitao Lourenço da Barra",
+    "description": "Em Ceuta, corsarios barbarescos e renegados da aduana apertam a marina e a alcacova. Quebra-lhes o passo e a fortaleza voltara a abrir o estreito.",
+    "objective": "Fala com o Capitao Lourenço da Barra, limpa a Porta da Marina e o Alto da Alcacova, e torna a fortaleza.",
+    "journal": {
+      "not_started": "Feito principal: em Ceuta, busca o Capitao Lourenço da Barra junto da muralha do porto.",
+      "active": "Feito principal: limpa a Porta da Marina e o Alto da Alcacova dos corsarios e renegados.",
+      "ready_to_turn_in": "Feito principal: torna ao Capitao Lourenço para receber a doutrina do estreito.",
+      "completed": "Feito principal concluido: a fortaleza de Ceuta abriu a Pembah os seus livros vermelhos."
+    },
+    "reward_xp": 280,
+    "reward_gold": 120,
+    "reward_item": "",
+    "reward_items": [
+      "manual_corte_do_estreito",
+      "manual_guarda_da_alfandega"
+    ]
+  }
+]

@@ -1,0 +1,135 @@
+[
+  {
+    "id": "brisa_da_alvorada",
+    "name": "Brisa da Alvorada",
+    "school": "Escola da Barra de Lisboa",
+    "quality": "green",
+    "description": "A primeira arte de cada ronda corre mais leve no Espirito de Pembah, como mare mansa ao romper da manha.",
+    "bonuses": {
+      "max_sp": 6,
+      "spd": 1
+    },
+    "effects": [
+      {
+        "id": "first_skill_discount",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "id": "pele_salgada",
+    "name": "Pele Salgada",
+    "school": "Casa dos Pilotos do Douro",
+    "quality": "blue",
+    "description": "Anos de vigia e mares frios fazem o corpo resistir ao Sangramento e sofrer menos onde a agua vos prende os pes.",
+    "bonuses": {
+      "max_hp": 12,
+      "def": 1
+    },
+    "effects": [
+      {
+        "id": "bleed_resist",
+        "value": 1
+      },
+      {
+        "id": "water_guard",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "id": "folego_da_estiva",
+    "name": "Folego da Estiva",
+    "school": "Casa dos Pilotos do Douro",
+    "quality": "blue",
+    "description": "Ao derrubar um inimigo, Pembah reapruma o peito e recolhe novo Espirito como homem de estiva no fim da manobra.",
+    "bonuses": {
+      "max_sp": 4
+    },
+    "effects": [
+      {
+        "id": "sp_on_defeat",
+        "value": 5
+      }
+    ]
+  },
+  {
+    "id": "olho_da_estrela_polar",
+    "name": "Olho da Estrela Polar",
+    "school": "Irmandade do Farol de Sagres",
+    "quality": "purple",
+    "description": "Quem toma a altura e le a estrela firme golpeia com maior tino e peso sobre quem fica em baixo.",
+    "bonuses": {
+      "atk": 2,
+      "spd": 1
+    },
+    "effects": [
+      {
+        "id": "high_ground_mastery",
+        "value": 4
+      }
+    ]
+  },
+  {
+    "id": "vigia_do_promontorio",
+    "name": "Vigia do Promontorio",
+    "school": "Irmandade do Farol de Sagres",
+    "quality": "purple",
+    "description": "No promontorio, Pembah guarda o rumo sem ceder a Atordoamento e ampara melhor os golpes quando sustem a altura.",
+    "bonuses": {
+      "def": 1
+    },
+    "effects": [
+      {
+        "id": "stun_resist",
+        "value": 1
+      },
+      {
+        "id": "high_ground_guard",
+        "value": 2
+      }
+    ]
+  },
+  {
+    "id": "regra_da_charola",
+    "name": "Regra da Charola",
+    "school": "Circulo da Esfera de Tomar",
+    "quality": "gold",
+    "description": "O centro e o compasso de Tomar ensinam Pembah a gastar menos Espirito na primeira arte e a sustentar melhor o tino.",
+    "bonuses": {
+      "max_sp": 8,
+      "atk": 1
+    },
+    "effects": [
+      {
+        "id": "first_skill_discount",
+        "value": 3
+      },
+      {
+        "id": "stun_resist",
+        "value": 1
+      }
+    ]
+  },
+  {
+    "id": "guarda_da_alfandega",
+    "name": "Guarda da Alfandega",
+    "school": "Guarda do Estreito de Ceuta",
+    "quality": "red",
+    "description": "Na ponte e na muralha, Pembah aprende a sofrer menos na agua e a nao ceder facilmente quando o estreito aperta.",
+    "bonuses": {
+      "max_hp": 14,
+      "def": 2
+    },
+    "effects": [
+      {
+        "id": "water_guard",
+        "value": 3
+      },
+      {
+        "id": "stun_resist",
+        "value": 1
+      }
+    ]
+  }
+]

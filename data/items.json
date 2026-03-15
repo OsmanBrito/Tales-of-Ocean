@@ -1,0 +1,198 @@
+[
+  {
+    "id": "health_potion",
+    "name": "Pocao de Vida",
+    "type": "consumable",
+    "description": "Restitui 60 pontos de Saude.",
+    "heal_hp": 60,
+    "value": 25
+  },
+  {
+    "id": "spirit_elixir",
+    "name": "Elixir de Espirito",
+    "type": "consumable",
+    "description": "Restitui 30 pontos de Espirito.",
+    "heal_sp": 30,
+    "value": 30
+  },
+  {
+    "id": "battle_bread",
+    "name": "Pao de Peleja",
+    "type": "consumable",
+    "description": "Restitui 20 pontos de Saude.",
+    "heal_hp": 20,
+    "value": 8
+  },
+  {
+    "id": "merchant_ring",
+    "name": "Anel do Mercador",
+    "type": "accessory",
+    "description": "Anel singelo dado como paga por servico bem cumprido.",
+    "value": 150
+  },
+  {
+    "id": "manual_corte_da_sonda",
+    "name": "Pergaminho do Corte da Sonda",
+    "type": "manual_skill",
+    "school": "Escola da Barra de Lisboa",
+    "quality": "green",
+    "min_level": 2,
+    "teach_skill": "corte_da_sonda",
+    "description": "Ensina um corte seco e profundo, medido como sonda de fundo.",
+    "value": 80
+  },
+  {
+    "id": "manual_brisa_da_alvorada",
+    "name": "Livro da Brisa da Alvorada",
+    "type": "manual_passive",
+    "school": "Escola da Barra de Lisboa",
+    "quality": "white",
+    "min_level": 2,
+    "teach_passive": "brisa_da_alvorada",
+    "description": "Compendio de respiracao e passo leve para quem sai ao mar com a primeira luz.",
+    "value": 65
+  },
+  {
+    "id": "manual_onda_em_arco",
+    "name": "Pergaminho da Onda em Arco",
+    "type": "manual_skill",
+    "school": "Casa dos Pilotos do Douro",
+    "quality": "blue",
+    "min_level": 3,
+    "teach_skill": "onda_em_arco",
+    "description": "Doutrina do golpe amplo que varre o flanco como agua torcida por rocha.",
+    "value": 130
+  },
+  {
+    "id": "manual_pele_salgada",
+    "name": "Livro da Pele Salgada",
+    "type": "manual_passive",
+    "school": "Casa dos Pilotos do Douro",
+    "quality": "blue",
+    "min_level": 3,
+    "teach_passive": "pele_salgada",
+    "description": "Caderno de vigias e disciplina corporal para endurecer nervo, osso e pulso.",
+    "value": 120
+  },
+  {
+    "id": "manual_folego_da_estiva",
+    "name": "Livro do Folego da Estiva",
+    "type": "manual_passive",
+    "school": "Casa dos Pilotos do Douro",
+    "quality": "blue",
+    "min_level": 4,
+    "teach_passive": "folego_da_estiva",
+    "description": "Notas de faina do cais que ensinam a tomar Espirito do ritmo da estiva e da queda do adversario.",
+    "value": 145
+  },
+  {
+    "id": "manual_clarim_do_farol",
+    "name": "Pergaminho do Clarim do Farol",
+    "type": "manual_skill",
+    "school": "Irmandade do Farol de Sagres",
+    "quality": "purple",
+    "min_level": 4,
+    "teach_skill": "clarim_do_farol",
+    "description": "Arte rara que quebra o animo do adversario com voz, luz e mar.",
+    "value": 220
+  },
+  {
+    "id": "manual_olho_da_estrela_polar",
+    "name": "Livro do Olho da Estrela Polar",
+    "type": "manual_passive",
+    "school": "Irmandade do Farol de Sagres",
+    "quality": "purple",
+    "min_level": 4,
+    "teach_passive": "olho_da_estrela_polar",
+    "description": "Tratado de observacao nocturna e rumo firme, proprio de pilotos de alta agua.",
+    "value": 210
+  },
+  {
+    "id": "manual_circulo_da_almenara",
+    "name": "Pergaminho do Circulo da Almenara",
+    "type": "manual_skill",
+    "school": "Irmandade do Farol de Sagres",
+    "quality": "purple",
+    "min_level": 5,
+    "teach_skill": "circulo_da_almenara",
+    "description": "Arte do lume de aviso, ensinada aos que sabem castigar um flanco inteiro a partir da altura.",
+    "value": 260
+  },
+  {
+    "id": "manual_vigia_do_promontorio",
+    "name": "Livro da Vigia do Promontorio",
+    "type": "manual_passive",
+    "school": "Irmandade do Farol de Sagres",
+    "quality": "purple",
+    "min_level": 5,
+    "teach_passive": "vigia_do_promontorio",
+    "description": "Livro guardado junto ao farol, para quem aprende a suster a altura e nao ceder a Atordoamento.",
+    "value": 240
+  },
+  {
+    "id": "manual_roda_do_astrolabio",
+    "name": "Pergaminho da Roda do Astrolabio",
+    "type": "manual_skill",
+    "school": "Circulo da Esfera de Tomar",
+    "quality": "gold",
+    "min_level": 6,
+    "teach_skill": "roda_do_astrolabio",
+    "description": "Arte de compasso e esfera que mede o inimigo em redor do centro marcado.",
+    "value": 320
+  },
+  {
+    "id": "manual_regra_da_charola",
+    "name": "Livro da Regra da Charola",
+    "type": "manual_passive",
+    "school": "Circulo da Esfera de Tomar",
+    "quality": "gold",
+    "min_level": 6,
+    "teach_passive": "regra_da_charola",
+    "description": "Doutrina de centro, silencio e compasso, guardada pelos letrados de Tomar.",
+    "value": 310
+  },
+  {
+    "id": "manual_linha_do_zodiaco",
+    "name": "Pergaminho da Linha do Zodiaco",
+    "type": "manual_skill",
+    "school": "Circulo da Esfera de Tomar",
+    "quality": "gold",
+    "min_level": 7,
+    "teach_skill": "linha_do_zodiaco",
+    "description": "Traza uma linha de golpe tao direita como carta celeste lavrada a compasso.",
+    "value": 360
+  },
+  {
+    "id": "manual_corte_do_estreito",
+    "name": "Pergaminho do Corte do Estreito",
+    "type": "manual_skill",
+    "school": "Guarda do Estreito de Ceuta",
+    "quality": "red",
+    "min_level": 8,
+    "teach_skill": "corte_do_estreito",
+    "description": "Golpe severo de quem aprendeu a fechar passagem e ferro no estreito.",
+    "value": 430
+  },
+  {
+    "id": "manual_guarda_da_alfandega",
+    "name": "Livro da Guarda da Alfandega",
+    "type": "manual_passive",
+    "school": "Guarda do Estreito de Ceuta",
+    "quality": "red",
+    "min_level": 8,
+    "teach_passive": "guarda_da_alfandega",
+    "description": "Doutrina de muralha, ponte e porto, para quem segura passagem contra mar e ferro.",
+    "value": 410
+  },
+  {
+    "id": "manual_mare_do_levante",
+    "name": "Pergaminho da Mare do Levante",
+    "type": "manual_skill",
+    "school": "Guarda do Estreito de Ceuta",
+    "quality": "red",
+    "min_level": 9,
+    "teach_skill": "mare_do_levante",
+    "description": "Arte do vento oriental e da vaga curta, pronta para quebrar roda de inimigos.",
+    "value": 470
+  }
+]

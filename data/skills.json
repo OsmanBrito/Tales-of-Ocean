@@ -1,0 +1,311 @@
+[
+  {
+    "id": "golpe_navegante",
+    "name": "Golpe Navegante",
+    "school": "Escola da Barra de Lisboa",
+    "quality": "white",
+    "cost": 8,
+    "power": 22,
+    "range": 2,
+    "pierce_row": true,
+    "description": "Golpe firme, guiado pelo Espirito do Mar."
+  },
+  {
+    "id": "escudo_do_oceano",
+    "name": "Escudo do Oceano",
+    "school": "Escola da Barra de Lisboa",
+    "quality": "white",
+    "cost": 6,
+    "power": 0,
+    "range": 0,
+    "effect": "defend_buff",
+    "description": "Ergue uma guarda de mare em redor de Pembah."
+  },
+  {
+    "id": "vento_de_lisboa",
+    "name": "Vento de Lisboa",
+    "school": "Escola da Barra de Lisboa",
+    "quality": "white",
+    "cost": 10,
+    "power": 0,
+    "range": 0,
+    "effect": "speed_boost",
+    "description": "Da novo folgo e ligeireza ao navegante."
+  },
+  {
+    "id": "onda_em_arco",
+    "name": "Onda em Arco",
+    "school": "Casa dos Pilotos do Douro",
+    "quality": "blue",
+    "cost": 12,
+    "power": 16,
+    "range": 3,
+    "area_radius": 1,
+    "description": "Uma onda larga abate o alvo e os que lhe estao junto."
+  },
+  {
+    "id": "corte_da_sonda",
+    "name": "Corte da Sonda",
+    "school": "Escola da Barra de Lisboa",
+    "quality": "green",
+    "cost": 9,
+    "power": 15,
+    "range": 2,
+    "status_effect": {
+      "id": "bleed",
+      "duration": 2,
+      "power": 6
+    },
+    "description": "Um talho medido como sonda de mar, que deixa o inimigo a sangrar."
+  },
+  {
+    "id": "clarim_do_farol",
+    "name": "Clarim do Farol",
+    "school": "Irmandade do Farol de Sagres",
+    "quality": "purple",
+    "cost": 11,
+    "power": 10,
+    "range": 3,
+    "status_effect": {
+      "id": "stun",
+      "duration": 1
+    },
+    "description": "Um brado de luz e mar quebranta o tino do adversario."
+  },
+  {
+    "id": "circulo_da_almenara",
+    "name": "Circulo da Almenara",
+    "school": "Irmandade do Farol de Sagres",
+    "quality": "purple",
+    "cost": 14,
+    "power": 18,
+    "range": 3,
+    "area_radius": 1,
+    "description": "A roda de lume do farol desce sobre o alvo e alcanca quem lhe guarda o passo."
+  },
+  {
+    "id": "mare_alta_joao",
+    "name": "Mare Alta",
+    "school": "Vigias do Porto",
+    "quality": "white",
+    "cost": 7,
+    "power": 20,
+    "range": 1,
+    "area_radius": 1,
+    "description": "Joao investe com o peso do mar e do cais."
+  },
+  {
+    "id": "muralha_do_cais",
+    "name": "Muralha do Cais",
+    "school": "Vigias do Porto",
+    "quality": "white",
+    "cost": 4,
+    "power": 0,
+    "range": 0,
+    "effect": "guard_stance",
+    "description": "Joao fecha a guarda e ampara o embate seguinte."
+  },
+  {
+    "id": "gancho_do_contrabando",
+    "name": "Gancho do Contrabando",
+    "school": "Artes do Contrabando",
+    "quality": "white",
+    "cost": 0,
+    "power": 10,
+    "range": 1,
+    "status_effect": {
+      "id": "bleed",
+      "duration": 2,
+      "power": 4,
+      "chance": 80
+    },
+    "description": "Um golpe sujo de cais e cordame, feito para abrir e rasgar."
+  },
+  {
+    "id": "estocada_da_proa",
+    "name": "Estocada da Proa",
+    "school": "Espada de Castela",
+    "quality": "green",
+    "cost": 0,
+    "power": 7,
+    "range": 1,
+    "status_effect": {
+      "id": "stun",
+      "duration": 1,
+      "chance": 55
+    },
+    "description": "Uma estocada breve e dura, como embate de proa em mar curto."
+  },
+  {
+    "id": "crescente_do_arsenal",
+    "name": "Crescente do Arsenal",
+    "school": "Arsenal Mourisco",
+    "quality": "blue",
+    "cost": 0,
+    "power": 14,
+    "range": 1,
+    "area_radius": 1,
+    "description": "Um golpe largo de guarda, tracado como lua sobre o cais."
+  },
+  {
+    "id": "rede_da_vigia_negra",
+    "name": "Rede da Vigia Negra",
+    "school": "Corsarios do Nevoeiro",
+    "quality": "green",
+    "cost": 0,
+    "power": 5,
+    "range": 2,
+    "status_effect": {
+      "id": "stun",
+      "duration": 1,
+      "chance": 50
+    },
+    "description": "Uma rede curta e encharcada tolhe o passo e o tino do alvo."
+  },
+  {
+    "id": "fogo_de_alcatrao",
+    "name": "Fogo de Alcatrao",
+    "school": "Corsarios do Nevoeiro",
+    "quality": "blue",
+    "cost": 0,
+    "power": 11,
+    "range": 3,
+    "area_radius": 1,
+    "status_effect": {
+      "id": "bleed",
+      "duration": 2,
+      "power": 3,
+      "chance": 75
+    },
+    "description": "Alcatrao em chama cai sobre o convés e deixa ferida larga e ardida."
+  },
+  {
+    "id": "roda_do_astrolabio",
+    "name": "Roda do Astrolabio",
+    "school": "Circulo da Esfera de Tomar",
+    "quality": "gold",
+    "cost": 15,
+    "power": 20,
+    "range": 3,
+    "area_radius": 1,
+    "description": "O compasso da esfera desce sobre o alvo e revolve quem lhe fica junto."
+  },
+  {
+    "id": "linha_do_zodiaco",
+    "name": "Linha do Zodiaco",
+    "school": "Circulo da Esfera de Tomar",
+    "quality": "gold",
+    "cost": 16,
+    "power": 24,
+    "range": 3,
+    "pierce_row": true,
+    "description": "Pembah corta o alinhamento inimigo como quem risca uma carta dos ceus."
+  },
+  {
+    "id": "quadrado_da_seta",
+    "name": "Quadrado da Seta",
+    "school": "Besteiros da Ordem Quebrada",
+    "quality": "green",
+    "cost": 0,
+    "power": 12,
+    "range": 3,
+    "description": "A seta parte em linha severa, medida por esquadro e disciplina."
+  },
+  {
+    "id": "responso_de_ferro",
+    "name": "Responso de Ferro",
+    "school": "Apostatas da Charola",
+    "quality": "blue",
+    "cost": 0,
+    "power": 6,
+    "range": 1,
+    "area_radius": 1,
+    "status_effect": {
+      "id": "stun",
+      "duration": 1,
+      "chance": 45
+    },
+    "description": "Um responso torcido fecha o peito e tolda o tino de quem fica perto."
+  },
+  {
+    "id": "po_da_esfera",
+    "name": "Po da Esfera",
+    "school": "Astrologia Vedada",
+    "quality": "blue",
+    "cost": 0,
+    "power": 12,
+    "range": 3,
+    "area_radius": 1,
+    "description": "Po de metal e vidro cai do alto e fere uma pequena roda de casas."
+  },
+  {
+    "id": "corte_do_estreito",
+    "name": "Corte do Estreito",
+    "school": "Guarda do Estreito de Ceuta",
+    "quality": "red",
+    "cost": 17,
+    "power": 27,
+    "range": 2,
+    "pierce_row": true,
+    "description": "Pembah fecha uma linha de passagem e corta todos os que ousam sustentá-la."
+  },
+  {
+    "id": "mare_do_levante",
+    "name": "Mare do Levante",
+    "school": "Guarda do Estreito de Ceuta",
+    "quality": "red",
+    "cost": 16,
+    "power": 22,
+    "range": 3,
+    "area_radius": 1,
+    "description": "A vaga curta do levante revolve o centro visado e quem o escolta."
+  },
+  {
+    "id": "arpao_barbaresco",
+    "name": "Arpao Barbaresco",
+    "school": "Corsarios do Magrebe",
+    "quality": "blue",
+    "cost": 0,
+    "power": 13,
+    "range": 1,
+    "status_effect": {
+      "id": "bleed",
+      "duration": 2,
+      "power": 4,
+      "chance": 80
+    },
+    "description": "Um arpao curto rasga carne e pano, deixando ferida ruim."
+  },
+  {
+    "id": "azagaia_do_istmo",
+    "name": "Azagaia do Istmo",
+    "school": "Guardas Zenetes",
+    "quality": "blue",
+    "cost": 0,
+    "power": 7,
+    "range": 2,
+    "status_effect": {
+      "id": "stun",
+      "duration": 1,
+      "chance": 60
+    },
+    "description": "A azagaia cai de alto e prende o passo de quem tenta tomar a subida."
+  },
+  {
+    "id": "fogo_da_aduana",
+    "name": "Fogo da Aduana",
+    "school": "Renegados da Aduana",
+    "quality": "red",
+    "cost": 0,
+    "power": 14,
+    "range": 3,
+    "area_radius": 1,
+    "status_effect": {
+      "id": "bleed",
+      "duration": 2,
+      "power": 4,
+      "chance": 75
+    },
+    "description": "Fogo e azeite fervente descem da muralha e deixam ferida larga."
+  }
+]

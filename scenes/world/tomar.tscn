@@ -1,0 +1,292 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/tomar.gd" id="1"]
+[ext_resource type="Script" path="res://scripts/player.gd" id="2"]
+
+[node name="Tomar" type="Node2D"]
+script = ExtResource("1")
+world_data_path = "res://data/world/tomar.json"
+scene_id = "tomar"
+default_spawn_position = Vector2(880, 760)
+scene_path = "res://scenes/world/tomar.tscn"
+
+[node name="Player" type="Node2D" parent="."]
+script = ExtResource("2")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="TopBar" type="PanelContainer" parent="CanvasLayer"]
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 920.0
+offset_bottom = 130.0
+
+[node name="TopVBox" type="VBoxContainer" parent="CanvasLayer/TopBar"]
+layout_mode = 2
+
+[node name="StatsLabel" type="Label" parent="CanvasLayer/TopBar/TopVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+
+[node name="QuestLabel" type="Label" parent="CanvasLayer/TopBar/TopVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="PromptBar" type="PanelContainer" parent="CanvasLayer"]
+offset_left = 24.0
+offset_top = 930.0
+offset_right = 920.0
+offset_bottom = 1000.0
+
+[node name="PromptLabel" type="Label" parent="CanvasLayer/PromptBar"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+
+[node name="DialoguePanel" type="PanelContainer" parent="CanvasLayer"]
+unique_name_in_owner = true
+visible = false
+offset_left = 980.0
+offset_top = 690.0
+offset_right = 1840.0
+offset_bottom = 1000.0
+
+[node name="DialogueVBox" type="VBoxContainer" parent="CanvasLayer/DialoguePanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="DialogueText" type="RichTextLabel" parent="CanvasLayer/DialoguePanel/DialogueVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="DialogueButtons" type="HBoxContainer" parent="CanvasLayer/DialoguePanel/DialogueVBox"]
+layout_mode = 2
+
+[node name="PrimaryButton" type="Button" parent="CanvasLayer/DialoguePanel/DialogueVBox/DialogueButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Aceitar"
+
+[node name="SecondaryButton" type="Button" parent="CanvasLayer/DialoguePanel/DialogueVBox/DialogueButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "Fechar"
+
+[node name="InventoryPanel" type="PanelContainer" parent="CanvasLayer"]
+unique_name_in_owner = true
+visible = false
+offset_left = 1320.0
+offset_top = 20.0
+offset_right = 1860.0
+offset_bottom = 430.0
+
+[node name="InventoryText" type="RichTextLabel" parent="CanvasLayer/InventoryPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="CharacterPanel" type="PanelContainer" parent="CanvasLayer"]
+unique_name_in_owner = true
+visible = false
+offset_left = 920.0
+offset_top = 32.0
+offset_right = 1860.0
+offset_bottom = 1000.0
+
+[node name="CharacterVBox" type="VBoxContainer" parent="CanvasLayer/CharacterPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CharacterTitle" type="Label" parent="CanvasLayer/CharacterPanel/CharacterVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Personagem"
+horizontal_alignment = 1
+
+[node name="CharacterFilterRow" type="HBoxContainer" parent="CanvasLayer/CharacterPanel/CharacterVBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="BuildSchoolFilter" type="OptionButton" parent="CanvasLayer/CharacterPanel/CharacterVBox/CharacterFilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BuildQualityFilter" type="OptionButton" parent="CanvasLayer/CharacterPanel/CharacterVBox/CharacterFilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BuildStateFilter" type="OptionButton" parent="CanvasLayer/CharacterPanel/CharacterVBox/CharacterFilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="ManualStateFilter" type="OptionButton" parent="CanvasLayer/CharacterPanel/CharacterVBox/CharacterFilterRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CharacterScroll" type="ScrollContainer" parent="CanvasLayer/CharacterPanel/CharacterVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="CharacterContent" type="HBoxContainer" parent="CanvasLayer/CharacterPanel/CharacterVBox/CharacterScroll"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="CharacterSummaryText" type="RichTextLabel" parent="CanvasLayer/CharacterPanel/CharacterVBox/CharacterScroll/CharacterContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="CharacterBuildList" type="VBoxContainer" parent="CanvasLayer/CharacterPanel/CharacterVBox/CharacterScroll/CharacterContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(290, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="CharacterManualList" type="VBoxContainer" parent="CanvasLayer/CharacterPanel/CharacterVBox/CharacterScroll/CharacterContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(310, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="CharacterInventoryText" type="RichTextLabel" parent="CanvasLayer/CharacterPanel/CharacterVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+bbcode_enabled = true
+fit_content = true
+scroll_active = false
+
+[node name="CharacterFooterLabel" type="Label" parent="CanvasLayer/CharacterPanel/CharacterVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+text = "C fecha. Podeis equipar ate 10 artes e 10 passivas."
+
+[node name="CharacterCloseButton" type="Button" parent="CanvasLayer/CharacterPanel/CharacterVBox"]
+text = "Fechar Personagem"
+
+[node name="ShopPanel" type="PanelContainer" parent="CanvasLayer"]
+unique_name_in_owner = true
+visible = false
+offset_left = 1000.0
+offset_top = 160.0
+offset_right = 1760.0
+offset_bottom = 780.0
+
+[node name="ShopVBox" type="VBoxContainer" parent="CanvasLayer/ShopPanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="ShopTitleLabel" type="Label" parent="CanvasLayer/ShopPanel/ShopVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Mercado"
+horizontal_alignment = 1
+
+[node name="ShopStatusLabel" type="Label" parent="CanvasLayer/ShopPanel/ShopVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+
+[node name="ShopList" type="VBoxContainer" parent="CanvasLayer/ShopPanel/ShopVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ShopCloseButton" type="Button" parent="CanvasLayer/ShopPanel/ShopVBox"]
+layout_mode = 2
+text = "Fechar Mercado"
+
+[node name="TravelPanel" type="PanelContainer" parent="CanvasLayer"]
+unique_name_in_owner = true
+visible = false
+offset_left = 640.0
+offset_top = 150.0
+offset_right = 1280.0
+offset_bottom = 780.0
+
+[node name="TravelVBox" type="VBoxContainer" parent="CanvasLayer/TravelPanel"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="TravelTitle" type="Label" parent="CanvasLayer/TravelPanel/TravelVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Mapa de Viagem"
+horizontal_alignment = 1
+
+[node name="TravelStatusLabel" type="Label" parent="CanvasLayer/TravelPanel/TravelVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+horizontal_alignment = 1
+
+[node name="TravelList" type="VBoxContainer" parent="CanvasLayer/TravelPanel/TravelVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TravelCloseButton" type="Button" parent="CanvasLayer/TravelPanel/TravelVBox"]
+layout_mode = 2
+text = "Fechar Mapa"
+
+[node name="PausePanel" type="PanelContainer" parent="CanvasLayer"]
+unique_name_in_owner = true
+visible = false
+offset_left = 760.0
+offset_top = 280.0
+offset_right = 1160.0
+offset_bottom = 640.0
+
+[node name="PauseVBox" type="VBoxContainer" parent="CanvasLayer/PausePanel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="PauseLabel" type="Label" parent="CanvasLayer/PausePanel/PauseVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "Menu de Pausa"
+horizontal_alignment = 1
+
+[node name="SaveButton" type="Button" parent="CanvasLayer/PausePanel/PauseVBox"]
+layout_mode = 2
+text = "Gravar"
+
+[node name="LoadButton" type="Button" parent="CanvasLayer/PausePanel/PauseVBox"]
+layout_mode = 2
+text = "Carregar"
+
+[node name="MenuButton" type="Button" parent="CanvasLayer/PausePanel/PauseVBox"]
+layout_mode = 2
+text = "Voltar ao Menu"
+
+[connection signal="pressed" from="CanvasLayer/DialoguePanel/DialogueVBox/DialogueButtons/PrimaryButton" to="." method="_on_primary_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/DialoguePanel/DialogueVBox/DialogueButtons/SecondaryButton" to="." method="_on_secondary_button_pressed"]
+[connection signal="item_selected" from="CanvasLayer/CharacterPanel/CharacterVBox/CharacterFilterRow/BuildSchoolFilter" to="." method="_on_build_school_filter_item_selected"]
+[connection signal="item_selected" from="CanvasLayer/CharacterPanel/CharacterVBox/CharacterFilterRow/BuildQualityFilter" to="." method="_on_build_quality_filter_item_selected"]
+[connection signal="item_selected" from="CanvasLayer/CharacterPanel/CharacterVBox/CharacterFilterRow/BuildStateFilter" to="." method="_on_build_state_filter_item_selected"]
+[connection signal="item_selected" from="CanvasLayer/CharacterPanel/CharacterVBox/CharacterFilterRow/ManualStateFilter" to="." method="_on_manual_state_filter_item_selected"]
+[connection signal="pressed" from="CanvasLayer/CharacterPanel/CharacterVBox/CharacterCloseButton" to="." method="_on_character_close_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/ShopPanel/ShopVBox/ShopCloseButton" to="." method="_on_shop_close_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/TravelPanel/TravelVBox/TravelCloseButton" to="." method="_on_travel_close_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/PausePanel/PauseVBox/SaveButton" to="." method="_on_save_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/PausePanel/PauseVBox/LoadButton" to="." method="_on_load_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/PausePanel/PauseVBox/MenuButton" to="." method="_on_menu_button_pressed"]

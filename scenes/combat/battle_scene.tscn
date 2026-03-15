@@ -1,0 +1,588 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/combat/battle_scene.gd" id="1"]
+
+[node name="BattleScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.0470588, 0.0862745, 0.137255, 1)
+
+[node name="TopGlow" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 228.0
+grow_horizontal = 2
+color = Color(0.109804, 0.203922, 0.305882, 0.76)
+
+[node name="LeftShade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 4
+anchor_bottom = 1.0
+offset_right = 240.0
+grow_vertical = 2
+color = Color(0.0196078, 0.0313726, 0.0470588, 0.28)
+
+[node name="RightShade" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 6
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -248.0
+grow_horizontal = 0
+grow_vertical = 2
+color = Color(0.0196078, 0.0313726, 0.0470588, 0.34)
+
+[node name="EffectsLayer" type="Control" parent="."]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="BattleFrame" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_top = 16.0
+offset_right = -18.0
+offset_bottom = -18.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 0
+theme_override_constants/margin_top = 0
+theme_override_constants/margin_right = 0
+theme_override_constants/margin_bottom = 0
+
+[node name="RootVBox" type="VBoxContainer" parent="BattleFrame"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="HeaderPanel" type="PanelContainer" parent="BattleFrame/RootVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 60)
+
+[node name="HeaderVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/HeaderPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="HeaderTopHBox" type="HBoxContainer" parent="BattleFrame/RootVBox/HeaderPanel/HeaderVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="HeaderLabel" type="Label" parent="BattleFrame/RootVBox/HeaderPanel/HeaderVBox/HeaderTopHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 26
+text = "Recontro"
+
+[node name="RoundLabel" type="Label" parent="BattleFrame/RootVBox/HeaderPanel/HeaderVBox/HeaderTopHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(98, 0)
+theme_override_font_sizes/font_size = 16
+text = "Ronda 1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TurnLabel" type="Label" parent="BattleFrame/RootVBox/HeaderPanel/HeaderVBox/HeaderTopHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(220, 0)
+theme_override_font_sizes/font_size = 16
+text = "Vez de:"
+horizontal_alignment = 2
+vertical_alignment = 1
+
+[node name="TurnOrderPanel" type="PanelContainer" parent="BattleFrame/RootVBox/HeaderPanel/HeaderVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 30)
+
+[node name="TurnOrderLabel" type="Label" parent="BattleFrame/RootVBox/HeaderPanel/HeaderVBox/TurnOrderPanel"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 14
+text = "Iniciativa"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TopStrip" type="HBoxContainer" parent="BattleFrame/RootVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 82)
+theme_override_constants/separation = 10
+
+[node name="PartyRailPanel" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip"]
+layout_mode = 2
+custom_minimum_size = Vector2(408, 0)
+
+[node name="PartyRailVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="PartyTitle" type="Label" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Companhia"
+horizontal_alignment = 1
+
+[node name="PlayerPanel" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 72)
+
+[node name="PlayerHBox" type="HBoxContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="PlayerPortraitFrame" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel/PlayerHBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(64, 64)
+
+[node name="PlayerPortrait" type="TextureRect" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel/PlayerHBox/PlayerPortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="PlayerHpBar" type="ProgressBar" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel/PlayerHBox/PlayerPortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 6.0
+offset_top = 49.0
+offset_right = 64.0
+offset_bottom = 55.0
+mouse_filter = 2
+show_percentage = false
+value = 100.0
+
+[node name="PlayerSpBar" type="ProgressBar" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel/PlayerHBox/PlayerPortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 6.0
+offset_top = 58.0
+offset_right = 64.0
+offset_bottom = 64.0
+mouse_filter = 2
+show_percentage = false
+value = 100.0
+
+[node name="PlayerLabel" type="Label" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel/PlayerHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 14
+vertical_alignment = 1
+
+[node name="CompanionPanel" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 72)
+
+[node name="CompanionHBox" type="HBoxContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CompanionPortraitFrame" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel/CompanionHBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(64, 64)
+
+[node name="CompanionPortrait" type="TextureRect" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel/CompanionHBox/CompanionPortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CompanionHpBar" type="ProgressBar" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel/CompanionHBox/CompanionPortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 6.0
+offset_top = 49.0
+offset_right = 64.0
+offset_bottom = 55.0
+mouse_filter = 2
+show_percentage = false
+value = 100.0
+
+[node name="CompanionSpBar" type="ProgressBar" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel/CompanionHBox/CompanionPortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 6.0
+offset_top = 58.0
+offset_right = 64.0
+offset_bottom = 64.0
+mouse_filter = 2
+show_percentage = false
+value = 100.0
+
+[node name="CompanionLabel" type="Label" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel/CompanionHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 14
+vertical_alignment = 1
+
+[node name="TopInfoSpacer" type="Control" parent="BattleFrame/RootVBox/TopStrip"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="CurrentActorPanel" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip"]
+layout_mode = 2
+custom_minimum_size = Vector2(296, 0)
+
+[node name="CurrentActorVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/TopStrip/CurrentActorPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CurrentActorTitle" type="Label" parent="BattleFrame/RootVBox/TopStrip/CurrentActorPanel/CurrentActorVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "Actor Activo"
+horizontal_alignment = 1
+
+[node name="CurrentActorBody" type="HBoxContainer" parent="BattleFrame/RootVBox/TopStrip/CurrentActorPanel/CurrentActorVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="CurrentActorPortraitFrame" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip/CurrentActorPanel/CurrentActorVBox/CurrentActorBody"]
+layout_mode = 2
+custom_minimum_size = Vector2(68, 68)
+
+[node name="CurrentActorPortrait" type="TextureRect" parent="BattleFrame/RootVBox/TopStrip/CurrentActorPanel/CurrentActorVBox/CurrentActorBody/CurrentActorPortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CurrentActorHpBar" type="ProgressBar" parent="BattleFrame/RootVBox/TopStrip/CurrentActorPanel/CurrentActorVBox/CurrentActorBody/CurrentActorPortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 7.0
+offset_top = 55.0
+offset_right = 71.0
+offset_bottom = 61.0
+mouse_filter = 2
+show_percentage = false
+value = 100.0
+
+[node name="CurrentActorSpBar" type="ProgressBar" parent="BattleFrame/RootVBox/TopStrip/CurrentActorPanel/CurrentActorVBox/CurrentActorBody/CurrentActorPortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 7.0
+offset_top = 64.0
+offset_right = 71.0
+offset_bottom = 70.0
+mouse_filter = 2
+show_percentage = false
+value = 100.0
+
+[node name="CurrentActorLabel" type="Label" parent="BattleFrame/RootVBox/TopStrip/CurrentActorPanel/CurrentActorVBox/CurrentActorBody"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 14
+vertical_alignment = 1
+
+[node name="ArenaPanel" type="PanelContainer" parent="BattleFrame/RootVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="ArenaHBox" type="HBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="LeftUtilityColumn" type="VBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(224, 0)
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="FieldHintPanel" type="PanelContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/LeftUtilityColumn"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 96)
+
+[node name="FieldHintVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/LeftUtilityColumn/FieldHintPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="FieldHintTitle" type="Label" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/LeftUtilityColumn/FieldHintPanel/FieldHintVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Campo"
+horizontal_alignment = 1
+
+[node name="FieldHintLabel" type="Label" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/LeftUtilityColumn/FieldHintPanel/FieldHintVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 17
+text = "A grelha tactica aguarda as ordens."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TerrainLegendLabel" type="Label" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/LeftUtilityColumn/FieldHintPanel/FieldHintVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 14
+text = "Legenda: ^ alto | ~ agua | # obstaculo"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="LogPanel" type="PanelContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/LeftUtilityColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="LogVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/LeftUtilityColumn/LogPanel"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LogTitle" type="Label" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/LeftUtilityColumn/LogPanel/LogVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Cronica"
+horizontal_alignment = 1
+
+[node name="CombatLog" type="RichTextLabel" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/LeftUtilityColumn/LogPanel/LogVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+bbcode_enabled = true
+
+[node name="BattleColumn" type="VBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="BattleSurfacePanel" type="PanelContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/BattleColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="BattleSurfaceMargin" type="MarginContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/BattleColumn/BattleSurfacePanel"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 10
+
+[node name="BattleGrid" type="GridContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/BattleColumn/BattleSurfacePanel/BattleSurfaceMargin"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/h_separation = 4
+theme_override_constants/v_separation = 2
+columns = 7
+
+[node name="RightCommandColumn" type="VBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(224, 0)
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="TargetPanel" type="PanelContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 126)
+
+[node name="TargetVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/TargetPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="TargetTitle" type="Label" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/TargetPanel/TargetVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Alvo Marcado"
+horizontal_alignment = 1
+
+[node name="TargetBody" type="HBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/TargetPanel/TargetVBox"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TargetPortraitFrame" type="PanelContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/TargetPanel/TargetVBox/TargetBody"]
+layout_mode = 2
+custom_minimum_size = Vector2(78, 78)
+
+[node name="TargetPortrait" type="TextureRect" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/TargetPanel/TargetVBox/TargetBody/TargetPortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TargetHpBar" type="ProgressBar" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/TargetPanel/TargetVBox/TargetBody/TargetPortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 7.0
+offset_top = 55.0
+offset_right = 71.0
+offset_bottom = 61.0
+mouse_filter = 2
+show_percentage = false
+value = 100.0
+
+[node name="TargetSpBar" type="ProgressBar" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/TargetPanel/TargetVBox/TargetBody/TargetPortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 0
+offset_left = 7.0
+offset_top = 64.0
+offset_right = 71.0
+offset_bottom = 70.0
+mouse_filter = 2
+show_percentage = false
+value = 100.0
+
+[node name="TargetLabel" type="Label" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/TargetPanel/TargetVBox/TargetBody"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 15
+vertical_alignment = 1
+
+[node name="EnemyPanel" type="PanelContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EnemyVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/EnemyPanel"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="EnemyTitle" type="Label" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/EnemyPanel/EnemyVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "Inimigos"
+horizontal_alignment = 1
+
+[node name="EnemyScroll" type="ScrollContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/EnemyPanel/EnemyVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="EnemyStatusList" type="VBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/EnemyPanel/EnemyVBox/EnemyScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ActionInfoPanel" type="PanelContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 76)
+
+[node name="ActionInfoVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionInfoPanel"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="ActionInfoTitle" type="Label" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionInfoPanel/ActionInfoVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "Comando"
+horizontal_alignment = 1
+
+[node name="ActionHintLabel" type="Label" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionInfoPanel/ActionInfoVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 15
+text = "Escolhei mover, golpear, beber ou defender."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ActionButtons" type="GridContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
+columns = 2
+
+[node name="BottomPanel" type="PanelContainer" parent="BattleFrame/RootVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 86)
+
+[node name="BottomVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/BottomPanel"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="SkillDockTitle" type="Label" parent="BattleFrame/RootVBox/BottomPanel/BottomVBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "Artes Aparelhadas"
+horizontal_alignment = 1
+
+[node name="SkillButtons" type="HFlowContainer" parent="BattleFrame/RootVBox/BottomPanel/BottomVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 6
+alignment = 1
+
+[node name="ResultRow" type="HBoxContainer" parent="BattleFrame/RootVBox/BottomPanel/BottomVBox"]
+visible = false
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 10
+
+[node name="ResultLabel" type="Label" parent="BattleFrame/RootVBox/BottomPanel/BottomVBox/ResultRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(180, 30)
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+
+[node name="ContinueButton" type="Button" parent="BattleFrame/RootVBox/BottomPanel/BottomVBox/ResultRow"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(180, 40)
+layout_mode = 2
+text = "Tornar"
+
+[node name="MoveButton" type="Button" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(80, 80)
+text = ""
+
+[node name="AttackButton" type="Button" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(80, 80)
+text = ""
+
+[node name="ItemButton" type="Button" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(80, 80)
+text = ""
+
+[node name="DefendButton" type="Button" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+custom_minimum_size = Vector2(80, 80)
+text = ""
+
+[connection signal="pressed" from="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons/MoveButton" to="." method="_on_move_button_pressed"]
+[connection signal="pressed" from="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons/AttackButton" to="." method="_on_attack_button_pressed"]
+[connection signal="pressed" from="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons/ItemButton" to="." method="_on_item_button_pressed"]
+[connection signal="pressed" from="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionButtons/DefendButton" to="." method="_on_defend_button_pressed"]
+[connection signal="pressed" from="BattleFrame/RootVBox/BottomPanel/BottomVBox/ResultRow/ContinueButton" to="." method="_on_continue_button_pressed"]

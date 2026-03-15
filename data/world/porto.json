@@ -1,0 +1,200 @@
+{
+  "interactables": [
+    {
+      "id": "joao_tempestade",
+      "type": "dialogue",
+      "label": "Joao Tempestade",
+      "prompt": "Carrega E para falar com Joao Tempestade.",
+      "position": { "x": 760.0, "y": 340.0 },
+      "radius": 92.0,
+      "draw_radius": 24.0,
+      "color": "8f2d2d",
+      "dialogues_by_quest_state": {
+        "porto_alliance": {
+          "not_started": "joao_inicio",
+          "active": "joao_em_curso",
+          "ready_to_turn_in": "joao_recompensa",
+          "completed": "joao_fecho"
+        }
+      }
+    },
+    {
+      "id": "mercadora_ines",
+      "type": "shop",
+      "label": "Ines do Armazem",
+      "prompt": "Carrega E para mercar com Ines do Armazem.",
+      "position": { "x": 1240.0, "y": 520.0 },
+      "radius": 90.0,
+      "draw_radius": 22.0,
+      "color": "5a7ba3",
+      "shop_id": "armazem_de_ines"
+    },
+    {
+      "id": "duelista_castela",
+      "type": "encounter",
+      "label": "Duelista de Castela",
+      "prompt": "Carrega E para afrontar o duelista castelhano.",
+      "position": { "x": 1520.0, "y": 330.0 },
+      "radius": 94.0,
+      "draw_radius": 28.0,
+      "color": "442244",
+      "conditions": {
+        "quest_state": {
+          "porto_alliance": ["active"]
+        },
+        "world_flags": {
+          "porto_duelist_defeated": false
+        }
+      },
+      "battle": {
+        "enemy_ids": ["castilian_duelist", "bandit_scout"],
+        "return_scene": "res://scenes/world/porto.tscn",
+        "return_button_text": "Tornar ao Porto",
+        "battle_title": "Duelo no Cais Alto",
+        "intro_text": "Um duelista de Castela avanca com um salteador ao lado, ambos sedentos de desordem.",
+        "victory_text": "Os homens de Castela e o seu lacaio batem em retirada. Uma parte do cais respira em paz.",
+        "defeat_text": "A estocada obriga-vos a recuar. Convem tornar com mais tino.",
+        "ally_start_cells": [[0, 1], [0, 2]],
+        "enemy_start_cells": [[5, 0], [5, 2], [6, 1], [6, 2]],
+        "terrain": {
+          "blocked_cells": [[2, 1], [2, 2], [3, 1]],
+          "water_cells": [[4, 3], [5, 3], [6, 3]],
+          "high_cells": [[4, 0], [5, 0], [4, 1]],
+          "note": "O cais alto favorece quem lhe toma a crista."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "porto_duelist_defeated",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "guerreiro_mourisco",
+      "type": "encounter",
+      "label": "Guerreiro Mourisco",
+      "prompt": "Carrega E para medir forcas com o guerreiro mourisco.",
+      "position": { "x": 1500.0, "y": 610.0 },
+      "radius": 96.0,
+      "draw_radius": 30.0,
+      "color": "304b2c",
+      "conditions": {
+        "quest_state": {
+          "porto_alliance": ["active"]
+        },
+        "world_flags": {
+          "porto_duelist_defeated": true,
+          "porto_mourisco_defeated": false
+        }
+      },
+      "battle": {
+        "enemy_ids": ["mourish_guard", "bandit_scout"],
+        "return_scene": "res://scenes/world/porto.tscn",
+        "return_button_text": "Tornar ao Porto",
+        "battle_title": "Peleja junto ao Armazem Velho",
+        "intro_text": "Um guerreiro mourisco sustem a entrada, escoltado por um salteador do cais.",
+        "victory_text": "Os guardas do armazem cedem o passo. O cais fica enfim desembaracado.",
+        "defeat_text": "Sois forcado a ceder terreno. Tornai quando vos sentirdes mais firmes.",
+        "ally_start_cells": [[0, 1], [0, 2]],
+        "enemy_start_cells": [[5, 1], [5, 2], [6, 0], [6, 3]],
+        "terrain": {
+          "blocked_cells": [[2, 1], [3, 1], [3, 2]],
+          "water_cells": [[1, 3], [2, 3], [5, 3], [6, 3]],
+          "high_cells": [[4, 0], [5, 0], [6, 0], [4, 1]],
+          "note": "As docas alagadas atrasam os pes mais pesados."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "porto_mourisco_defeated",
+            "value": true
+          },
+          {
+            "type": "set_quest_state",
+            "quest_id": "porto_alliance",
+            "status": "ready_to_turn_in"
+          }
+        ]
+      }
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "joao_inicio",
+      "speaker": "Joao Tempestade",
+      "text": "Sois vos o homem de Lisboa? Bom. Dois lobos rondam estas docas: um duelista de Castela e um guerreiro mourisco ao soldo de mercadores sem honra. Dai-me ajuda a limpar o cais e eu darei o meu braco a vossa jornada.",
+      "primary_label": "Aceitar alianca",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "start_quest",
+          "quest_id": "porto_alliance"
+        }
+      ]
+    },
+    {
+      "id": "joao_em_curso",
+      "speaker": "Joao Tempestade",
+      "text": "Primeiro, quebrai a vaidade do castelhano no cais alto. Depois, desalojaremos o mourisco do armazem velho.",
+      "secondary_label": "Prosseguir"
+    },
+    {
+      "id": "joao_recompensa",
+      "speaker": "Joao Tempestade",
+      "text": "Assim se faz. O cais esta limpo, e eu nao gasto palavras em vao. Se mo permitirdes, desde ja seguirei convosco como escudo e punho.",
+      "primary_label": "Receber Joao",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "recruit_companion",
+          "companion_id": "joao"
+        },
+        {
+          "type": "complete_quest",
+          "quest_id": "porto_alliance"
+        },
+        {
+          "type": "heal_party"
+        }
+      ]
+    },
+    {
+      "id": "joao_fecho",
+      "speaker": "Joao Tempestade",
+      "text": "Dai-me um inimigo e vereis se mereco o nome que trago. O mar ainda nos ha-de pedir muito.",
+      "secondary_label": "Prosseguir"
+    }
+  ],
+  "shops": [
+    {
+      "id": "armazem_de_ines",
+      "name": "Armazem de Ines",
+      "greeting": "Ines entreabre um cofre de mercadorias e manuais do cais. Nada vende sem conta certa, mas reconhece valor em quem limpa o Porto.",
+      "entries": [
+        {
+          "item_id": "battle_bread",
+          "price": 8
+        },
+        {
+          "item_id": "health_potion",
+          "price": 25
+        },
+        {
+          "item_id": "spirit_elixir",
+          "price": 30
+        },
+        {
+          "item_id": "manual_folego_da_estiva",
+          "price": 145,
+          "conditions": {
+            "quest_state": {
+              "porto_alliance": ["active", "ready_to_turn_in", "completed"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

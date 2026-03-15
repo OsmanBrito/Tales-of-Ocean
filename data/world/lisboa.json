@@ -1,0 +1,154 @@
+{
+  "interactables": [
+    {
+      "id": "capitao_duarte",
+      "type": "dialogue",
+      "label": "Capitao Duarte",
+      "prompt": "Carrega E para falar com o Capitao Duarte.",
+      "position": { "x": 560.0, "y": 320.0 },
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "ba3a3a",
+      "dialogues_by_quest_state": {
+        "first_voyage": {
+          "not_started": "duarte_inicio",
+          "active": "duarte_em_curso",
+          "ready_to_turn_in": "duarte_recompensa",
+          "completed": "duarte_fecho"
+        }
+      }
+    },
+    {
+      "id": "velho_tome",
+      "type": "dialogue",
+      "label": "Velho Tome",
+      "prompt": "Carrega E para escutar o velho marinheiro.",
+      "position": { "x": 360.0, "y": 560.0 },
+      "radius": 90.0,
+      "draw_radius": 20.0,
+      "color": "476c9b",
+      "default_dialogue_id": "tome_cais"
+    },
+    {
+      "id": "caravela_do_norte",
+      "type": "dialogue",
+      "label": "Caravela do Norte",
+      "prompt": "Carrega E para embarcar rumo ao Porto.",
+      "position": { "x": 250.0, "y": 260.0 },
+      "radius": 94.0,
+      "draw_radius": 24.0,
+      "color": "1f5d8b",
+      "default_dialogue_id": "viagem_porto",
+      "conditions": {
+        "quest_state": {
+          "first_voyage": ["completed"]
+        }
+      }
+    },
+    {
+      "id": "acampamento_salteador",
+      "type": "encounter",
+      "label": "Acampamento do Salteador",
+      "prompt": "Carrega E para afrontar o batedor salteador.",
+      "position": { "x": 1490.0, "y": 430.0 },
+      "radius": 96.0,
+      "draw_radius": 28.0,
+      "color": "3d2414",
+      "conditions": {
+        "quest_state": {
+          "first_voyage": ["active"]
+        },
+        "world_flags": {
+          "bandit_defeated": false
+        }
+      },
+      "battle": {
+        "enemy_id": "bandit_scout",
+        "return_scene": "res://scenes/world/lisboa.tscn",
+        "return_button_text": "Tornar a Lisboa",
+        "battle_title": "Recontro junto da Porta Oriental",
+        "intro_text": "Um batedor salteador avanca para vos tolher o caminho.",
+        "victory_text": "O salteador cai por terra. A estrada de Lisboa torna a ser segura.",
+        "defeat_text": "Pembah recua para tomar alento. Tornai quando estiverdes pronto.",
+        "ally_start_cells": [[1, 1], [1, 2]],
+        "enemy_start_cells": [[5, 1], [6, 2]],
+        "terrain": {
+          "blocked_cells": [[3, 1], [3, 2]],
+          "water_cells": [[0, 0], [1, 0], [5, 3], [6, 3]],
+          "high_cells": [[4, 0], [5, 0], [6, 0]],
+          "note": "Os escombros da estrada fecham o meio do campo."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "bandit_defeated",
+            "value": true
+          },
+          {
+            "type": "set_quest_state",
+            "quest_id": "first_voyage",
+            "status": "ready_to_turn_in"
+          }
+        ]
+      }
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "duarte_inicio",
+      "speaker": "Capitao Duarte",
+      "text": "Pembah, Lisboa nao confia a rota do Oriente a qualquer homem. Um batedor salteador anda a vexar marinheiros junto da porta oriental. Vai, mede-te com ele, e regressa a mim; entao porei o meu selo na tua viagem.",
+      "primary_label": "Aceitar encargo",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "start_quest",
+          "quest_id": "first_voyage"
+        }
+      ]
+    },
+    {
+      "id": "duarte_em_curso",
+      "speaker": "Capitao Duarte",
+      "text": "O batedor ainda respira. Nao voltes a mim sem cumprires o encargo que te foi confiado.",
+      "secondary_label": "Prosseguir"
+    },
+    {
+      "id": "duarte_recompensa",
+      "speaker": "Capitao Duarte",
+      "text": "Serviste bem a cidade. Toma o teu soldo e guarda este anel; sera sinal de que ja navegaste ao servico de Lisboa.",
+      "primary_label": "Receber soldo",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "complete_quest",
+          "quest_id": "first_voyage"
+        }
+      ]
+    },
+    {
+      "id": "duarte_fecho",
+      "speaker": "Capitao Duarte",
+      "text": "Ja deste o primeiro passo. O cais do norte aguarda-vos; dali podereis demandar o Porto e buscar homens dignos de vos acompanhar.",
+      "secondary_label": "Prosseguir"
+    },
+    {
+      "id": "tome_cais",
+      "speaker": "Velho Tome",
+      "text": "Dizem os homens do cais que o mar sabe o nome dos ousados. Se lhe faltas ao respeito, engole-te sem missa nem memoria.",
+      "secondary_label": "Agradecer"
+    },
+    {
+      "id": "viagem_porto",
+      "speaker": "Mestre da Caravela",
+      "text": "A maré corre de feicao e o vento chama pelo norte. Se assim o quereis, levo-vos ao Porto ainda antes de soar a proxima alvorada.",
+      "primary_label": "Partir para Porto",
+      "secondary_label": "Ficar em Lisboa",
+      "actions": [
+        {
+          "type": "open_overworld_map"
+        }
+      ]
+    }
+  ]
+}

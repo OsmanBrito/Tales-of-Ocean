@@ -1,0 +1,213 @@
+{
+  "interactables": [
+    {
+      "id": "mestre_lourenco",
+      "type": "dialogue",
+      "label": "Mestre Lourenco",
+      "prompt": "Carrega E para falar com Mestre Lourenco.",
+      "position": { "x": 740.0, "y": 300.0 },
+      "radius": 92.0,
+      "draw_radius": 24.0,
+      "color": "a85e22",
+      "dialogues_by_quest_state": {
+        "luz_de_sagres": {
+          "not_started": "lourenco_inicio",
+          "active": "lourenco_em_curso",
+          "ready_to_turn_in": "lourenco_recompensa",
+          "completed": "lourenco_fecho"
+        }
+      }
+    },
+    {
+      "id": "merceeira_beatriz",
+      "type": "shop",
+      "label": "Beatriz da Ribeira",
+      "prompt": "Carrega E para mercar com Beatriz da Ribeira.",
+      "position": { "x": 1210.0, "y": 500.0 },
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "4f7f8f",
+      "shop_id": "banca_do_farol"
+    },
+    {
+      "id": "peregrino_das_cartas",
+      "type": "dialogue",
+      "label": "Peregrino das Cartas",
+      "prompt": "Carrega E para ouvir o peregrino.",
+      "position": { "x": 450.0, "y": 620.0 },
+      "radius": 90.0,
+      "draw_radius": 20.0,
+      "color": "6a5d8f",
+      "default_dialogue_id": "peregrino_cartas"
+    },
+    {
+      "id": "atalaia_quebrada",
+      "type": "encounter",
+      "label": "Atalaia Quebrada",
+      "prompt": "Carrega E para desalojar os corsarios da atalaia.",
+      "position": { "x": 1500.0, "y": 300.0 },
+      "radius": 96.0,
+      "draw_radius": 28.0,
+      "color": "44321f",
+      "conditions": {
+        "quest_state": {
+          "luz_de_sagres": ["active"]
+        },
+        "world_flags": {
+          "sagres_corsair_defeated": false
+        }
+      },
+      "battle": {
+        "enemy_ids": ["corsair_raider", "bandit_scout"],
+        "return_scene": "res://scenes/world/sagres.tscn",
+        "return_button_text": "Tornar a Sagres",
+        "battle_title": "Atalaia Quebrada",
+        "intro_text": "Corsarios do nevoeiro assenhorearam a atalaia, cobrindo de fumo o rumo da costa.",
+        "victory_text": "A atalaia torna a respirar. O nevoeiro abre-se sobre o promontorio.",
+        "defeat_text": "Os corsarios fecham o passo e forcais recuo. Convem tornar com melhor ordem.",
+        "ally_start_cells": [[0, 2], [1, 2]],
+        "enemy_start_cells": [[5, 0], [5, 1], [6, 0], [6, 1]],
+        "terrain": {
+          "blocked_cells": [[2, 1], [2, 2], [3, 2]],
+          "water_cells": [[0, 3], [1, 3], [2, 3]],
+          "high_cells": [[4, 0], [5, 0], [6, 0], [4, 1]],
+          "note": "A atalaia domina o campo do alto, mas o pedregulho corta a subida."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "sagres_corsair_defeated",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "bateria_do_alcatrao",
+      "type": "encounter",
+      "label": "Bateria do Alcatrao",
+      "prompt": "Carrega E para romper a bateria dos corsarios.",
+      "position": { "x": 1490.0, "y": 610.0 },
+      "radius": 100.0,
+      "draw_radius": 30.0,
+      "color": "7b2f1e",
+      "conditions": {
+        "quest_state": {
+          "luz_de_sagres": ["active"]
+        },
+        "world_flags": {
+          "sagres_corsair_defeated": true,
+          "sagres_bombard_defeated": false
+        }
+      },
+      "battle": {
+        "enemy_ids": ["bombardeiro_renegado", "corsair_raider"],
+        "return_scene": "res://scenes/world/sagres.tscn",
+        "return_button_text": "Tornar a Sagres",
+        "battle_title": "Bateria do Alcatrao",
+        "intro_text": "Um bombardeiro renegado guarda o lume de alcatrao, protegido por um corsario da neblina.",
+        "victory_text": "A bateria cala-se e o promontorio volta a ter linha limpa sobre a agua.",
+        "defeat_text": "O fogo obriga-vos a baixar da crista. Sera preciso tornar com novo intento.",
+        "ally_start_cells": [[0, 1], [0, 2]],
+        "enemy_start_cells": [[5, 1], [5, 2], [6, 1], [6, 2]],
+        "terrain": {
+          "blocked_cells": [[2, 1], [3, 1], [3, 2]],
+          "water_cells": [[0, 3], [1, 3], [5, 3], [6, 3]],
+          "high_cells": [[4, 0], [5, 0], [6, 0], [4, 1], [5, 1]],
+          "note": "A crista do promontorio favorece a arte do farol, mas o fogo cobre as passagens baixas."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "sagres_bombard_defeated",
+            "value": true
+          },
+          {
+            "type": "set_quest_state",
+            "quest_id": "luz_de_sagres",
+            "status": "ready_to_turn_in"
+          }
+        ]
+      }
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "lourenco_inicio",
+      "speaker": "Mestre Lourenco",
+      "text": "Sagres nao guarda so pedra e vento; guarda rumo. Os corsarios do nevoeiro toldaram-nos a costa, tomaram a atalaia quebrada e acenderam alcatrao onde devia arder luz de aviso. Se limpares o promontorio, abrirei a Pembah os livros maiores da irmandade.",
+      "primary_label": "Aceitar servico",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "start_quest",
+          "quest_id": "luz_de_sagres"
+        }
+      ]
+    },
+    {
+      "id": "lourenco_em_curso",
+      "speaker": "Mestre Lourenco",
+      "text": "Primeiro a Atalaia Quebrada; depois a Bateria do Alcatrao. So com ambas limpas podera o farol falar de novo ao mar.",
+      "secondary_label": "Prosseguir"
+    },
+    {
+      "id": "lourenco_recompensa",
+      "speaker": "Mestre Lourenco",
+      "text": "Bem servistes o promontorio. Recebei estes volumes da irmandade e guardai-os com mao limpa; sao artes para quem sabe ver mais longe do que os outros.",
+      "primary_label": "Receber doutrina",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "complete_quest",
+          "quest_id": "luz_de_sagres"
+        },
+        {
+          "type": "heal_party"
+        }
+      ]
+    },
+    {
+      "id": "lourenco_fecho",
+      "speaker": "Mestre Lourenco",
+      "text": "Quem traz o olhar firme da estrela e a crista do promontorio debaixo dos pes nao se perde nem no mar nem na peleja.",
+      "secondary_label": "Prosseguir"
+    },
+    {
+      "id": "peregrino_cartas",
+      "speaker": "Peregrino das Cartas",
+      "text": "Ha cartas que mostram costa e ha cartas que mostram homens. As segundas mudam mais depressa, por isso exigem melhor juizo.",
+      "secondary_label": "Agradecer"
+    }
+  ],
+  "shops": [
+    {
+      "id": "banca_do_farol",
+      "name": "Banca do Farol",
+      "greeting": "Beatriz da Ribeira vende provisoes de costa e, a quem julga digno, um livro guardado para vigias do promontorio.",
+      "entries": [
+        {
+          "item_id": "battle_bread",
+          "price": 8
+        },
+        {
+          "item_id": "health_potion",
+          "price": 25
+        },
+        {
+          "item_id": "spirit_elixir",
+          "price": 30
+        },
+        {
+          "item_id": "manual_vigia_do_promontorio",
+          "price": 240,
+          "conditions": {
+            "quest_state": {
+              "luz_de_sagres": ["active", "ready_to_turn_in", "completed"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

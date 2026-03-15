@@ -1,0 +1,213 @@
+{
+  "interactables": [
+    {
+      "id": "mestre_gabriel",
+      "type": "dialogue",
+      "label": "Mestre Gabriel da Esfera",
+      "prompt": "Carrega E para falar com Mestre Gabriel.",
+      "position": { "x": 938.0, "y": 406.0 },
+      "radius": 94.0,
+      "draw_radius": 24.0,
+      "color": "9f7d3a",
+      "dialogues_by_quest_state": {
+        "roda_de_tomar": {
+          "not_started": "gabriel_inicio",
+          "active": "gabriel_em_curso",
+          "ready_to_turn_in": "gabriel_recompensa",
+          "completed": "gabriel_fecho"
+        }
+      }
+    },
+    {
+      "id": "violante_das_cartas",
+      "type": "shop",
+      "label": "Violante das Cartas",
+      "prompt": "Carrega E para mercar com Violante das Cartas.",
+      "position": { "x": 1460.0, "y": 646.0 },
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "5c7d84",
+      "shop_id": "mesa_da_esfera"
+    },
+    {
+      "id": "novico_martim",
+      "type": "dialogue",
+      "label": "Novico Martim",
+      "prompt": "Carrega E para ouvir o novico.",
+      "position": { "x": 520.0, "y": 606.0 },
+      "radius": 86.0,
+      "draw_radius": 20.0,
+      "color": "7d6f5e",
+      "default_dialogue_id": "martim_cartas"
+    },
+    {
+      "id": "claustro_da_charola",
+      "type": "encounter",
+      "label": "Claustro da Charola",
+      "prompt": "Carrega E para varrer o claustro dos apostatas.",
+      "position": { "x": 1360.0, "y": 316.0 },
+      "radius": 100.0,
+      "draw_radius": 28.0,
+      "color": "5f4431",
+      "conditions": {
+        "quest_state": {
+          "roda_de_tomar": ["active"]
+        },
+        "world_flags": {
+          "tomar_claustro_purged": false
+        }
+      },
+      "battle": {
+        "enemy_ids": ["frade_apostata", "besteiro_renegado", "besteiro_renegado"],
+        "return_scene": "res://scenes/world/tomar.tscn",
+        "return_button_text": "Tornar a Tomar",
+        "battle_title": "Claustro da Charola",
+        "intro_text": "Sob as arcadas da charola, apostatas da carta negra guardam instrumentos e livros furtados.",
+        "victory_text": "O claustro fica limpo e o eco do convento volta a soar sem torcao.",
+        "defeat_text": "As arcadas fecham-se sobre vos. Convem tornar a Tomar com melhor ordem.",
+        "ally_start_cells": [[0, 1], [0, 2]],
+        "enemy_start_cells": [[5, 0], [5, 1], [6, 1], [6, 2]],
+        "terrain": {
+          "blocked_cells": [[2, 0], [2, 1], [2, 2], [4, 1]],
+          "water_cells": [],
+          "high_cells": [[4, 0], [5, 0], [6, 0], [4, 2], [5, 2]],
+          "note": "As arcadas altas dao dominio de tiro, mas as colunas quebram a linha e prendem a manobra."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "tomar_claustro_purged",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "azenha_do_nabao",
+      "type": "encounter",
+      "label": "Azenha do Nabao",
+      "prompt": "Carrega E para tomar a azenha sobre o Nabao.",
+      "position": { "x": 286.0, "y": 800.0 },
+      "radius": 102.0,
+      "draw_radius": 30.0,
+      "color": "34495a",
+      "conditions": {
+        "quest_state": {
+          "roda_de_tomar": ["active"]
+        },
+        "world_flags": {
+          "tomar_claustro_purged": true,
+          "tomar_nabao_purged": false
+        }
+      },
+      "battle": {
+        "enemy_ids": ["astronomo_negro", "besteiro_renegado", "frade_apostata"],
+        "return_scene": "res://scenes/world/tomar.tscn",
+        "return_button_text": "Tornar a Tomar",
+        "battle_title": "Azenha do Nabao",
+        "intro_text": "Na azenha do Nabao, um astronomo negro mede a agua e o vento para velar o saque dos apostatas.",
+        "victory_text": "A roda da azenha volta a girar limpa, e o Nabao devolve a cidade ao seu compasso.",
+        "defeat_text": "A agua e a ponte tornam-se armadilha. Sera melhor recuar e tornar depois.",
+        "ally_start_cells": [[0, 2], [1, 2]],
+        "enemy_start_cells": [[5, 0], [5, 1], [6, 1], [6, 2]],
+        "terrain": {
+          "blocked_cells": [[2, 2], [4, 2]],
+          "water_cells": [[2, 3], [3, 3], [4, 3], [5, 3], [6, 3], [0, 3], [1, 3]],
+          "high_cells": [[2, 1], [3, 1], [4, 1]],
+          "note": "A ponte alta manda no leito do Nabao, mas a agua fecha o flanco e cobra passos dobrados."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "tomar_nabao_purged",
+            "value": true
+          },
+          {
+            "type": "set_quest_state",
+            "quest_id": "roda_de_tomar",
+            "status": "ready_to_turn_in"
+          }
+        ]
+      }
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "gabriel_inicio",
+      "speaker": "Mestre Gabriel da Esfera",
+      "text": "Tomar nao mede so pedra e devoção; mede ceu, numero e rumo. Um punhado de apostatas da carta negra furtou instrumentos da esfera e fechou-se no Claustro da Charola e na Azenha do Nabao. Se lhes quebrardes a roda, abrirei a Pembah os livros dourados de Tomar.",
+      "primary_label": "Aceitar encargo",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "start_quest",
+          "quest_id": "roda_de_tomar"
+        }
+      ]
+    },
+    {
+      "id": "gabriel_em_curso",
+      "speaker": "Mestre Gabriel da Esfera",
+      "text": "Primeiro limpai o Claustro da Charola; depois descei a roda da azenha sobre o Nabao. So entao se fechara o circulo de Tomar.",
+      "secondary_label": "Prosseguir"
+    },
+    {
+      "id": "gabriel_recompensa",
+      "speaker": "Mestre Gabriel da Esfera",
+      "text": "Bem medistes o centro e o contorno. Recebei estes livros dourados; neles aprende-se que o rumo mais certo nasce de mao firme, olho quieto e compasso inteiro.",
+      "primary_label": "Receber doutrina",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "complete_quest",
+          "quest_id": "roda_de_tomar"
+        },
+        {
+          "type": "heal_party"
+        }
+      ]
+    },
+    {
+      "id": "gabriel_fecho",
+      "speaker": "Mestre Gabriel da Esfera",
+      "text": "Quem aprendeu o centro da charola e a roda do Nabao leva Tomar consigo, ainda que marche por costa alheia.",
+      "secondary_label": "Prosseguir"
+    },
+    {
+      "id": "martim_cartas",
+      "speaker": "Novico Martim",
+      "text": "Aqui diz-se que o rio ensina movimento, a charola ensina centro, e as cartas fazem o resto. Um homem que una as tres coisas perde-se menos do que os outros.",
+      "secondary_label": "Agradecer"
+    }
+  ],
+  "shops": [
+    {
+      "id": "mesa_da_esfera",
+      "name": "Mesa da Esfera",
+      "greeting": "Violante das Cartas abre uma mesa coberta de instrumentos, unguentos e um pergaminho dourado guardado sob pano grosso.",
+      "entries": [
+        {
+          "item_id": "battle_bread",
+          "price": 8
+        },
+        {
+          "item_id": "health_potion",
+          "price": 25
+        },
+        {
+          "item_id": "spirit_elixir",
+          "price": 30
+        },
+        {
+          "item_id": "manual_linha_do_zodiaco",
+          "price": 330,
+          "conditions": {
+            "quest_state": {
+              "roda_de_tomar": ["active", "ready_to_turn_in", "completed"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

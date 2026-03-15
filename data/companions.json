@@ -1,0 +1,21 @@
+[
+  {
+    "id": "joao",
+    "name": "Joao Tempestade",
+    "role": "Muralha do Cais",
+    "level": 1,
+    "xp": 0,
+    "max_hp": 150,
+    "max_sp": 28,
+    "atk": 15,
+    "def": 13,
+    "spd": 8,
+    "move_range": 2,
+    "attack_range": 1,
+    "water_stride": false,
+    "skills": [
+      "mare_alta_joao",
+      "muralha_do_cais"
+    ]
+  }
+]

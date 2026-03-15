@@ -1,0 +1,213 @@
+{
+  "interactables": [
+    {
+      "id": "capitao_lourenco",
+      "type": "dialogue",
+      "label": "Capitao Lourenco",
+      "prompt": "Carrega E para falar com o Capitao Lourenco.",
+      "position": { "x": 698.0, "y": 332.0 },
+      "radius": 92.0,
+      "draw_radius": 24.0,
+      "color": "a13e2c",
+      "dialogues_by_quest_state": {
+        "porta_de_ceuta": {
+          "not_started": "lourenco_inicio",
+          "active": "lourenco_em_curso",
+          "ready_to_turn_in": "lourenco_recompensa",
+          "completed": "lourenco_fecho"
+        }
+      }
+    },
+    {
+      "id": "salma_da_aduana",
+      "type": "shop",
+      "label": "Salma da Aduana",
+      "prompt": "Carrega E para mercar com Salma da Aduana.",
+      "position": { "x": 1260.0, "y": 554.0 },
+      "radius": 90.0,
+      "draw_radius": 22.0,
+      "color": "4d7082",
+      "shop_id": "armazem_do_estreito"
+    },
+    {
+      "id": "piloto_yusuf",
+      "type": "dialogue",
+      "label": "Piloto Yusuf",
+      "prompt": "Carrega E para ouvir o piloto Yusuf.",
+      "position": { "x": 330.0, "y": 602.0 },
+      "radius": 86.0,
+      "draw_radius": 20.0,
+      "color": "6c6652",
+      "default_dialogue_id": "yusuf_estreito"
+    },
+    {
+      "id": "porta_da_marina",
+      "type": "encounter",
+      "label": "Porta da Marina",
+      "prompt": "Carrega E para limpar a Porta da Marina.",
+      "position": { "x": 1440.0, "y": 428.0 },
+      "radius": 100.0,
+      "draw_radius": 28.0,
+      "color": "5a3520",
+      "conditions": {
+        "quest_state": {
+          "porta_de_ceuta": ["active"]
+        },
+        "world_flags": {
+          "ceuta_marina_secured": false
+        }
+      },
+      "battle": {
+        "enemy_ids": ["corsario_barbaresco", "atalaiador_zenete"],
+        "return_scene": "res://scenes/world/ceuta.tscn",
+        "return_button_text": "Tornar a Ceuta",
+        "battle_title": "Porta da Marina",
+        "intro_text": "Corsarios barbarescos e um atalaiador zenete tomaram a porta baixa do porto e cobram passagem a ferro.",
+        "victory_text": "A Porta da Marina fica limpa e o porto volta a respirar.",
+        "defeat_text": "O inimigo segura a descida e convem tornar a muralha com melhor ordem.",
+        "ally_start_cells": [[0, 1], [0, 2]],
+        "enemy_start_cells": [[5, 0], [5, 1], [6, 1], [6, 2]],
+        "terrain": {
+          "blocked_cells": [[2, 1], [3, 1], [3, 2]],
+          "water_cells": [[0, 3], [1, 3], [2, 3], [5, 3], [6, 3]],
+          "high_cells": [[4, 0], [5, 0], [6, 0], [4, 1]],
+          "note": "A porta baixa abre sobre a agua, mas a rampa alta da muralha domina toda a entrada."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "ceuta_marina_secured",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "alto_da_alcacova",
+      "type": "encounter",
+      "label": "Alto da Alcacova",
+      "prompt": "Carrega E para subir ao Alto da Alcacova.",
+      "position": { "x": 1450.0, "y": 702.0 },
+      "radius": 102.0,
+      "draw_radius": 30.0,
+      "color": "6f2f24",
+      "conditions": {
+        "quest_state": {
+          "porta_de_ceuta": ["active"]
+        },
+        "world_flags": {
+          "ceuta_marina_secured": true,
+          "ceuta_alcacova_secured": false
+        }
+      },
+      "battle": {
+        "enemy_ids": ["renegado_da_aduana", "corsario_barbaresco"],
+        "return_scene": "res://scenes/world/ceuta.tscn",
+        "return_button_text": "Tornar a Ceuta",
+        "battle_title": "Alto da Alcacova",
+        "intro_text": "No alto da alcacova, um renegado da aduana guarda a subida com fogo e homens do estreito.",
+        "victory_text": "A alcacova torna a obedecer a Ceuta, e a vista do estreito fica outra vez portuguesa.",
+        "defeat_text": "O fogo da aduana fecha a crista e força-vos a descer.",
+        "ally_start_cells": [[0, 1], [1, 2]],
+        "enemy_start_cells": [[5, 0], [5, 1], [6, 1], [6, 2]],
+        "terrain": {
+          "blocked_cells": [[2, 1], [2, 2], [4, 2]],
+          "water_cells": [[0, 3], [1, 3], [5, 3], [6, 3]],
+          "high_cells": [[4, 0], [5, 0], [6, 0], [4, 1], [5, 1]],
+          "note": "A alcacova manda no campo por cima; quem perder a crista perde a ordem da peleja."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "ceuta_alcacova_secured",
+            "value": true
+          },
+          {
+            "type": "set_quest_state",
+            "quest_id": "porta_de_ceuta",
+            "status": "ready_to_turn_in"
+          }
+        ]
+      }
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "lourenco_inicio",
+      "speaker": "Capitao Lourenco da Barra",
+      "text": "Ceuta vive de muralha, porto e vigia. Agora, porem, corsarios barbarescos apertam a Porta da Marina e um renegado da aduana sustem o Alto da Alcacova. Se lhes quebrardes o passo, a fortaleza abrira a Pembah os seus livros vermelhos do estreito.",
+      "primary_label": "Aceitar servico",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "start_quest",
+          "quest_id": "porta_de_ceuta"
+        }
+      ]
+    },
+    {
+      "id": "lourenco_em_curso",
+      "speaker": "Capitao Lourenco da Barra",
+      "text": "Primeiro a Porta da Marina; depois, o Alto da Alcacova. So com ambos limpos se segura Ceuta e a boca do estreito.",
+      "secondary_label": "Prosseguir"
+    },
+    {
+      "id": "lourenco_recompensa",
+      "speaker": "Capitao Lourenco da Barra",
+      "text": "Servistes como homem de ponte e de mar alto. Tomai estes livros; neles se aprende a fechar o estreito com corpo firme, olho frio e golpe inteiro.",
+      "primary_label": "Receber doutrina",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "complete_quest",
+          "quest_id": "porta_de_ceuta"
+        },
+        {
+          "type": "heal_party"
+        }
+      ]
+    },
+    {
+      "id": "lourenco_fecho",
+      "speaker": "Capitao Lourenco da Barra",
+      "text": "Quem segura Ceuta e o estreito nao tarda a desejar mar maior. O oceano de oeste ha-de chamar por vos.",
+      "secondary_label": "Prosseguir"
+    },
+    {
+      "id": "yusuf_estreito",
+      "speaker": "Piloto Yusuf",
+      "text": "No estreito, a agua parece curta mas o erro parece grande. Quem aqui aprende vento e corrente pode depois demandar mares mais largos do que sonhava.",
+      "secondary_label": "Agradecer"
+    }
+  ],
+  "shops": [
+    {
+      "id": "armazem_do_estreito",
+      "name": "Armazem do Estreito",
+      "greeting": "Salma da Aduana mede cada compra como quem pesa especiaria rara. Sob o pano escuro guarda um pergaminho vermelho da guarda do estreito.",
+      "entries": [
+        {
+          "item_id": "battle_bread",
+          "price": 8
+        },
+        {
+          "item_id": "health_potion",
+          "price": 25
+        },
+        {
+          "item_id": "spirit_elixir",
+          "price": 30
+        },
+        {
+          "item_id": "manual_mare_do_levante",
+          "price": 460,
+          "conditions": {
+            "quest_state": {
+              "porta_de_ceuta": ["active", "ready_to_turn_in", "completed"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

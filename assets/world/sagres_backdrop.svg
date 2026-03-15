@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1920 1080">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#d8c8a6"/>
+      <stop offset="48%" stop-color="#f0debc"/>
+      <stop offset="100%" stop-color="#e8d1a3"/>
+    </linearGradient>
+    <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#295e75"/>
+      <stop offset="100%" stop-color="#123441"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1920" height="1080" fill="url(#sky)"/>
+  <rect y="612" width="1920" height="468" fill="url(#sea)"/>
+
+  <path d="M0 680 C180 620 320 540 520 520 C760 495 920 560 1130 520 C1340 480 1570 365 1920 300 L1920 1080 L0 1080 Z" fill="#8e7a54"/>
+  <path d="M0 735 C250 690 470 628 690 624 C1010 618 1290 700 1920 636 L1920 1080 L0 1080 Z" fill="#5f573f"/>
+
+  <rect x="1018" y="140" width="118" height="400" rx="8" fill="#d9d0bc"/>
+  <rect x="1048" y="70" width="58" height="96" rx="6" fill="#e8dfca"/>
+  <rect x="1038" y="182" width="78" height="54" rx="8" fill="#9f8659"/>
+  <polygon points="1077,12 1140,82 1014,82" fill="#74592e"/>
+  <circle cx="1077" cy="121" r="26" fill="#f4d58d"/>
+  <circle cx="1077" cy="121" r="44" fill="#f4d58d" opacity="0.33"/>
+
+  <path d="M860 454 L1040 388 L1146 470 L982 550 Z" fill="#6b5840"/>
+  <path d="M840 512 L980 444 L1092 524 L953 602 Z" fill="#806748"/>
+  <path d="M720 570 L846 518 L932 588 L808 642 Z" fill="#8a704d"/>
+
+  <rect x="1480" y="420" width="190" height="110" rx="10" fill="#6b5132"/>
+  <polygon points="1456,438 1574,340 1698,438" fill="#4f3922"/>
+  <rect x="1548" y="466" width="38" height="64" fill="#3d2b18"/>
+  <rect x="1508" y="456" width="24" height="24" fill="#cdb88f"/>
+  <rect x="1618" y="456" width="24" height="24" fill="#cdb88f"/>
+
+  <rect x="338" y="602" width="128" height="86" rx="10" fill="#8a6d4c"/>
+  <polygon points="314,618 402,548 496,618" fill="#6d5031"/>
+  <rect x="382" y="638" width="28" height="50" fill="#473320"/>
+
+  <path d="M130 728 C240 700 356 690 470 708" stroke="#d6e5ea" stroke-width="5" fill="none"/>
+  <path d="M1060 770 C1208 726 1380 718 1590 748" stroke="#d6e5ea" stroke-width="5" fill="none"/>
+  <path d="M1490 820 C1590 794 1705 794 1812 816" stroke="#d6e5ea" stroke-width="5" fill="none"/>
+
+  <circle cx="250" cy="230" r="12" fill="#f9f1d7"/>
+  <circle cx="306" cy="195" r="8" fill="#f9f1d7" opacity="0.7"/>
+  <circle cx="366" cy="236" r="10" fill="#f9f1d7" opacity="0.78"/>
+</svg>
