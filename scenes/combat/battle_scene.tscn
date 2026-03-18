@@ -1,6 +1,6 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=2 format=3 uid="uid://bvdj1jtl7efwb"]
 
-[ext_resource type="Script" path="res://scripts/combat/battle_scene.gd" id="1"]
+[ext_resource type="Script" uid="uid://b11my0v8oduta" path="res://scripts/combat/battle_scene.gd" id="1"]
 
 [node name="BattleScene" type="Control"]
 layout_mode = 3
@@ -30,7 +30,8 @@ color = Color(0.109804, 0.203922, 0.305882, 0.76)
 
 [node name="LeftShade" type="ColorRect" parent="."]
 layout_mode = 1
-anchors_preset = 4
+anchors_preset = -1
+anchor_top = 0.5
 anchor_bottom = 1.0
 offset_right = 240.0
 grow_vertical = 2
@@ -38,9 +39,8 @@ color = Color(0.0196078, 0.0313726, 0.0470588, 0.28)
 
 [node name="RightShade" type="ColorRect" parent="."]
 layout_mode = 1
-anchors_preset = 6
+anchors_preset = 11
 anchor_left = 1.0
-anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -248.0
@@ -79,8 +79,8 @@ layout_mode = 2
 theme_override_constants/separation = 6
 
 [node name="HeaderPanel" type="PanelContainer" parent="BattleFrame/RootVBox"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 60)
+layout_mode = 2
 
 [node name="HeaderVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/HeaderPanel"]
 layout_mode = 2
@@ -99,8 +99,8 @@ text = "Recontro"
 
 [node name="RoundLabel" type="Label" parent="BattleFrame/RootVBox/HeaderPanel/HeaderVBox/HeaderTopHBox"]
 unique_name_in_owner = true
-layout_mode = 2
 custom_minimum_size = Vector2(98, 0)
+layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Ronda 1"
 horizontal_alignment = 1
@@ -108,34 +108,31 @@ vertical_alignment = 1
 
 [node name="TurnLabel" type="Label" parent="BattleFrame/RootVBox/HeaderPanel/HeaderVBox/HeaderTopHBox"]
 unique_name_in_owner = true
-layout_mode = 2
 custom_minimum_size = Vector2(220, 0)
+layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "Vez de:"
 horizontal_alignment = 2
 vertical_alignment = 1
 
-[node name="TurnOrderPanel" type="PanelContainer" parent="BattleFrame/RootVBox/HeaderPanel/HeaderVBox"]
+[node name="InitiativeStrip" type="PanelContainer" parent="BattleFrame/RootVBox/HeaderPanel/HeaderVBox"]
+custom_minimum_size = Vector2(0, 36)
 layout_mode = 2
-custom_minimum_size = Vector2(0, 30)
 
-[node name="TurnOrderLabel" type="Label" parent="BattleFrame/RootVBox/HeaderPanel/HeaderVBox/TurnOrderPanel"]
+[node name="InitiativeChipsRow" type="HBoxContainer" parent="BattleFrame/RootVBox/HeaderPanel/HeaderVBox/InitiativeStrip"]
 unique_name_in_owner = true
 layout_mode = 2
-autowrap_mode = 3
-theme_override_font_sizes/font_size = 14
-text = "Iniciativa"
-horizontal_alignment = 1
-vertical_alignment = 1
+theme_override_constants/separation = 6
+alignment = 1
 
 [node name="TopStrip" type="HBoxContainer" parent="BattleFrame/RootVBox"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 82)
+layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="PartyRailPanel" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip"]
-layout_mode = 2
 custom_minimum_size = Vector2(408, 0)
+layout_mode = 2
 
 [node name="PartyRailVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel"]
 layout_mode = 2
@@ -148,16 +145,16 @@ text = "Companhia"
 horizontal_alignment = 1
 
 [node name="PlayerPanel" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
 
 [node name="PlayerHBox" type="HBoxContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="PlayerPortraitFrame" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel/PlayerHBox"]
-layout_mode = 2
 custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
 
 [node name="PlayerPortrait" type="TextureRect" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel/PlayerHBox/PlayerPortraitFrame"]
 unique_name_in_owner = true
@@ -170,42 +167,66 @@ unique_name_in_owner = true
 layout_mode = 0
 offset_left = 6.0
 offset_top = 49.0
-offset_right = 64.0
+offset_right = 58.0
 offset_bottom = 55.0
 mouse_filter = 2
-show_percentage = false
 value = 100.0
+show_percentage = false
 
 [node name="PlayerSpBar" type="ProgressBar" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel/PlayerHBox/PlayerPortraitFrame"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 6.0
 offset_top = 58.0
-offset_right = 64.0
+offset_right = 58.0
 offset_bottom = 64.0
 mouse_filter = 2
-show_percentage = false
 value = 100.0
+show_percentage = false
+
+[node name="PlayerActiveBorder" type="ColorRect" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel/PlayerHBox/PlayerPortraitFrame"]
+unique_name_in_owner = true
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.94, 0.78, 0.3, 0)
 
 [node name="PlayerLabel" type="Label" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel/PlayerHBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-autowrap_mode = 3
 theme_override_font_sizes/font_size = 14
 vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="PlayerApRow" type="HBoxContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel/PlayerHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 4
+
+[node name="PlayerMovePip" type="ColorRect" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel/PlayerHBox/PlayerApRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+color = Color(0.42, 0.74, 0.94, 1)
+
+[node name="PlayerActionPip" type="ColorRect" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel/PlayerHBox/PlayerApRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+color = Color(0.94, 0.67, 0.28, 1)
 
 [node name="CompanionPanel" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 72)
+layout_mode = 2
 
 [node name="CompanionHBox" type="HBoxContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel"]
 layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="CompanionPortraitFrame" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel/CompanionHBox"]
-layout_mode = 2
 custom_minimum_size = Vector2(64, 64)
+layout_mode = 2
 
 [node name="CompanionPortrait" type="TextureRect" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel/CompanionHBox/CompanionPortraitFrame"]
 unique_name_in_owner = true
@@ -218,40 +239,93 @@ unique_name_in_owner = true
 layout_mode = 0
 offset_left = 6.0
 offset_top = 49.0
-offset_right = 64.0
+offset_right = 58.0
 offset_bottom = 55.0
 mouse_filter = 2
-show_percentage = false
 value = 100.0
+show_percentage = false
 
 [node name="CompanionSpBar" type="ProgressBar" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel/CompanionHBox/CompanionPortraitFrame"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_left = 6.0
 offset_top = 58.0
-offset_right = 64.0
+offset_right = 58.0
 offset_bottom = 64.0
 mouse_filter = 2
-show_percentage = false
 value = 100.0
+show_percentage = false
+
+[node name="CompanionActiveBorder" type="ColorRect" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel/CompanionHBox/CompanionPortraitFrame"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+mouse_filter = 2
+color = Color(0.94, 0.78, 0.3, 0)
 
 [node name="CompanionLabel" type="Label" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel/CompanionHBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-autowrap_mode = 3
 theme_override_font_sizes/font_size = 14
 vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="CompanionApRow" type="HBoxContainer" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel/CompanionHBox"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 4
+
+[node name="CompanionMovePip" type="ColorRect" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel/CompanionHBox/CompanionApRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+color = Color(0.42, 0.74, 0.94, 1)
+
+[node name="CompanionActionPip" type="ColorRect" parent="BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel/CompanionHBox/CompanionApRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 2
+color = Color(0.94, 0.67, 0.28, 1)
 
 [node name="TopInfoSpacer" type="HBoxContainer" parent="BattleFrame/RootVBox/TopStrip"]
 layout_mode = 2
 size_flags_horizontal = 3
-alignment = 1
 theme_override_constants/separation = 8
+alignment = 1
+
+[node name="ActionButtons" type="GridContainer" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 0
+columns = 4
+
+[node name="MoveButton" type="Button" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+
+[node name="AttackButton" type="Button" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+
+[node name="ItemButton" type="Button" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
+
+[node name="DefendButton" type="Button" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(80, 80)
+layout_mode = 2
 
 [node name="CurrentActorPanel" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip"]
-layout_mode = 2
 custom_minimum_size = Vector2(296, 0)
+layout_mode = 2
 
 [node name="CurrentActorVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/TopStrip/CurrentActorPanel"]
 layout_mode = 2
@@ -268,8 +342,8 @@ layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="CurrentActorPortraitFrame" type="PanelContainer" parent="BattleFrame/RootVBox/TopStrip/CurrentActorPanel/CurrentActorVBox/CurrentActorBody"]
-layout_mode = 2
 custom_minimum_size = Vector2(68, 68)
+layout_mode = 2
 
 [node name="CurrentActorPortrait" type="TextureRect" parent="BattleFrame/RootVBox/TopStrip/CurrentActorPanel/CurrentActorVBox/CurrentActorBody/CurrentActorPortraitFrame"]
 unique_name_in_owner = true
@@ -279,33 +353,25 @@ stretch_mode = 5
 
 [node name="CurrentActorHpBar" type="ProgressBar" parent="BattleFrame/RootVBox/TopStrip/CurrentActorPanel/CurrentActorVBox/CurrentActorBody/CurrentActorPortraitFrame"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 7.0
-offset_top = 55.0
-offset_right = 71.0
-offset_bottom = 61.0
+layout_mode = 2
 mouse_filter = 2
-show_percentage = false
 value = 100.0
+show_percentage = false
 
 [node name="CurrentActorSpBar" type="ProgressBar" parent="BattleFrame/RootVBox/TopStrip/CurrentActorPanel/CurrentActorVBox/CurrentActorBody/CurrentActorPortraitFrame"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 7.0
-offset_top = 64.0
-offset_right = 71.0
-offset_bottom = 70.0
+layout_mode = 2
 mouse_filter = 2
-show_percentage = false
 value = 100.0
+show_percentage = false
 
 [node name="CurrentActorLabel" type="Label" parent="BattleFrame/RootVBox/TopStrip/CurrentActorPanel/CurrentActorVBox/CurrentActorBody"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-autowrap_mode = 3
 theme_override_font_sizes/font_size = 14
 vertical_alignment = 1
+autowrap_mode = 3
 
 [node name="ArenaPanel" type="PanelContainer" parent="BattleFrame/RootVBox"]
 layout_mode = 2
@@ -317,14 +383,14 @@ size_flags_vertical = 3
 theme_override_constants/separation = 12
 
 [node name="LeftUtilityColumn" type="VBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox"]
-layout_mode = 2
 custom_minimum_size = Vector2(224, 0)
+layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
 [node name="FieldHintPanel" type="PanelContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/LeftUtilityColumn"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 96)
+layout_mode = 2
 
 [node name="FieldHintVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/LeftUtilityColumn/FieldHintPanel"]
 layout_mode = 2
@@ -339,20 +405,20 @@ horizontal_alignment = 1
 [node name="FieldHintLabel" type="Label" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/LeftUtilityColumn/FieldHintPanel/FieldHintVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-autowrap_mode = 3
 theme_override_font_sizes/font_size = 17
 text = "A grelha tactica aguarda as ordens."
 horizontal_alignment = 1
 vertical_alignment = 1
+autowrap_mode = 3
 
 [node name="TerrainLegendLabel" type="Label" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/LeftUtilityColumn/FieldHintPanel/FieldHintVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-autowrap_mode = 3
 theme_override_font_sizes/font_size = 14
 text = "Legenda: ^ alto | ~ agua | # obstaculo"
 horizontal_alignment = 1
 vertical_alignment = 1
+autowrap_mode = 3
 
 [node name="LogPanel" type="PanelContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/LeftUtilityColumn"]
 layout_mode = 2
@@ -401,14 +467,14 @@ theme_override_constants/v_separation = 2
 columns = 7
 
 [node name="RightCommandColumn" type="VBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox"]
-layout_mode = 2
 custom_minimum_size = Vector2(224, 0)
+layout_mode = 2
 size_flags_vertical = 3
 theme_override_constants/separation = 12
 
 [node name="TargetPanel" type="PanelContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 126)
+layout_mode = 2
 
 [node name="TargetVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/TargetPanel"]
 layout_mode = 2
@@ -425,8 +491,8 @@ layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="TargetPortraitFrame" type="PanelContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/TargetPanel/TargetVBox/TargetBody"]
-layout_mode = 2
 custom_minimum_size = Vector2(78, 78)
+layout_mode = 2
 
 [node name="TargetPortrait" type="TextureRect" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/TargetPanel/TargetVBox/TargetBody/TargetPortraitFrame"]
 unique_name_in_owner = true
@@ -436,33 +502,25 @@ stretch_mode = 5
 
 [node name="TargetHpBar" type="ProgressBar" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/TargetPanel/TargetVBox/TargetBody/TargetPortraitFrame"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 7.0
-offset_top = 55.0
-offset_right = 71.0
-offset_bottom = 61.0
+layout_mode = 2
 mouse_filter = 2
-show_percentage = false
 value = 100.0
+show_percentage = false
 
 [node name="TargetSpBar" type="ProgressBar" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/TargetPanel/TargetVBox/TargetBody/TargetPortraitFrame"]
 unique_name_in_owner = true
-layout_mode = 0
-offset_left = 7.0
-offset_top = 64.0
-offset_right = 71.0
-offset_bottom = 70.0
+layout_mode = 2
 mouse_filter = 2
-show_percentage = false
 value = 100.0
+show_percentage = false
 
 [node name="TargetLabel" type="Label" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/TargetPanel/TargetVBox/TargetBody"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
-autowrap_mode = 3
 theme_override_font_sizes/font_size = 15
 vertical_alignment = 1
+autowrap_mode = 3
 
 [node name="EnemyPanel" type="PanelContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn"]
 layout_mode = 2
@@ -489,8 +547,8 @@ layout_mode = 2
 theme_override_constants/separation = 8
 
 [node name="ActionInfoPanel" type="PanelContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 76)
+layout_mode = 2
 
 [node name="ActionInfoVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionInfoPanel"]
 layout_mode = 2
@@ -505,22 +563,15 @@ horizontal_alignment = 1
 [node name="ActionHintLabel" type="Label" parent="BattleFrame/RootVBox/ArenaPanel/ArenaHBox/RightCommandColumn/ActionInfoPanel/ActionInfoVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-autowrap_mode = 3
 theme_override_font_sizes/font_size = 15
 text = "Escolhei mover, golpear, beber ou defender."
 horizontal_alignment = 1
 vertical_alignment = 1
-
-[node name="ActionButtons" type="GridContainer" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer"]
-unique_name_in_owner = true
-layout_mode = 2
-theme_override_constants/h_separation = 10
-theme_override_constants/v_separation = 0
-columns = 4
+autowrap_mode = 3
 
 [node name="BottomPanel" type="PanelContainer" parent="BattleFrame/RootVBox"]
-layout_mode = 2
 custom_minimum_size = Vector2(0, 86)
+layout_mode = 2
 
 [node name="BottomVBox" type="VBoxContainer" parent="BattleFrame/RootVBox/BottomPanel"]
 layout_mode = 2
@@ -542,8 +593,8 @@ alignment = 1
 [node name="ResultRow" type="HBoxContainer" parent="BattleFrame/RootVBox/BottomPanel/BottomVBox"]
 visible = false
 layout_mode = 2
-alignment = 1
 theme_override_constants/separation = 10
+alignment = 1
 
 [node name="ResultLabel" type="Label" parent="BattleFrame/RootVBox/BottomPanel/BottomVBox/ResultRow"]
 unique_name_in_owner = true
@@ -558,30 +609,6 @@ visible = false
 custom_minimum_size = Vector2(180, 40)
 layout_mode = 2
 text = "Tornar"
-
-[node name="MoveButton" type="Button" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(80, 80)
-text = ""
-
-[node name="AttackButton" type="Button" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(80, 80)
-text = ""
-
-[node name="ItemButton" type="Button" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(80, 80)
-text = ""
-
-[node name="DefendButton" type="Button" parent="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons"]
-unique_name_in_owner = true
-layout_mode = 2
-custom_minimum_size = Vector2(80, 80)
-text = ""
 
 [connection signal="pressed" from="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons/MoveButton" to="." method="_on_move_button_pressed"]
 [connection signal="pressed" from="BattleFrame/RootVBox/TopStrip/TopInfoSpacer/ActionButtons/AttackButton" to="." method="_on_attack_button_pressed"]

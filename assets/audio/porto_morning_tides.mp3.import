@@ -12,8 +12,8 @@ dest_files=["res://.godot/imported/porto_morning_tides.mp3-0ff3feb24697caac4263e
 
 [params]
 
-loop=false
-loop_offset=0
-bpm=0
+loop=true
+loop_offset=0.0
+bpm=0.0
 beat_count=0
 bar_beats=4

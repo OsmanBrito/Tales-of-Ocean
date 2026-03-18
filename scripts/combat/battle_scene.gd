@@ -20,7 +20,7 @@ const CARDINAL_DIRECTIONS: Array[Vector2i] = [
 ]
 const STUN_GUARD_STATUS_ID := "stun_guard"
 
-const PEMBAH_ICON: Texture2D = preload("res://assets/combat/pembah_token.svg")
+const PEMBAH_ICON: Texture2D = preload("res://assets/combat/pembah_battle_token.svg")
 const JOAO_ICON: Texture2D = preload("res://assets/combat/joao_token.svg")
 const BANDIT_ICON: Texture2D = preload("res://assets/combat/bandit_token.svg")
 const CASTILIAN_ICON: Texture2D = preload("res://assets/combat/castilian_token.svg")
@@ -46,7 +46,7 @@ const SCREEN_CENTER_WEIGHT: float = 0.1
 @onready var header_label: Label = %HeaderLabel
 @onready var round_label: Label = %RoundLabel
 @onready var turn_label: Label = %TurnLabel
-@onready var turn_order_label: Label = %TurnOrderLabel
+@onready var initiative_chips_row: HBoxContainer = %InitiativeChipsRow
 @onready var field_hint_label: Label = %FieldHintLabel
 @onready var terrain_legend_label: Label = %TerrainLegendLabel
 @onready var current_actor_label: Label = %CurrentActorLabel
@@ -61,6 +61,14 @@ const SCREEN_CENTER_WEIGHT: float = 0.1
 @onready var player_portrait_frame: PanelContainer = $BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/PlayerPanel/PlayerHBox/PlayerPortraitFrame
 @onready var companion_portrait_frame: PanelContainer = $BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel/CompanionHBox/CompanionPortraitFrame
 @onready var companion_panel: PanelContainer = $BattleFrame/RootVBox/TopStrip/PartyRailPanel/PartyRailVBox/CompanionPanel
+@onready var player_active_border: ColorRect = %PlayerActiveBorder
+@onready var companion_active_border: ColorRect = %CompanionActiveBorder
+@onready var player_ap_row: HBoxContainer = %PlayerApRow
+@onready var companion_ap_row: HBoxContainer = %CompanionApRow
+@onready var player_move_pip: ColorRect = %PlayerMovePip
+@onready var player_action_pip: ColorRect = %PlayerActionPip
+@onready var companion_move_pip: ColorRect = %CompanionMovePip
+@onready var companion_action_pip: ColorRect = %CompanionActionPip
 @onready var player_label: Label = %PlayerLabel
 @onready var companion_label: Label = %CompanionLabel
 @onready var battle_grid: GridContainer = %BattleGrid
@@ -139,6 +147,7 @@ var tutorial_skip_button: Button
 var tutorial_pages: Array[String] = []
 var tutorial_index: int = 0
 var tutorial_active: bool = false
+var battle_idle_time: float = 0.0
 
 
 func _ready() -> void:
@@ -165,6 +174,11 @@ func _ready() -> void:
 		_show_battle_tutorial()
 	else:
 		_start_round()
+
+
+func _process(delta: float) -> void:
+	battle_idle_time += delta
+	_update_battle_idle_loop()
 
 
 func _rebalance_layout() -> void:
@@ -342,10 +356,38 @@ func _apply_rarity_hotbar_theme(button: Button, quality_id: String) -> void:
 
 	var base: Color = _rarity_color(quality_id)
 	var border: Color = base.lightened(0.22)
-	button.add_theme_stylebox_override("normal", _make_button_style(base, border))
-	button.add_theme_stylebox_override("hover", _make_button_style(base.lightened(0.08), border.lightened(0.08)))
-	button.add_theme_stylebox_override("pressed", _make_button_style(base.darkened(0.1), border.lightened(0.18)))
-	button.add_theme_stylebox_override("disabled", _make_button_style(base.darkened(0.35), base.darkened(0.1)))
+
+	var style_normal: StyleBoxFlat = _make_button_style(base, border)
+	var style_hover: StyleBoxFlat = _make_button_style(base.lightened(0.08), border.lightened(0.08))
+	var style_pressed: StyleBoxFlat = _make_button_style(base.darkened(0.1), border.lightened(0.18))
+	var style_disabled: StyleBoxFlat = _make_button_style(base.darkened(0.35), base.darkened(0.1))
+
+	# Glow shadow for rare/epic/legendary tiers (matches Hero's Adventure rarity feel)
+	var glow_strength: float = 0.0
+	match quality_id:
+		"green":
+			glow_strength = 5.0
+		"blue":
+			glow_strength = 8.0
+		"purple":
+			glow_strength = 12.0
+		"gold":
+			glow_strength = 14.0
+		"red":
+			glow_strength = 14.0
+
+	if glow_strength > 0.0:
+		var glow_color: Color = border.lightened(0.18)
+		glow_color.a = 0.72
+		style_normal.shadow_color = glow_color
+		style_normal.shadow_size = int(glow_strength)
+		style_hover.shadow_color = glow_color.lightened(0.12)
+		style_hover.shadow_size = int(glow_strength) + 2
+
+	button.add_theme_stylebox_override("normal", style_normal)
+	button.add_theme_stylebox_override("hover", style_hover)
+	button.add_theme_stylebox_override("pressed", style_pressed)
+	button.add_theme_stylebox_override("disabled", style_disabled)
 
 
 func _make_button_style(fill: Color, border: Color) -> StyleBoxFlat:
@@ -631,6 +673,42 @@ func _make_token_frame_style(accent: Color) -> StyleBoxFlat:
 	return style
 
 
+func _make_unit_shadow_style() -> StyleBoxFlat:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color(0.0, 0.0, 0.0, 0.28)
+	style.corner_radius_top_left = 12
+	style.corner_radius_top_right = 12
+	style.corner_radius_bottom_right = 12
+	style.corner_radius_bottom_left = 12
+	return style
+
+
+func _remember_control_offsets(control: Control) -> void:
+	if control == null:
+		return
+	control.set_meta("base_offsets", {
+		"left": control.offset_left,
+		"top": control.offset_top,
+		"right": control.offset_right,
+		"bottom": control.offset_bottom
+	})
+
+
+func _get_control_offsets(control: Control) -> Dictionary:
+	if control == null:
+		return {}
+	return control.get_meta("base_offsets", {})
+
+
+func _apply_control_offsets(control: Control, offsets: Dictionary, y_shift: float = 0.0) -> void:
+	if control == null or offsets.is_empty():
+		return
+	control.offset_left = float(offsets.get("left", control.offset_left))
+	control.offset_top = float(offsets.get("top", control.offset_top)) + y_shift
+	control.offset_right = float(offsets.get("right", control.offset_right))
+	control.offset_bottom = float(offsets.get("bottom", control.offset_bottom)) + y_shift
+
+
 func _make_badge_style(accent: Color, compact: bool = false) -> StyleBoxFlat:
 	var style := StyleBoxFlat.new()
 	style.bg_color = Color(accent.r * 0.28, accent.g * 0.28, accent.b * 0.28, 0.96)
@@ -759,10 +837,10 @@ func _setup_grid_button_widgets(button: Button) -> void:
 	hp_bar.anchor_top = 0.0
 	hp_bar.anchor_right = 1.0
 	hp_bar.anchor_bottom = 0.0
-	hp_bar.offset_left = 18.0
-	hp_bar.offset_top = 60.0
-	hp_bar.offset_right = -18.0
-	hp_bar.offset_bottom = 66.0
+	hp_bar.offset_left = 14.0
+	hp_bar.offset_top = 8.0
+	hp_bar.offset_right = -14.0
+	hp_bar.offset_bottom = 13.0
 	_apply_progress_bar_theme(hp_bar, Color(0.25, 0.76, 0.45, 1.0))
 	button.add_child(hp_bar)
 
@@ -772,12 +850,28 @@ func _setup_grid_button_widgets(button: Button) -> void:
 	sp_bar.anchor_top = 0.0
 	sp_bar.anchor_right = 1.0
 	sp_bar.anchor_bottom = 0.0
-	sp_bar.offset_left = 18.0
-	sp_bar.offset_top = 68.0
-	sp_bar.offset_right = -18.0
-	sp_bar.offset_bottom = 74.0
+	sp_bar.offset_left = 14.0
+	sp_bar.offset_top = 15.0
+	sp_bar.offset_right = -14.0
+	sp_bar.offset_bottom = 20.0
 	_apply_progress_bar_theme(sp_bar, Color(0.26, 0.64, 0.94, 1.0))
 	button.add_child(sp_bar)
+
+	var unit_shadow := PanelContainer.new()
+	unit_shadow.name = "UnitShadow"
+	unit_shadow.anchor_left = 0.5
+	unit_shadow.anchor_top = 1.0
+	unit_shadow.anchor_right = 0.5
+	unit_shadow.anchor_bottom = 1.0
+	unit_shadow.offset_left = -17.0
+	unit_shadow.offset_top = -18.0
+	unit_shadow.offset_right = 17.0
+	unit_shadow.offset_bottom = -8.0
+	unit_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	unit_shadow.add_theme_stylebox_override("panel", _make_unit_shadow_style())
+	button.add_child(unit_shadow)
+	_remember_control_offsets(unit_shadow)
+	unit_shadow.pivot_offset = Vector2(17.0, 5.0)
 
 	var token_frame := PanelContainer.new()
 	token_frame.name = "TokenFrame"
@@ -786,11 +880,13 @@ func _setup_grid_button_widgets(button: Button) -> void:
 	token_frame.anchor_right = 0.5
 	token_frame.anchor_bottom = 0.5
 	token_frame.offset_left = -24.0
-	token_frame.offset_top = -8.0
+	token_frame.offset_top = -2.0
 	token_frame.offset_right = 24.0
-	token_frame.offset_bottom = 40.0
+	token_frame.offset_bottom = 44.0
 	token_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	button.add_child(token_frame)
+	_remember_control_offsets(token_frame)
+	token_frame.pivot_offset = Vector2(24.0, 23.0)
 
 	var unit_icon := TextureRect.new()
 	unit_icon.name = "UnitIcon"
@@ -799,13 +895,15 @@ func _setup_grid_button_widgets(button: Button) -> void:
 	unit_icon.anchor_right = 0.5
 	unit_icon.anchor_bottom = 0.5
 	unit_icon.offset_left = -22.0
-	unit_icon.offset_top = -4.0
+	unit_icon.offset_top = -1.0
 	unit_icon.offset_right = 22.0
-	unit_icon.offset_bottom = 40.0
+	unit_icon.offset_bottom = 43.0
 	unit_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	unit_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	unit_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	button.add_child(unit_icon)
+	_remember_control_offsets(unit_icon)
+	unit_icon.pivot_offset = Vector2(22.0, 22.0)
 
 	var unit_label := Label.new()
 	unit_label.name = "UnitLabel"
@@ -814,15 +912,16 @@ func _setup_grid_button_widgets(button: Button) -> void:
 	unit_label.anchor_right = 0.5
 	unit_label.anchor_bottom = 1.0
 	unit_label.offset_left = -18.0
-	unit_label.offset_top = -24.0
+	unit_label.offset_top = -20.0
 	unit_label.offset_right = 18.0
-	unit_label.offset_bottom = -6.0
+	unit_label.offset_bottom = -2.0
 	unit_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	unit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	unit_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_apply_label_theme(unit_label)
 	unit_label.add_theme_font_size_override("font_size", 13)
 	button.add_child(unit_label)
+	_remember_control_offsets(unit_label)
 
 	var status_badge_panel := PanelContainer.new()
 	status_badge_panel.name = "StatusBadgePanel"
@@ -1335,6 +1434,43 @@ func _refresh_enemy_statuses() -> void:
 func _build_enemy_status_card(enemy: Dictionary, focus_target_actor_id: String, preview_target_ids: Array[String]) -> PanelContainer:
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var is_dead: bool = enemy.get("hp", 0) <= 0
+	if is_dead:
+		# Collapsed row for defeated enemies
+		var dead_style: StyleBoxFlat = _make_panel_style("enemy")
+		dead_style.bg_color = Color(0.10, 0.09, 0.09, 0.72)
+		dead_style.border_color = Color(0.28, 0.22, 0.22, 0.45)
+		panel.add_theme_stylebox_override("panel", dead_style)
+
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		panel.add_child(row)
+
+		var x_label := Label.new()
+		x_label.text = "✕"
+		x_label.add_theme_font_size_override("font_size", 13)
+		x_label.add_theme_color_override("font_color", Color("7a4040"))
+		x_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		row.add_child(x_label)
+
+		var name_label := Label.new()
+		name_label.text = enemy.get("name", "Inimigo")
+		name_label.add_theme_font_size_override("font_size", 13)
+		name_label.add_theme_color_override("font_color", Color("5a4848"))
+		name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(name_label)
+
+		var fallen_label := Label.new()
+		fallen_label.text = "Caido"
+		fallen_label.add_theme_font_size_override("font_size", 11)
+		fallen_label.add_theme_color_override("font_color", Color("6a3838"))
+		fallen_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		row.add_child(fallen_label)
+
+		return panel
+
 	panel.add_theme_stylebox_override("panel", _make_panel_style("enemy"))
 
 	var content := VBoxContainer.new()
@@ -1381,9 +1517,6 @@ func _build_enemy_status_card(enemy: Dictionary, focus_target_actor_id: String, 
 	if not preview_line.is_empty():
 		content.add_child(_make_enemy_status_label(preview_line, 14, Color("f2d796")))
 
-	if enemy.get("hp", 0) <= 0:
-		content.add_child(_make_enemy_status_label("Estado actual: Caido", 14, Color("d98a72")))
-
 	return panel
 
 
@@ -1427,6 +1560,7 @@ func _refresh_battle_grid() -> void:
 			button.custom_minimum_size = Vector2(96.0, 96.0)
 			button.focus_mode = Control.FOCUS_NONE
 			button.flat = true
+			button.clip_contents = false
 			button.tooltip_text = _build_cell_tooltip(cell)
 			var base_fill := Color(0.08, 0.09, 0.12, 0.68)
 			var base_border := Color(0.22, 0.25, 0.31, 0.9)
@@ -1453,6 +1587,7 @@ func _apply_grid_button_state(button: Button, cell: Vector2i, focus_target_actor
 	var terrain_marker: String = _get_terrain_marker(cell)
 	var tile_art: TextureRect = button.get_node_or_null("TileArt") as TextureRect
 	var terrain_label: Label = button.get_node_or_null("TerrainLabel") as Label
+	var unit_shadow: PanelContainer = button.get_node_or_null("UnitShadow") as PanelContainer
 	var token_frame: PanelContainer = button.get_node_or_null("TokenFrame") as PanelContainer
 	var unit_icon: TextureRect = button.get_node_or_null("UnitIcon") as TextureRect
 	var unit_label: Label = button.get_node_or_null("UnitLabel") as Label
@@ -1485,6 +1620,8 @@ func _apply_grid_button_state(button: Button, cell: Vector2i, focus_target_actor
 		terrain_label.modulate = Color(0.18, 0.18, 0.2, 0.78)
 	if unit_icon != null and unit_label != null:
 		if occupant_id.is_empty():
+			if unit_shadow != null:
+				unit_shadow.visible = false
 			if token_frame != null:
 				token_frame.visible = false
 			unit_icon.visible = false
@@ -1493,7 +1630,10 @@ func _apply_grid_button_state(button: Button, cell: Vector2i, focus_target_actor
 			if status_badge_panel != null:
 				status_badge_panel.visible = false
 			_clear_bar_pair(unit_hp_bar, unit_sp_bar)
+			_reset_battle_token_pose(button)
 		else:
+			if unit_shadow != null:
+				unit_shadow.visible = true
 			var occupant_data: Dictionary = _get_combatant_data(occupant_id)
 			if token_frame != null:
 				token_frame.visible = true
@@ -1514,6 +1654,7 @@ func _apply_grid_button_state(button: Button, cell: Vector2i, focus_target_actor
 					status_badge_panel.visible = true
 					status_badge_panel.add_theme_stylebox_override("panel", _make_badge_style(Color(primary_badge.get("color", Color.WHITE)), true))
 					status_badge_label.text = str(primary_badge.get("compact", ""))
+			_reset_battle_token_pose(button)
 
 
 func _refresh_grid_visuals() -> void:
@@ -1528,6 +1669,99 @@ func _refresh_grid_visuals() -> void:
 			if button == null:
 				continue
 			_apply_grid_button_state(button, Vector2i(col, row), focus_target_actor_id, preview_target_ids)
+
+
+func _reset_battle_token_pose(button: Button) -> void:
+	if button == null:
+		return
+
+	var unit_shadow: PanelContainer = button.get_node_or_null("UnitShadow") as PanelContainer
+	var token_frame: PanelContainer = button.get_node_or_null("TokenFrame") as PanelContainer
+	var unit_icon: TextureRect = button.get_node_or_null("UnitIcon") as TextureRect
+	var unit_label: Label = button.get_node_or_null("UnitLabel") as Label
+
+	_apply_control_offsets(unit_shadow, _get_control_offsets(unit_shadow))
+	_apply_control_offsets(token_frame, _get_control_offsets(token_frame))
+	_apply_control_offsets(unit_icon, _get_control_offsets(unit_icon))
+	_apply_control_offsets(unit_label, _get_control_offsets(unit_label))
+
+	if unit_shadow != null:
+		unit_shadow.scale = Vector2.ONE
+		unit_shadow.self_modulate = Color.WHITE
+	if token_frame != null:
+		token_frame.scale = Vector2.ONE
+		token_frame.rotation = 0.0
+		token_frame.self_modulate = Color.WHITE
+	if unit_icon != null:
+		unit_icon.scale = Vector2.ONE
+		unit_icon.rotation = 0.0
+		unit_icon.self_modulate = Color.WHITE
+	if unit_label != null:
+		unit_label.self_modulate = Color.WHITE
+
+
+func _update_battle_idle_loop() -> void:
+	if battle_grid == null or battle_grid.get_child_count() == 0:
+		return
+
+	var now_seconds: float = Time.get_ticks_msec() * 0.001
+	for index in range(battle_grid.get_child_count()):
+		var button: Button = battle_grid.get_child(index) as Button
+		if button == null:
+			continue
+		var cell := Vector2i(index % GRID_COLS, index / GRID_COLS)
+		var actor_id: String = _actor_id_at_cell(cell)
+		if actor_id.is_empty():
+			_reset_battle_token_pose(button)
+			continue
+
+		var unit_icon: TextureRect = button.get_node_or_null("UnitIcon") as TextureRect
+		if unit_icon == null or not unit_icon.visible or unit_icon.texture == null:
+			_reset_battle_token_pose(button)
+			continue
+
+		if float(button.get_meta("idle_lock_until", 0.0)) > now_seconds:
+			continue
+
+		_apply_battle_idle_pose(button, actor_id, index)
+
+
+func _apply_battle_idle_pose(button: Button, actor_id: String, token_index: int) -> void:
+	var unit_shadow: PanelContainer = button.get_node_or_null("UnitShadow") as PanelContainer
+	var token_frame: PanelContainer = button.get_node_or_null("TokenFrame") as PanelContainer
+	var unit_icon: TextureRect = button.get_node_or_null("UnitIcon") as TextureRect
+	var unit_label: Label = button.get_node_or_null("UnitLabel") as Label
+	if unit_icon == null:
+		return
+
+	var is_active: bool = actor_id == active_actor_id and not battle_over
+	var active_gain: float = 1.0 if is_active else 0.0
+	var phase: float = battle_idle_time * (2.6 + active_gain * 0.5) + float(token_index) * 0.42
+	var bob: float = sin(phase) * (0.85 + active_gain * 0.55)
+	var breath: float = sin(phase * 1.7)
+	var sway: float = sin(phase * 0.8) * (0.028 + active_gain * 0.012)
+	var frame_shift: float = bob * 0.45
+
+	_apply_control_offsets(unit_shadow, _get_control_offsets(unit_shadow))
+	_apply_control_offsets(token_frame, _get_control_offsets(token_frame), frame_shift)
+	_apply_control_offsets(unit_icon, _get_control_offsets(unit_icon), bob)
+	_apply_control_offsets(unit_label, _get_control_offsets(unit_label), bob * 0.24)
+
+	if unit_shadow != null:
+		unit_shadow.scale = Vector2(1.0 - (bob * 0.02), 1.0 + (active_gain * 0.03))
+		unit_shadow.self_modulate = Color(1.0, 1.0, 1.0, 0.72 - (bob * 0.06))
+	if token_frame != null:
+		token_frame.scale = Vector2.ONE * (1.0 + (active_gain * 0.015) + (absf(breath) * 0.012))
+		token_frame.rotation = sway * 0.55
+	if unit_icon != null:
+		unit_icon.scale = Vector2(
+			1.0 + (breath * (0.026 + active_gain * 0.012)),
+			1.0 - (breath * (0.018 + active_gain * 0.008))
+		)
+		unit_icon.rotation = sway
+		unit_icon.self_modulate = Color(1.0, 1.0, 1.0, 0.97 + (active_gain * 0.03))
+	if unit_label != null:
+		unit_label.self_modulate = Color(1.0, 1.0, 1.0, 0.86 + (active_gain * 0.12))
 
 
 func _format_party_panel(actor_id: String, actor: Dictionary) -> String:
@@ -1576,9 +1810,16 @@ func _format_actor_panel(actor: Dictionary) -> String:
 
 func _write_log(message: String) -> void:
 	combat_log_lines.append(message)
-	if combat_log_lines.size() > 18:
-		combat_log_lines = combat_log_lines.slice(combat_log_lines.size() - 18, combat_log_lines.size())
-	combat_log.text = "\n".join(combat_log_lines)
+	# Keep full history for any future "expand" feature, but display only the last 4 lines
+	# so the newest entry is always readable without scrolling.
+	if combat_log_lines.size() > 60:
+		combat_log_lines = combat_log_lines.slice(combat_log_lines.size() - 60, combat_log_lines.size())
+
+	var display_lines: Array[String] = combat_log_lines.slice(
+		max(0, combat_log_lines.size() - 4),
+		combat_log_lines.size()
+	)
+	combat_log.text = "\n".join(display_lines)
 	combat_log.scroll_to_line(combat_log.get_line_count())
 
 
@@ -1714,15 +1955,216 @@ func _refresh_focus_panels() -> void:
 func _refresh_turn_header() -> void:
 	round_label.text = "Ronda %d" % max(1, round_count)
 
-	var order_parts: Array[String] = []
+	_rebuild_initiative_chips()
+	_refresh_party_rail_active_state()
+
+
+func _rebuild_initiative_chips() -> void:
+	if not is_instance_valid(initiative_chips_row):
+		return
+	for child in initiative_chips_row.get_children():
+		child.queue_free()
+
+	# Build full ordered list: active first, then remaining queue
+	var all_ids: Array[String] = []
 	if not active_actor_id.is_empty():
-		order_parts.append("[%s]" % _get_combatant_name(active_actor_id))
-	for queued_actor_id in turn_queue:
-		order_parts.append(_get_combatant_name(queued_actor_id))
-	var visible_parts: Array[String] = order_parts.slice(0, 6)
-	if order_parts.size() > 6:
-		visible_parts.append("...")
-	turn_order_label.text = "Ordem  %s" % ("  |  ".join(visible_parts) if not visible_parts.is_empty() else "a ordenar")
+		all_ids.append(active_actor_id)
+	for queued_id in turn_queue:
+		all_ids.append(queued_id)
+
+	var shown: int = 0
+	for actor_id in all_ids:
+		if shown >= 8:
+			var overflow_label: Label = Label.new()
+			overflow_label.text = "…"
+			overflow_label.add_theme_font_size_override("font_size", 14)
+			overflow_label.add_theme_color_override("font_color", Color("a08848"))
+			overflow_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			initiative_chips_row.add_child(overflow_label)
+			break
+
+		var chip: PanelContainer = _make_initiative_chip(actor_id, actor_id == active_actor_id)
+		initiative_chips_row.add_child(chip)
+
+		if shown < all_ids.size() - 1 and shown < 7:
+			var arrow: Label = Label.new()
+			arrow.text = "›"
+			arrow.add_theme_font_size_override("font_size", 14)
+			arrow.add_theme_color_override("font_color", Color("6a5830"))
+			arrow.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			initiative_chips_row.add_child(arrow)
+		shown += 1
+
+
+func _make_initiative_chip(actor_id: String, is_active: bool) -> PanelContainer:
+	var is_ally: bool = not actor_id.begins_with("enemy_")
+	var is_dead: bool = not _is_actor_alive(actor_id)
+	var accent: Color = _get_actor_accent_color(actor_id)
+
+	var style := StyleBoxFlat.new()
+	style.corner_radius_top_left = 20
+	style.corner_radius_top_right = 20
+	style.corner_radius_bottom_right = 20
+	style.corner_radius_bottom_left = 20
+	style.content_margin_left = 8
+	style.content_margin_top = 3
+	style.content_margin_right = 8
+	style.content_margin_bottom = 3
+
+	if is_dead:
+		style.bg_color = Color(0.12, 0.12, 0.13, 0.7)
+		style.border_color = Color(0.28, 0.28, 0.3, 0.5)
+		style.border_width_left = 1
+		style.border_width_top = 1
+		style.border_width_right = 1
+		style.border_width_bottom = 1
+	elif is_active:
+		style.bg_color = Color(accent.r * 0.4, accent.g * 0.4, accent.b * 0.4, 0.98)
+		style.border_color = Color(0.94, 0.78, 0.3, 0.95)
+		style.border_width_left = 2
+		style.border_width_top = 2
+		style.border_width_right = 2
+		style.border_width_bottom = 2
+		style.shadow_color = Color(0.94, 0.78, 0.3, 0.4)
+		style.shadow_size = 6
+	else:
+		style.bg_color = Color(accent.r * 0.22, accent.g * 0.22, accent.b * 0.22, 0.88)
+		style.border_color = accent.lerp(Color.BLACK, 0.18)
+		style.border_width_left = 1
+		style.border_width_top = 1
+		style.border_width_right = 1
+		style.border_width_bottom = 1
+
+	var chip := PanelContainer.new()
+	chip.add_theme_stylebox_override("panel", style)
+	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 4)
+	chip.add_child(row)
+
+	# Dot indicator
+	var dot := ColorRect.new()
+	dot.custom_minimum_size = Vector2(7, 7)
+	dot.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if is_dead:
+		dot.color = Color(0.4, 0.4, 0.42, 0.6)
+	elif is_ally:
+		dot.color = accent.lerp(Color.WHITE, 0.3)
+	else:
+		dot.color = accent.lerp(Color.WHITE, 0.3)
+	var dot_style := StyleBoxFlat.new()
+	dot_style.corner_radius_top_left = 4
+	dot_style.corner_radius_top_right = 4
+	dot_style.corner_radius_bottom_right = 4
+	dot_style.corner_radius_bottom_left = 4
+	dot.add_theme_stylebox_override("panel", dot_style)
+	row.add_child(dot)
+
+	var name_label := Label.new()
+	var short_name: String = _get_combatant_name(actor_id)
+	if short_name.length() > 8:
+		short_name = short_name.left(7) + "."
+	if is_dead:
+		name_label.text = "✕ " + short_name
+	else:
+		name_label.text = short_name
+	name_label.add_theme_font_size_override("font_size", 13)
+	var text_color: Color
+	if is_dead:
+		text_color = Color("666060")
+	elif is_active:
+		text_color = Color("f6e18a")
+	else:
+		text_color = accent.lerp(Color.WHITE, 0.55)
+	name_label.add_theme_color_override("font_color", text_color)
+	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	name_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	row.add_child(name_label)
+
+	# Animate pulse for active chip
+	if is_active and not battle_over:
+		var pulse_tween: Tween = create_tween().set_loops()
+		pulse_tween.tween_property(chip, "modulate:a", 0.82, 0.55).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		pulse_tween.tween_property(chip, "modulate:a", 1.0, 0.55).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+		chip.tree_exited.connect(pulse_tween.kill)
+
+	return chip
+
+
+func _refresh_party_rail_active_state() -> void:
+	# Player
+	var player_is_active: bool = active_actor_id == "pembah" and _is_ally_turn() and not battle_over
+	_apply_rail_active_highlight(
+		player_portrait_frame,
+		player_active_border,
+		player_ap_row,
+		player_move_pip,
+		player_action_pip,
+		player_is_active
+	)
+
+	# Companion
+	var companion_is_active: bool = active_actor_id == "joao" and _is_ally_turn() and not battle_over
+	_apply_rail_active_highlight(
+		companion_portrait_frame,
+		companion_active_border,
+		companion_ap_row,
+		companion_move_pip,
+		companion_action_pip,
+		companion_is_active
+	)
+
+
+func _apply_rail_active_highlight(
+	portrait_frame: PanelContainer,
+	active_border: ColorRect,
+	ap_row: HBoxContainer,
+	move_pip: ColorRect,
+	action_pip: ColorRect,
+	is_active: bool
+) -> void:
+	if not is_instance_valid(portrait_frame) or not is_instance_valid(active_border):
+		return
+
+	if is_active:
+		active_border.visible = true
+		active_border.color = Color(0.94, 0.78, 0.3, 0.18)
+		# Pulse the border
+		if not active_border.has_meta("pulsing"):
+			active_border.set_meta("pulsing", true)
+			var t: Tween = create_tween().set_loops()
+			t.tween_property(active_border, "color:a", 0.32, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			t.tween_property(active_border, "color:a", 0.10, 0.6).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			active_border.set_meta("pulse_tween", t)
+
+		# AP pips
+		if is_instance_valid(ap_row):
+			ap_row.visible = true
+		if is_instance_valid(move_pip):
+			move_pip.color = Color(0.22, 0.22, 0.25, 0.55) if turn_move_used else Color(0.42, 0.74, 0.94, 1.0)
+			move_pip.tooltip_text = "Movimento: usado" if turn_move_used else "Movimento: livre"
+		if is_instance_valid(action_pip):
+			action_pip.color = Color(0.22, 0.22, 0.25, 0.55) if turn_action_used else Color(0.94, 0.67, 0.28, 1.0)
+			action_pip.tooltip_text = "Ação: usada" if turn_action_used else "Ação: livre"
+
+		# Gold border on portrait frame
+		var gold_style: StyleBoxFlat = _make_accent_frame_style(Color(0.94, 0.78, 0.3, 1.0))
+		portrait_frame.add_theme_stylebox_override("panel", gold_style)
+	else:
+		if is_instance_valid(active_border):
+			active_border.visible = false
+			if active_border.has_meta("pulse_tween"):
+				var old_tween: Tween = active_border.get_meta("pulse_tween") as Tween
+				if old_tween != null:
+					old_tween.kill()
+				active_border.remove_meta("pulse_tween")
+			if active_border.has_meta("pulsing"):
+				active_border.remove_meta("pulsing")
+		if is_instance_valid(ap_row):
+			ap_row.visible = false
+		# Restore default portrait frame style
+		portrait_frame.add_theme_stylebox_override("panel", _make_panel_style("focus"))
 
 
 func _refresh_footer_visibility() -> void:
@@ -1843,6 +2285,101 @@ func _get_cell_effect_position(cell: Vector2i) -> Vector2:
 	return button.global_position + button.size * 0.5 - effects_layer.global_position
 
 
+func _get_actor_unit_icon(actor_id: String) -> TextureRect:
+	var button: Button = _get_grid_button(_get_actor_cell(actor_id))
+	if button == null:
+		return null
+	return button.get_node_or_null("UnitIcon") as TextureRect
+
+
+func _lock_battle_token_pose(actor_id: String, duration: float) -> Button:
+	var button: Button = _get_grid_button(_get_actor_cell(actor_id))
+	if button == null:
+		return null
+	button.set_meta("idle_lock_until", (Time.get_ticks_msec() * 0.001) + duration)
+	return button
+
+
+func _animate_actor_action(actor_id: String, mode: String, accent_color: Color = Color.WHITE) -> void:
+	var unit_icon: TextureRect = _get_actor_unit_icon(actor_id)
+	if unit_icon == null or not is_instance_valid(unit_icon):
+		return
+
+	var button: Button = _lock_battle_token_pose(actor_id, 0.34)
+	if button != null:
+		_reset_battle_token_pose(button)
+	unit_icon.pivot_offset = unit_icon.size * 0.5
+	var tween: Tween = create_tween()
+	match mode:
+		"attack":
+			var push_x: float = 8.0 if _is_ally_turn() else -8.0
+			tween.tween_property(unit_icon, "position:x", unit_icon.position.x + push_x, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position:x", unit_icon.position.x, 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(1.1, 0.94), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2.ONE, 0.1).set_delay(0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		"hit":
+			unit_icon.self_modulate = Color(accent_color.r, accent_color.g, accent_color.b, 0.88)
+			tween.tween_property(unit_icon, "rotation_degrees", -7.0, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "rotation_degrees", 5.0, 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.tween_property(unit_icon, "rotation_degrees", 0.0, 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		"potion":
+			unit_icon.self_modulate = Color(0.58, 0.95, 0.7, 1.0)
+			tween.tween_property(unit_icon, "scale", Vector2(0.93, 1.08), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "scale", Vector2(1.07, 0.94), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN_OUT)
+			tween.tween_property(unit_icon, "scale", Vector2.ONE, 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.26).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		"guard":
+			unit_icon.self_modulate = Color(0.58, 0.74, 0.98, 0.92)
+			tween.tween_property(unit_icon, "scale", Vector2(1.13, 1.13), 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.26).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		"cast":
+			unit_icon.self_modulate = Color(accent_color.r, accent_color.g, accent_color.b, 0.9)
+			tween.tween_property(unit_icon, "scale", Vector2(1.08, 1.08), 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		_:
+			tween.tween_property(unit_icon, "scale", Vector2(1.05, 1.05), 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "scale", Vector2.ONE, 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	tween.finished.connect(_on_actor_action_tween_finished.bind(actor_id))
+
+
+func _on_actor_action_tween_finished(actor_id: String) -> void:
+	var button: Button = _get_grid_button(_get_actor_cell(actor_id))
+	if button == null or not is_instance_valid(button):
+		return
+	_reset_battle_token_pose(button)
+
+
+func _animate_actor_move(actor_id: String, from_cell: Vector2i, to_cell: Vector2i) -> void:
+	if from_cell == to_cell:
+		return
+
+	var start_position: Vector2 = _get_cell_effect_position(from_cell)
+	var end_position: Vector2 = _get_cell_effect_position(to_cell)
+	var ghost: TextureRect = TextureRect.new()
+	ghost.texture = _get_actor_icon(actor_id)
+	ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	ghost.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	ghost.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	ghost.custom_minimum_size = Vector2(50.0, 50.0)
+	ghost.size = Vector2(50.0, 50.0)
+	ghost.pivot_offset = ghost.size * 0.5
+	ghost.position = start_position - ghost.size * 0.5
+	ghost.modulate = Color(1.0, 1.0, 1.0, 0.9)
+	effects_layer.add_child(ghost)
+
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(ghost, "position", end_position - ghost.size * 0.5, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(ghost, "scale", Vector2(1.08, 0.92), 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(ghost, "modulate:a", 0.24, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.chain().tween_property(ghost, "scale", Vector2.ONE, 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+	await tween.finished
+	ghost.queue_free()
+
+
 func _show_floating_text(actor_id: String, text: String, color: Color, vertical_offset: float = 0.0) -> void:
 	if text.is_empty():
 		return
@@ -1922,6 +2459,7 @@ func _play_damage_feedback(actor_id: String, damage: int, status_text: String = 
 		_show_floating_text(actor_id, "-%d" % damage, accent_color)
 		_animate_cell_impact(actor_id, accent_color)
 		_animate_portrait_feedback(actor_id, accent_color)
+		_animate_actor_action(actor_id, "hit", accent_color)
 	if not status_text.is_empty():
 		_show_floating_text(actor_id, status_text, Color(0.96, 0.86, 0.54, 1.0), -24.0)
 
@@ -1930,11 +2468,13 @@ func _play_support_feedback(actor_id: String, text: String, accent_color: Color,
 	_show_floating_text(actor_id, text, accent_color)
 	_animate_cell_impact(actor_id, accent_color)
 	_animate_portrait_feedback(actor_id, accent_color)
+	_animate_actor_action(actor_id, "cast", accent_color)
 	if not secondary_text.is_empty():
 		_show_floating_text(actor_id, secondary_text, Color(0.88, 0.93, 1.0, 1.0), -24.0)
 
 
 func _play_cinematic_strike(attacker_id: String, target_ids: Array[String], strong: bool, accent_color: Color) -> void:
+	_animate_actor_action(attacker_id, "attack" if not target_ids.is_empty() else "cast", accent_color)
 	var intensity: float = 1.35 if strong else 0.72
 	_play_screen_shake(intensity, 0.24 if strong else 0.14)
 	if strong:
@@ -2085,6 +2625,10 @@ func _refresh_action_buttons() -> void:
 		attack_button.disabled = true
 		item_button.disabled = true
 		defend_button.disabled = true
+		_set_action_button_used_stamp(move_button, false)
+		_set_action_button_used_stamp(attack_button, false)
+		_set_action_button_used_stamp(item_button, false)
+		_set_action_button_used_stamp(defend_button, false)
 		return
 
 	move_button.disabled = turn_move_used or turn_action_used or _get_reachable_costs(active_actor_id).size() <= 1
@@ -2092,10 +2636,46 @@ func _refresh_action_buttons() -> void:
 	item_button.disabled = turn_action_used or potion_count <= 0
 	defend_button.disabled = turn_action_used
 
+	_set_action_button_used_stamp(move_button, turn_move_used)
+	_set_action_button_used_stamp(attack_button, turn_action_used)
+	_set_action_button_used_stamp(item_button, turn_action_used)
+	_set_action_button_used_stamp(defend_button, turn_action_used)
+
 	move_button.tooltip_text = "Tecla 1. Reposiciona %s nas casas alcancaveis." % actor_name
 	attack_button.tooltip_text = "Tecla 2. Golpe simples ao alcance da arma."
 	item_button.tooltip_text = "Tecla 3. Bebe uma Pocao de Vida do bornal. Restam %d." % potion_count
 	defend_button.tooltip_text = "Tecla 4. Ergue a guarda e recobra Espirito."
+
+
+func _set_action_button_used_stamp(button: Button, used: bool) -> void:
+	if button == null:
+		return
+	var stamp: Label = button.get_node_or_null("UsedStamp") as Label
+	if used:
+		if stamp == null:
+			stamp = Label.new()
+			stamp.name = "UsedStamp"
+			stamp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+			stamp.anchor_left = 0.0
+			stamp.anchor_top = 0.0
+			stamp.anchor_right = 1.0
+			stamp.anchor_bottom = 1.0
+			stamp.offset_left = 0.0
+			stamp.offset_top = 0.0
+			stamp.offset_right = 0.0
+			stamp.offset_bottom = 0.0
+			stamp.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			stamp.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+			stamp.text = "✓"
+			stamp.add_theme_font_size_override("font_size", 26)
+			stamp.add_theme_color_override("font_color", Color(0.94, 0.78, 0.3, 0.72))
+			stamp.add_theme_color_override("font_outline_color", Color(0.05, 0.06, 0.08, 0.8))
+			stamp.add_theme_constant_override("outline_size", 2)
+			button.add_child(stamp)
+		stamp.visible = true
+	else:
+		if stamp != null:
+			stamp.visible = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -2185,6 +2765,7 @@ func _on_item_button_pressed() -> void:
 		_write_log("Ja nao tendes %s no bornal." % potion_name)
 		return
 	var recovered_hp: int = int(actor.get("hp", 0)) - previous_hp
+	_animate_actor_action(active_actor_id, "potion")
 	_play_sfx("heal", 0.02, -5.0)
 	_play_support_feedback(active_actor_id, "+%d" % recovered_hp, Color(0.37, 0.78, 0.52, 1.0), "Vida")
 	await get_tree().create_timer(0.18).timeout
@@ -2203,6 +2784,7 @@ func _on_defend_button_pressed() -> void:
 	actor["sp"] = min(actor.get("max_sp", 0), actor.get("sp", 0) + 5)
 	_set_actor_data(active_actor_id, actor)
 	_write_log("%s firma a guarda e recobra 5 pontos de Espirito." % actor.get("name", "Aliado"))
+	_animate_actor_action(active_actor_id, "guard")
 	_play_sfx("guard", 0.02, -5.0)
 	_play_support_feedback(active_actor_id, "+5 ESP", Color(0.39, 0.63, 0.92, 1.0), "Guarda")
 	await get_tree().create_timer(0.16).timeout
@@ -2280,6 +2862,8 @@ func _on_grid_cell_pressed(cell: Vector2i) -> void:
 	var occupant_id: String = _actor_id_at_cell(cell)
 	if battle_mode == "move_select":
 		if _cell_is_valid_move(cell):
+			var previous_cell: Vector2i = _get_actor_cell(active_actor_id)
+			await _animate_actor_move(active_actor_id, previous_cell, cell)
 			_set_actor_cell(active_actor_id, cell)
 			turn_move_used = true
 			battle_mode = "idle"

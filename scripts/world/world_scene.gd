@@ -1,9 +1,12 @@
 extends Node2D
 
 const TRAVEL_MAP_PATH := "res://data/world/travel_map.json"
+const PEMBAH_UI_AVATAR_PATH := "res://assets/ui/pembah_avatar_icon.svg"
+const JOAO_UI_AVATAR_PATH := "res://assets/portraits/joao_portrait.svg"
 
 @export_file("*.json") var world_data_path: String = ""
 @export var scene_id: String = ""
+@export var overworld_node_id: String = ""
 @export var default_spawn_position: Vector2 = Vector2(240.0, 520.0)
 @export_file("*.tscn") var scene_path: String = ""
 
@@ -62,10 +65,15 @@ func _ready() -> void:
 	_load_world_data()
 	_load_travel_map()
 	GameState.set_current_scene_path(scene_path)
-	GameState.set_overworld_current_node(scene_id)
+	GameState.set_overworld_current_node(_get_overworld_node_id())
 	GameState.set_overworld_origin_scene(scene_path)
-	MusicManager.play_world_music(scene_id)
-	player.position = GameState.get_scene_position(scene_id, default_spawn_position)
+	MusicManager.play_world_music(_get_world_music_id())
+	var pending_spawn: Dictionary = GameState.consume_pending_scene_spawn(scene_id)
+	if pending_spawn.is_empty():
+		player.position = GameState.get_scene_position(scene_id, default_spawn_position)
+	else:
+		player.position = _vector_from_dict(pending_spawn)
+		GameState.update_scene_position(scene_id, player.position)
 	GameState.state_changed.connect(_refresh_ui)
 	GameState.inventory_changed.connect(_refresh_inventory)
 	_ensure_character_focus_selector()
@@ -205,6 +213,13 @@ func _draw_interactables() -> void:
 			draw_colored_polygon(diamond, color)
 			draw_line(position + Vector2(-8.0, 0.0), position + Vector2(8.0, 0.0), Color.WHITE, 2.0)
 			draw_line(position + Vector2(0.0, -8.0), position + Vector2(0.0, 8.0), Color.WHITE, 2.0)
+		elif interactable_type == "transition":
+			var gate_rect := Rect2(position + Vector2(-16.0, -draw_radius), Vector2(32.0, draw_radius * 1.8))
+			draw_rect(gate_rect, color)
+			draw_rect(Rect2(gate_rect.position + Vector2(5.0, 6.0), gate_rect.size - Vector2(10.0, 6.0)), color.lightened(0.12), false, 2.0)
+			draw_line(position + Vector2(-8.0, 8.0), position + Vector2(8.0, 8.0), Color.WHITE, 2.0)
+			draw_line(position + Vector2(2.0, 0.0), position + Vector2(8.0, 8.0), Color.WHITE, 2.0)
+			draw_line(position + Vector2(2.0, 16.0), position + Vector2(8.0, 8.0), Color.WHITE, 2.0)
 		else:
 			draw_rect(Rect2(position + Vector2(-12.0, -draw_radius), Vector2(24.0, draw_radius * 1.6)), color)
 			draw_rect(Rect2(position + Vector2(-4.0, draw_radius * 0.55), Vector2(8.0, 18.0)), color.darkened(0.25))
@@ -368,6 +383,12 @@ func _try_interaction() -> void:
 			_open_dialogue(dialogue_id)
 		"shop":
 			_open_shop(str(interactable.get("shop_id", "")))
+		"transition":
+			_change_scene_with_spawn(
+				str(interactable.get("scene", "")),
+				str(interactable.get("target_scene_id", "")),
+				_vector_from_dict(interactable.get("spawn_position", {}))
+			)
 		"encounter":
 			_start_battle(interactable.get("battle", {}))
 
@@ -427,7 +448,7 @@ func _open_overworld_map() -> void:
 	pause_panel.visible = false
 	shop_panel.visible = false
 	GameState.set_overworld_origin_scene(scene_path)
-	GameState.set_overworld_current_node(scene_id)
+	GameState.set_overworld_current_node(_get_overworld_node_id())
 	get_tree().change_scene_to_file(GameState.PORTUGAL_MAP_SCENE)
 
 
@@ -505,7 +526,11 @@ func _run_actions(actions: Array) -> void:
 				_start_battle(action.get("battle", {}))
 				return
 			"change_scene":
-				get_tree().change_scene_to_file(action.get("scene", ""))
+				_change_scene_with_spawn(
+					str(action.get("scene", "")),
+					str(action.get("target_scene_id", "")),
+					_vector_from_dict(action.get("spawn_position", {}))
+				)
 				return
 			"open_overworld_map":
 				_open_overworld_map()
@@ -568,6 +593,7 @@ func _refresh_ui() -> void:
 
 func _refresh_inventory() -> void:
 	var lines: Array = [
+		_get_member_avatar_bbcode("pembah", 56),
 		"[b]Inventario[/b]",
 		"Oiro: %d" % GameState.gold,
 		""
@@ -623,6 +649,17 @@ func _refresh_inventory() -> void:
 	inventory_text.text = "\n".join(lines)
 	_refresh_character_panel()
 	_refresh_shop_panel()
+
+
+func _get_member_avatar_path(member_id: String) -> String:
+	if member_id == "joao":
+		return JOAO_UI_AVATAR_PATH
+	return PEMBAH_UI_AVATAR_PATH
+
+
+func _get_member_avatar_bbcode(member_id: String, size: int = 64) -> String:
+	var avatar_path: String = _get_member_avatar_path(member_id)
+	return "[center][img=%dx%d]%s[/img][/center]" % [size, size, avatar_path]
 
 
 func _ensure_character_focus_selector() -> void:
@@ -868,6 +905,7 @@ func _refresh_character_panel() -> void:
 		schools.sort()
 
 	var summary_lines: Array = [
+		_get_member_avatar_bbcode(focus_id, 68),
 		"[b]%s[/b]" % focus_data.get("name", "Companheiro"),
 		"%s" % focus_data.get("role", "Companheiro"),
 		"",
@@ -1010,7 +1048,10 @@ func _refresh_character_panel() -> void:
 
 	_refresh_companion_panel()
 
-	var inventory_lines: Array = ["[b]Bornal[/b]"]
+	var inventory_lines: Array = [
+		_get_member_avatar_bbcode("pembah", 48),
+		"[b]Bornal[/b]"
+	]
 	for raw_stack in GameState.inventory:
 		var stack: Dictionary = raw_stack
 		var item: Dictionary = GameState.item_defs.get(stack.get("id", ""), {})
@@ -1182,6 +1223,30 @@ func _refresh_shop_panel() -> void:
 		if not _conditions_match(entry.get("conditions", {})):
 			continue
 
+		var service_id: String = str(entry.get("service_id", ""))
+		if not service_id.is_empty():
+			var price_service: int = int(entry.get("price", 0))
+			var check_service: Dictionary = GameState.can_use_service(service_id, price_service)
+			var service_button: Button = Button.new()
+			service_button.custom_minimum_size = Vector2(0.0, 76.0)
+			service_button.text = "%s\n%d de oiro | %s" % [
+				str(entry.get("label", GameState.get_service_name(service_id))),
+				price_service,
+				str(entry.get("description", "Servico da cidade"))
+			]
+			var service_quality: String = str(entry.get("quality", "blue"))
+			_apply_rarity_button_theme(service_button, service_quality)
+			service_button.tooltip_text = "%s\n%s" % [
+				str(entry.get("description", "Servico da cidade")),
+				str(check_service.get("reason", ""))
+			]
+			service_button.disabled = not bool(check_service.get("ok", false))
+			if not service_button.disabled:
+				service_button.pressed.connect(_on_shop_service_pressed.bind(service_id, price_service))
+			shop_list.add_child(service_button)
+			shown_entries += 1
+			continue
+
 		var item_id: String = str(entry.get("item_id", ""))
 		var item: Dictionary = GameState.item_defs.get(item_id, {})
 		if item.is_empty():
@@ -1219,8 +1284,33 @@ func _on_shop_item_pressed(item_id: String, price: int) -> void:
 	_refresh_inventory()
 
 
+func _on_shop_service_pressed(service_id: String, price: int) -> void:
+	var result: Dictionary = GameState.use_service(service_id, price)
+	shop_status_message = str(result.get("reason", ""))
+	_refresh_ui()
+	_refresh_shop_panel()
+	_refresh_inventory()
+
+
 func _on_shop_close_button_pressed() -> void:
 	shop_panel.visible = false
+
+
+func _change_scene_with_spawn(destination_scene: String, target_scene_id: String, spawn_position: Vector2) -> void:
+	if destination_scene.is_empty():
+		return
+	if not target_scene_id.is_empty() and spawn_position != Vector2.ZERO:
+		GameState.set_pending_scene_spawn(target_scene_id, spawn_position)
+	get_tree().change_scene_to_file(destination_scene)
+
+
+func _get_overworld_node_id() -> String:
+	return overworld_node_id if not overworld_node_id.is_empty() else scene_id
+
+
+func _get_world_music_id() -> String:
+	var node_id: String = _get_overworld_node_id()
+	return node_id if not node_id.is_empty() else scene_id
 
 
 func _on_build_school_filter_item_selected(index: int) -> void:

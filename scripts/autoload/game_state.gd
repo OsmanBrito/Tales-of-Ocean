@@ -78,6 +78,7 @@ func reset_new_game() -> void:
 		"overworld_current_node_id": "lisboa",
 		"overworld_origin_scene": "res://scenes/world/lisboa.tscn",
 		"overworld_travel_state": {},
+		"pending_scene_spawns": {},
 		"battle_tutorial_seen": false,
 		"bandit_defeated": false,
 		"lisboa_boss_defeated": false,
@@ -156,21 +157,15 @@ func _build_pembah() -> Dictionary:
 			"Escola da Barra de Lisboa"
 		],
 		"learned_skills": [
-			"golpe_navegante",
-			"escudo_do_oceano",
-			"vento_de_lisboa"
+			"golpe_navegante"
 		],
 		"equipped_skills": [
 			"golpe_navegante",
-			"escudo_do_oceano",
-			"vento_de_lisboa"
 		],
 		"learned_passives": [],
 		"equipped_passives": [],
 		"skills": [
-			"golpe_navegante",
-			"escudo_do_oceano",
-			"vento_de_lisboa"
+			"golpe_navegante"
 		]
 	}
 	player["passives"] = []
@@ -341,6 +336,97 @@ func buy_item(item_id: String, price: int, quantity: int = 1) -> Dictionary:
 	add_item(item_id, quantity)
 	state_changed.emit()
 	return {"ok": true, "reason": "Comprastes %s por %d de oiro." % [item.get("name", item_id), total_price]}
+
+
+func get_service_name(service_id: String) -> String:
+	match service_id:
+		"rest_house":
+			return "Ceia e Descanso"
+		"rest_hearty":
+			return "Mesa Farta"
+		"refill_supplies":
+			return "Reabastecer Mantimentos"
+		"repair_ship":
+			return "Reparar Casco"
+		"full_refit":
+			return "Refazer Nau e Provisoes"
+		_:
+			return service_id.capitalize()
+
+
+func can_use_service(service_id: String, price: int) -> Dictionary:
+	if price < 0:
+		return {"ok": false, "reason": "Esse servico traz conta mal escrita."}
+	if gold < price:
+		return {"ok": false, "reason": "Faltam-vos %d de oiro." % (price - gold)}
+
+	var ocean: Dictionary = _ensure_ocean_state()
+	match service_id:
+		"rest_house", "rest_hearty":
+			var everyone_ready: bool = true
+			for member_id in party_order:
+				if not party.has(member_id):
+					continue
+				var member: Dictionary = party[member_id]
+				if int(member.get("hp", 0)) < int(member.get("max_hp", 0)) or int(member.get("sp", 0)) < int(member.get("max_sp", 0)):
+					everyone_ready = false
+					break
+			if everyone_ready:
+				return {"ok": false, "reason": "A companhia ja descansa em boa forma."}
+		"refill_supplies":
+			if int(ocean.get("supplies", 0)) >= int(ocean.get("supplies_max", 0)):
+				return {"ok": false, "reason": "Os poroes ja vao cheios."}
+		"repair_ship":
+			if int(ocean.get("ship", 0)) >= int(ocean.get("ship_max", 0)):
+				return {"ok": false, "reason": "O casco ja se acha firme."}
+		"full_refit":
+			if int(ocean.get("ship", 0)) >= int(ocean.get("ship_max", 0)) and int(ocean.get("supplies", 0)) >= int(ocean.get("supplies_max", 0)):
+				return {"ok": false, "reason": "Nada ha que refazer na nau."}
+		_:
+			return {"ok": false, "reason": "Ninguem na cidade presta esse servico."}
+
+	return {"ok": true, "reason": "Podeis pagar %s." % get_service_name(service_id)}
+
+
+func use_service(service_id: String, price: int) -> Dictionary:
+	var check: Dictionary = can_use_service(service_id, price)
+	if not bool(check.get("ok", false)):
+		return check
+
+	var ocean: Dictionary = _ensure_ocean_state()
+	gold -= price
+	match service_id:
+		"rest_house":
+			heal_party(9999, 9999)
+			return {"ok": true, "reason": "Ceastes e dormistes sob tecto seguro. A companhia amanhece refeita."}
+		"rest_hearty":
+			heal_party(9999, 9999)
+			var player: Dictionary = get_player()
+			player["hp"] = min(int(player.get("max_hp", 0)), int(player.get("hp", 0)) + 8)
+			party["pembah"] = player
+			state_changed.emit()
+			return {"ok": true, "reason": "A mesa foi generosa e o espirito torna-se mais leve."}
+		"refill_supplies":
+			ocean["supplies"] = int(ocean.get("supplies_max", 100))
+			ocean["last_event"] = "Mantimentos tomados em terra."
+			_set_ocean_state(ocean)
+			state_changed.emit()
+			return {"ok": true, "reason": "Os poroes vao cheios e a nau pode tornar ao largo."}
+		"repair_ship":
+			ocean["ship"] = int(ocean.get("ship_max", 100))
+			ocean["last_event"] = "Calafates e carpinteiros deixaram o casco como novo."
+			_set_ocean_state(ocean)
+			state_changed.emit()
+			return {"ok": true, "reason": "O casco foi reforcado de proa a popa."}
+		"full_refit":
+			ocean["ship"] = int(ocean.get("ship_max", 100))
+			ocean["supplies"] = int(ocean.get("supplies_max", 100))
+			ocean["last_event"] = "A nau sai do estaleiro refeita e bem provida."
+			_set_ocean_state(ocean)
+			state_changed.emit()
+			return {"ok": true, "reason": "A nau foi refeita e reabastecida por inteiro."}
+		_:
+			return {"ok": false, "reason": "Esse servico esfumou-se antes da conta."}
 
 
 func can_learn_manual(item_id: String) -> Dictionary:
@@ -746,6 +832,26 @@ func update_scene_position(scene_id: String, position: Vector2) -> void:
 	world_state["scene_positions"] = scene_positions
 
 
+func set_pending_scene_spawn(scene_id: String, position: Vector2) -> void:
+	if scene_id.is_empty():
+		return
+	var pending_spawns: Dictionary = world_state.get("pending_scene_spawns", {})
+	pending_spawns[scene_id] = {"x": position.x, "y": position.y}
+	world_state["pending_scene_spawns"] = pending_spawns
+
+
+func consume_pending_scene_spawn(scene_id: String) -> Dictionary:
+	if scene_id.is_empty():
+		return {}
+	var pending_spawns: Dictionary = world_state.get("pending_scene_spawns", {})
+	if not pending_spawns.has(scene_id):
+		return {}
+	var spawn_data: Dictionary = pending_spawns.get(scene_id, {})
+	pending_spawns.erase(scene_id)
+	world_state["pending_scene_spawns"] = pending_spawns
+	return spawn_data
+
+
 func get_ocean_state() -> Dictionary:
 	return world_state.get("ocean_state", {})
 
@@ -863,6 +969,8 @@ func apply_actions(actions: Array) -> void:
 				recruit_companion(action.get("companion_id", ""))
 			"heal_party":
 				heal_party()
+			"use_service":
+				use_service(str(action.get("service_id", "")), int(action.get("price", 0)))
 
 
 func _get_battle_enemy_ids(context: Dictionary) -> Array[String]:
@@ -1034,10 +1142,22 @@ func _ensure_runtime_defaults() -> void:
 		world_state["battle_tutorial_seen"] = false
 	if not world_state.has("overworld_travel_state"):
 		world_state["overworld_travel_state"] = {}
+	if not world_state.has("pending_scene_spawns"):
+		world_state["pending_scene_spawns"] = {}
 
 	var scene_positions: Dictionary = world_state.get("scene_positions", {})
 	if not scene_positions.has("lisboa"):
 		scene_positions["lisboa"] = {"x": 240.0, "y": 520.0}
+	if not scene_positions.has("lisboa_rossio"):
+		scene_positions["lisboa_rossio"] = {"x": 280.0, "y": 640.0}
+	if not scene_positions.has("lisboa_se"):
+		scene_positions["lisboa_se"] = {"x": 300.0, "y": 620.0}
+	if not scene_positions.has("lisboa_estaleiro"):
+		scene_positions["lisboa_estaleiro"] = {"x": 260.0, "y": 700.0}
+	if not scene_positions.has("lisboa_porta_oriental"):
+		scene_positions["lisboa_porta_oriental"] = {"x": 260.0, "y": 620.0}
+	if not scene_positions.has("mata_de_alvalade"):
+		scene_positions["mata_de_alvalade"] = {"x": 240.0, "y": 740.0}
 	if not scene_positions.has("porto"):
 		scene_positions["porto"] = {"x": 300.0, "y": 640.0}
 	if not scene_positions.has("sagres"):

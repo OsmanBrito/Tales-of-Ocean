@@ -5,7 +5,10 @@
       "type": "dialogue",
       "label": "Capitao Duarte",
       "prompt": "Carrega E para falar com o Capitao Duarte.",
-      "position": { "x": 560.0, "y": 320.0 },
+      "position": {
+        "x": 566.0,
+        "y": 350.0
+      },
       "radius": 92.0,
       "draw_radius": 22.0,
       "color": "ba3a3a",
@@ -23,116 +26,119 @@
       "type": "dialogue",
       "label": "Velho Tome",
       "prompt": "Carrega E para escutar o velho marinheiro.",
-      "position": { "x": 360.0, "y": 560.0 },
+      "position": {
+        "x": 736.0,
+        "y": 654.0
+      },
       "radius": 90.0,
       "draw_radius": 20.0,
       "color": "476c9b",
       "default_dialogue_id": "tome_cais"
     },
     {
+      "id": "casa_de_pasto_da_ribeira",
+      "type": "shop",
+      "label": "Casa de Pasto",
+      "prompt": "Carrega E para entrar na Casa de Pasto da Ribeira.",
+      "position": {
+        "x": 522.0,
+        "y": 678.0
+      },
+      "radius": 94.0,
+      "draw_radius": 22.0,
+      "color": "8a5b34",
+      "shop_id": "casa_de_pasto_da_ribeira"
+    },
+    {
+      "id": "casa_dos_roteiros",
+      "type": "shop",
+      "label": "Casa dos Roteiros",
+      "prompt": "Carrega E para consultar cartas e pergaminhos.",
+      "position": {
+        "x": 820.0,
+        "y": 438.0
+      },
+      "radius": 90.0,
+      "draw_radius": 22.0,
+      "color": "355a7a",
+      "shop_id": "casa_dos_roteiros"
+    },
+    {
       "id": "caravela_do_norte",
       "type": "dialogue",
       "label": "Caravela do Norte",
       "prompt": "Carrega E para embarcar rumo ao Porto.",
-      "position": { "x": 250.0, "y": 260.0 },
+      "position": {
+        "x": 246.0,
+        "y": 406.0
+      },
       "radius": 94.0,
       "draw_radius": 24.0,
       "color": "1f5d8b",
       "default_dialogue_id": "viagem_porto",
       "conditions": {
         "quest_state": {
-          "first_voyage": ["completed"]
+          "first_voyage": [
+            "completed"
+          ]
         }
       }
     },
     {
-      "id": "acampamento_salteador",
-      "type": "encounter",
-      "label": "Acampamento do Salteador",
-      "prompt": "Carrega E para afrontar o batedor salteador.",
-      "position": { "x": 1490.0, "y": 430.0 },
-      "radius": 96.0,
-      "draw_radius": 28.0,
-      "color": "3d2414",
-      "conditions": {
-        "quest_state": {
-          "first_voyage": ["active"]
-        },
-        "world_flags": {
-          "bandit_defeated": false
-        }
+      "id": "to_rossio",
+      "type": "transition",
+      "label": "Para o Rossio",
+      "prompt": "Carrega E para seguir ao Rossio.",
+      "position": {
+        "x": 1324.0,
+        "y": 646.0
       },
-      "battle": {
-        "enemy_id": "bandit_scout",
-        "return_scene": "res://scenes/world/lisboa.tscn",
-        "return_button_text": "Tornar a Lisboa",
-        "battle_title": "Recontro junto da Porta Oriental",
-        "intro_text": "Um batedor salteador avanca para vos tolher o caminho.",
-        "victory_text": "O salteador cai por terra. A estrada de Lisboa torna a ser segura.",
-        "defeat_text": "Pembah recua para tomar alento. Tornai quando estiverdes pronto.",
-        "ally_start_cells": [[1, 1], [1, 2]],
-        "enemy_start_cells": [[5, 1], [6, 2]],
-        "terrain": {
-          "blocked_cells": [[3, 1], [3, 2]],
-          "water_cells": [[0, 0], [1, 0], [5, 3], [6, 3]],
-          "high_cells": [[4, 0], [5, 0], [6, 0]],
-          "note": "Os escombros da estrada fecham o meio do campo."
-        },
-        "victory_actions": [
-          {
-            "type": "set_flag",
-            "flag": "bandit_defeated",
-            "value": true
-          }
-        ]
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "7b6547",
+      "scene": "res://scenes/world/lisboa_rossio.tscn",
+      "target_scene_id": "lisboa_rossio",
+      "spawn_position": {
+        "x": 270.0,
+        "y": 720.0
       }
     },
     {
-      "id": "fortim_da_barra",
-      "type": "encounter",
-      "label": "Fortim da Barra",
-      "prompt": "Carrega E para afrontar o Capitao da Barra.",
-      "position": { "x": 1640.0, "y": 260.0 },
-      "radius": 98.0,
-      "draw_radius": 30.0,
-      "color": "5b2b1d",
-      "conditions": {
-        "quest_state": {
-          "first_voyage": ["active"]
-        },
-        "world_flags": {
-          "bandit_defeated": true,
-          "lisboa_boss_defeated": false
-        }
+      "id": "to_se",
+      "type": "transition",
+      "label": "Rua da Se",
+      "prompt": "Carrega E para subir a rua da Se.",
+      "position": {
+        "x": 1176.0,
+        "y": 598.0
       },
-      "battle": {
-        "enemy_id": "capitao_da_barra",
-        "return_scene": "res://scenes/world/lisboa.tscn",
-        "return_button_text": "Tornar a Lisboa",
-        "battle_title": "Fortim da Barra",
-        "intro_text": "O Capitao da Barra, vendido ao ouro alheio, fecha o passo com ferro e soberba.",
-        "victory_text": "O capitulo do traidor fecha-se. A barra volta a ser de Lisboa.",
-        "defeat_text": "O fortim fecha-se sobre vos. Tornai com mais ordem e folego.",
-        "ally_start_cells": [[0, 1], [0, 2]],
-        "enemy_start_cells": [[5, 1], [6, 1]],
-        "terrain": {
-          "blocked_cells": [[2, 1], [3, 1], [3, 2]],
-          "water_cells": [[0, 0], [1, 0], [5, 3], [6, 3]],
-          "high_cells": [[4, 0], [5, 0], [6, 0]],
-          "note": "A muralha do fortim manda no centro; quem toma a altura dita o passo."
-        },
-        "victory_actions": [
-          {
-            "type": "set_flag",
-            "flag": "lisboa_boss_defeated",
-            "value": true
-          },
-          {
-            "type": "set_quest_state",
-            "quest_id": "first_voyage",
-            "status": "ready_to_turn_in"
-          }
-        ]
+      "radius": 88.0,
+      "draw_radius": 20.0,
+      "color": "74808a",
+      "scene": "res://scenes/world/lisboa_se.tscn",
+      "target_scene_id": "lisboa_se",
+      "spawn_position": {
+        "x": 260.0,
+        "y": 760.0
+      }
+    },
+    {
+      "id": "to_estaleiro",
+      "type": "transition",
+      "label": "Para o Estaleiro",
+      "prompt": "Carrega E para descer ao estaleiro.",
+      "position": {
+        "x": 270.0,
+        "y": 792.0
+      },
+      "radius": 94.0,
+      "draw_radius": 22.0,
+      "color": "70553d",
+      "scene": "res://scenes/world/lisboa_estaleiro.tscn",
+      "target_scene_id": "lisboa_estaleiro",
+      "spawn_position": {
+        "x": 1380.0,
+        "y": 658.0
       }
     }
   ],
@@ -172,13 +178,13 @@
     {
       "id": "duarte_fecho",
       "speaker": "Capitao Duarte",
-      "text": "Ja deste o primeiro passo. O cais do norte aguarda-vos; dali podereis demandar o Porto e buscar homens dignos de vos acompanhar.",
+      "text": "Ja deste o primeiro passo. A cidade abre-se diante de vos, e a barra aguarda outro rumo quando o desejardes.",
       "secondary_label": "Prosseguir"
     },
     {
       "id": "tome_cais",
       "speaker": "Velho Tome",
-      "text": "Dizem os homens do cais que o mar sabe o nome dos ousados. Se lhe faltas ao respeito, engole-te sem missa nem memoria.",
+      "text": "Na Ribeira aprende-se cedo: o mar ama os ousados, mas estima ainda mais os prevenidos.",
       "secondary_label": "Agradecer"
     },
     {
@@ -190,6 +196,82 @@
       "actions": [
         {
           "type": "open_overworld_map"
+        }
+      ]
+    }
+  ],
+  "shops": [
+    {
+      "id": "casa_de_pasto_da_ribeira",
+      "name": "Casa de Pasto da Ribeira",
+      "greeting": "A dona da casa poe caldo, pao e cama modesta a quem venha cansado do cais.",
+      "entries": [
+        {
+          "service_id": "rest_house",
+          "label": "Ceia e Descanso",
+          "description": "Restaura toda a saude e espirito da companhia.",
+          "price": 16,
+          "quality": "green"
+        },
+        {
+          "item_id": "battle_bread",
+          "price": 7
+        },
+        {
+          "item_id": "health_potion",
+          "price": 24
+        }
+      ]
+    },
+    {
+      "id": "casa_dos_roteiros",
+      "name": "Casa dos Roteiros",
+      "greeting": "Um escrivao da barra guarda cartas, cadernos e pergaminhos. Nem toda a tinta cabe em maos verdes.",
+      "entries": [
+        {
+          "item_id": "manual_corrente_da_barra",
+          "price": 90
+        },
+        {
+          "item_id": "manual_brisa_da_alvorada",
+          "price": 96
+        },
+        {
+          "item_id": "manual_corte_da_sonda",
+          "price": 124,
+          "conditions": {
+            "quest_state": {
+              "first_voyage": [
+                "active",
+                "ready_to_turn_in",
+                "completed"
+              ]
+            }
+          }
+        },
+        {
+          "item_id": "manual_mar_de_vidro",
+          "price": 142,
+          "conditions": {
+            "quest_state": {
+              "first_voyage": [
+                "active",
+                "ready_to_turn_in",
+                "completed"
+              ]
+            }
+          }
+        },
+        {
+          "item_id": "manual_firmeza_da_pedra",
+          "price": 148,
+          "conditions": {
+            "quest_state": {
+              "first_voyage": [
+                "completed"
+              ]
+            }
+          }
         }
       ]
     }

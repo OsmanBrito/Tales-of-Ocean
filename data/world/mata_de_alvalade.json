@@ -1,0 +1,250 @@
+{
+  "interactables": [
+    {
+      "id": "to_porta",
+      "type": "transition",
+      "label": "Regressar a Lisboa",
+      "prompt": "Carrega E para tornar a Porta Oriental.",
+      "position": {
+        "x": 236.0,
+        "y": 760.0
+      },
+      "radius": 96.0,
+      "draw_radius": 22.0,
+      "color": "7b6547",
+      "scene": "res://scenes/world/lisboa_porta_oriental.tscn",
+      "target_scene_id": "lisboa_porta_oriental",
+      "spawn_position": {
+        "x": 1644.0,
+        "y": 708.0
+      }
+    },
+    {
+      "id": "clareira_dos_salteadores",
+      "type": "encounter",
+      "label": "Salteadores da Clareira",
+      "prompt": "Carrega E para pelear com os salteadores da clareira.",
+      "position": {
+        "x": 1106.0,
+        "y": 660.0
+      },
+      "radius": 94.0,
+      "draw_radius": 28.0,
+      "color": "4a2c1d",
+      "battle": {
+        "enemy_ids": [
+          "bandit_scout",
+          "bandit_scout"
+        ],
+        "return_scene": "res://scenes/world/mata_de_alvalade.tscn",
+        "return_button_text": "Tornar a Clareira",
+        "battle_title": "Clareira dos Salteadores",
+        "intro_text": "Dois salteadores saem do mato, julgando-vos presa facil.",
+        "victory_text": "A clareira fica livre por ora, e o vosso bornal pesa um pouco mais.",
+        "defeat_text": "O mato fecha-se e obrigai-vos a retirar.",
+        "ally_start_cells": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "enemy_start_cells": [
+          [
+            5,
+            1
+          ],
+          [
+            6,
+            2
+          ]
+        ],
+        "terrain": {
+          "blocked_cells": [
+            [
+              3,
+              1
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "high_cells": [
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ]
+          ],
+          "note": "Troncos caidos partem a clareira ao meio."
+        }
+      }
+    },
+    {
+      "id": "atalho_da_mata",
+      "type": "encounter",
+      "label": "Atalho Fechado",
+      "prompt": "Carrega E para desalojar os homens do atalho.",
+      "position": {
+        "x": 1422.0,
+        "y": 602.0
+      },
+      "radius": 92.0,
+      "draw_radius": 28.0,
+      "color": "564122",
+      "battle": {
+        "enemy_ids": [
+          "bandit_scout",
+          "castilian_duelist"
+        ],
+        "return_scene": "res://scenes/world/mata_de_alvalade.tscn",
+        "return_button_text": "Tornar a Mata",
+        "battle_title": "Atalho da Mata",
+        "intro_text": "Um duelista escolta os salteadores que cobram passagem no atalho.",
+        "victory_text": "O atalho abre-se e os malfeitores deixam para tras o ganho mal havido.",
+        "defeat_text": "A mata obriga-vos a ceder terreno.",
+        "ally_start_cells": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "enemy_start_cells": [
+          [
+            5,
+            1
+          ],
+          [
+            6,
+            1
+          ]
+        ],
+        "terrain": {
+          "blocked_cells": [
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              4,
+              2
+            ]
+          ],
+          "high_cells": [
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ]
+          ],
+          "note": "Raizes e pedras tornam o passo traiçoeiro."
+        }
+      }
+    },
+    {
+      "id": "pinhais_fundos",
+      "type": "encounter",
+      "label": "Pinhais Fundos",
+      "prompt": "Carrega E para limpar os pinhais fundos.",
+      "position": {
+        "x": 1582.0,
+        "y": 756.0
+      },
+      "radius": 92.0,
+      "draw_radius": 28.0,
+      "color": "31502b",
+      "battle": {
+        "enemy_ids": [
+          "bandit_scout",
+          "bandit_scout",
+          "mourish_guard"
+        ],
+        "return_scene": "res://scenes/world/mata_de_alvalade.tscn",
+        "return_button_text": "Tornar aos Pinhais",
+        "battle_title": "Pinhais Fundos",
+        "intro_text": "Guardas e salteadores escondem-se entre os pinheiros, prontos a cercar.",
+        "victory_text": "Os pinhais silenciam-se, e a companhia sai mais rica e mais temida.",
+        "defeat_text": "A emboscada foi forte; convem recobrar folego antes de tornar.",
+        "ally_start_cells": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "enemy_start_cells": [
+          [
+            5,
+            0
+          ],
+          [
+            5,
+            2
+          ],
+          [
+            6,
+            1
+          ]
+        ],
+        "terrain": {
+          "blocked_cells": [
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              3,
+              2
+            ],
+            [
+              4,
+              2
+            ]
+          ],
+          "high_cells": [
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              6,
+              0
+            ]
+          ],
+          "note": "Os pinheiros estreitam a passagem e favorecem quem embosca."
+        }
+      }
+    }
+  ],
+  "dialogues": [],
+  "shops": []
+}

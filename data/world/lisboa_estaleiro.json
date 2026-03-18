@@ -1,0 +1,97 @@
+{
+  "interactables": [
+    {
+      "id": "mestres_do_estaleiro",
+      "type": "shop",
+      "label": "Mestre Calafate",
+      "prompt": "Carrega E para tratar da nau no estaleiro.",
+      "position": {
+        "x": 1120.0,
+        "y": 506.0
+      },
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "70553d",
+      "shop_id": "estaleiro_da_junqueira"
+    },
+    {
+      "id": "to_ribeira",
+      "type": "transition",
+      "label": "Subir a Ribeira",
+      "prompt": "Carrega E para tornar a Ribeira.",
+      "position": {
+        "x": 1538.0,
+        "y": 650.0
+      },
+      "radius": 94.0,
+      "draw_radius": 22.0,
+      "color": "7b6547",
+      "scene": "res://scenes/world/lisboa.tscn",
+      "target_scene_id": "lisboa",
+      "spawn_position": {
+        "x": 314.0,
+        "y": 770.0
+      }
+    },
+    {
+      "id": "marujo_velho",
+      "type": "dialogue",
+      "label": "Marujo Velho",
+      "prompt": "Carrega E para escutar o marujo velho.",
+      "position": {
+        "x": 924.0,
+        "y": 594.0
+      },
+      "radius": 86.0,
+      "draw_radius": 20.0,
+      "color": "4d6d8f",
+      "default_dialogue_id": "marujo_estaleiro"
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "marujo_estaleiro",
+      "speaker": "Marujo Velho",
+      "text": "Uma nau mal tratada trai o homem no primeiro temporal. Madeira, breu e paciencia valem mais que fanfarrice.",
+      "secondary_label": "Prosseguir"
+    }
+  ],
+  "shops": [
+    {
+      "id": "estaleiro_da_junqueira",
+      "name": "Estaleiro da Junqueira",
+      "greeting": "Calafates, serradores e moços de mar atulham o patio. Aqui se torna a nau pronta para outra derrota.",
+      "entries": [
+        {
+          "service_id": "repair_ship",
+          "label": "Reparar Casco",
+          "description": "Calafates e carpinteiros deixam o casco firme.",
+          "price": 34,
+          "quality": "blue"
+        },
+        {
+          "service_id": "refill_supplies",
+          "label": "Reabastecer Mantimentos",
+          "description": "Enche os poroes com agua, biscoito e carne salgada.",
+          "price": 26,
+          "quality": "green"
+        },
+        {
+          "service_id": "full_refit",
+          "label": "Refazer Tudo",
+          "description": "Casco e mantimentos voltam ao maximo.",
+          "price": 54,
+          "quality": "gold"
+        },
+        {
+          "item_id": "mantimentos_de_bordo",
+          "price": 36
+        },
+        {
+          "item_id": "calafeto_de_mestra",
+          "price": 42
+        }
+      ]
+    }
+  ]
+}

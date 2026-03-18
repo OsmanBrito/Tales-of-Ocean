@@ -1,0 +1,102 @@
+{
+  "interactables": [
+    {
+      "id": "botica_de_mestre_gil",
+      "type": "shop",
+      "label": "Botica",
+      "prompt": "Carrega E para entrar na botica de Mestre Gil.",
+      "position": {
+        "x": 1086.0,
+        "y": 510.0
+      },
+      "radius": 88.0,
+      "draw_radius": 22.0,
+      "color": "396b57",
+      "shop_id": "botica_de_mestre_gil"
+    },
+    {
+      "id": "to_ribeira",
+      "type": "transition",
+      "label": "Rua para a Ribeira",
+      "prompt": "Carrega E para tornar a Ribeira.",
+      "position": {
+        "x": 248.0,
+        "y": 746.0
+      },
+      "radius": 90.0,
+      "draw_radius": 22.0,
+      "color": "7b6547",
+      "scene": "res://scenes/world/lisboa.tscn",
+      "target_scene_id": "lisboa",
+      "spawn_position": {
+        "x": 1118.0,
+        "y": 612.0
+      }
+    },
+    {
+      "id": "to_rossio",
+      "type": "transition",
+      "label": "Passo do Rossio",
+      "prompt": "Carrega E para seguir ao Rossio.",
+      "position": {
+        "x": 1502.0,
+        "y": 706.0
+      },
+      "radius": 90.0,
+      "draw_radius": 22.0,
+      "color": "7b6547",
+      "scene": "res://scenes/world/lisboa_rossio.tscn",
+      "target_scene_id": "lisboa_rossio",
+      "spawn_position": {
+        "x": 1494.0,
+        "y": 676.0
+      }
+    },
+    {
+      "id": "clerigo_da_se",
+      "type": "dialogue",
+      "label": "Conego Velho",
+      "prompt": "Carrega E para falar com o conego.",
+      "position": {
+        "x": 680.0,
+        "y": 478.0
+      },
+      "radius": 86.0,
+      "draw_radius": 20.0,
+      "color": "7f7362",
+      "default_dialogue_id": "conego_velho"
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "conego_velho",
+      "speaker": "Conego Velho",
+      "text": "As pedras altas lembram-nos a medida das coisas. O mar corre, mas a cidade dura.",
+      "secondary_label": "Prosseguir"
+    }
+  ],
+  "shops": [
+    {
+      "id": "botica_de_mestre_gil",
+      "name": "Botica de Mestre Gil",
+      "greeting": "Mestre Gil fala baixo, mas os seus frascos falam por ele. Ha mezinhas para carne ferida e para espirito cansado.",
+      "entries": [
+        {
+          "item_id": "health_potion",
+          "price": 22
+        },
+        {
+          "item_id": "spirit_elixir",
+          "price": 30
+        },
+        {
+          "service_id": "rest_hearty",
+          "label": "Tisana Reconfortante",
+          "description": "Uma pausa breve, caldo quente e alivio para a companhia.",
+          "price": 10,
+          "quality": "blue"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,262 @@
+{
+  "interactables": [
+    {
+      "id": "to_rossio",
+      "type": "transition",
+      "label": "Voltar ao Rossio",
+      "prompt": "Carrega E para tornar ao Rossio.",
+      "position": {
+        "x": 242.0,
+        "y": 652.0
+      },
+      "radius": 94.0,
+      "draw_radius": 22.0,
+      "color": "7b6547",
+      "scene": "res://scenes/world/lisboa_rossio.tscn",
+      "target_scene_id": "lisboa_rossio",
+      "spawn_position": {
+        "x": 1632.0,
+        "y": 516.0
+      }
+    },
+    {
+      "id": "to_mata",
+      "type": "transition",
+      "label": "Seguir para a Mata",
+      "prompt": "Carrega E para sair da cidade e entrar na mata.",
+      "position": {
+        "x": 1726.0,
+        "y": 706.0
+      },
+      "radius": 94.0,
+      "draw_radius": 22.0,
+      "color": "43663f",
+      "scene": "res://scenes/world/mata_de_alvalade.tscn",
+      "target_scene_id": "mata_de_alvalade",
+      "spawn_position": {
+        "x": 250.0,
+        "y": 748.0
+      }
+    },
+    {
+      "id": "acampamento_salteador",
+      "type": "encounter",
+      "label": "Acampamento do Salteador",
+      "prompt": "Carrega E para afrontar o batedor salteador.",
+      "position": {
+        "x": 760.0,
+        "y": 520.0
+      },
+      "radius": 96.0,
+      "draw_radius": 28.0,
+      "color": "3d2414",
+      "conditions": {
+        "quest_state": {
+          "first_voyage": [
+            "active"
+          ]
+        },
+        "world_flags": {
+          "bandit_defeated": false
+        }
+      },
+      "battle": {
+        "enemy_id": "bandit_scout",
+        "return_scene": "res://scenes/world/lisboa_porta_oriental.tscn",
+        "return_button_text": "Tornar a Porta Oriental",
+        "battle_title": "Recontro junto da Porta Oriental",
+        "intro_text": "Um batedor salteador avanca para vos tolher o caminho.",
+        "victory_text": "O salteador cai por terra. A estrada de Lisboa torna a ser segura.",
+        "defeat_text": "Pembah recua para tomar alento. Tornai quando estiverdes pronto.",
+        "ally_start_cells": [
+          [
+            1,
+            1
+          ],
+          [
+            1,
+            2
+          ]
+        ],
+        "enemy_start_cells": [
+          [
+            5,
+            1
+          ],
+          [
+            6,
+            2
+          ]
+        ],
+        "terrain": {
+          "blocked_cells": [
+            [
+              3,
+              1
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "water_cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              5,
+              3
+            ],
+            [
+              6,
+              3
+            ]
+          ],
+          "high_cells": [
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              6,
+              0
+            ]
+          ],
+          "note": "Os escombros da estrada fecham o meio do campo."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "bandit_defeated",
+            "value": true
+          }
+        ]
+      }
+    },
+    {
+      "id": "fortim_da_barra",
+      "type": "encounter",
+      "label": "Fortim da Barra",
+      "prompt": "Carrega E para afrontar o Capitao da Barra.",
+      "position": {
+        "x": 1496.0,
+        "y": 482.0
+      },
+      "radius": 98.0,
+      "draw_radius": 30.0,
+      "color": "5b2b1d",
+      "conditions": {
+        "quest_state": {
+          "first_voyage": [
+            "active"
+          ]
+        },
+        "world_flags": {
+          "bandit_defeated": true,
+          "lisboa_boss_defeated": false
+        }
+      },
+      "battle": {
+        "enemy_id": "capitao_da_barra",
+        "return_scene": "res://scenes/world/lisboa_porta_oriental.tscn",
+        "return_button_text": "Tornar a Porta Oriental",
+        "battle_title": "Fortim da Barra",
+        "intro_text": "O Capitao da Barra, vendido ao ouro alheio, fecha o passo com ferro e soberba.",
+        "victory_text": "O capitulo do traidor fecha-se. A barra volta a ser de Lisboa.",
+        "defeat_text": "O fortim fecha-se sobre vos. Tornai com mais ordem e folego.",
+        "ally_start_cells": [
+          [
+            0,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "enemy_start_cells": [
+          [
+            5,
+            1
+          ],
+          [
+            6,
+            1
+          ]
+        ],
+        "terrain": {
+          "blocked_cells": [
+            [
+              2,
+              1
+            ],
+            [
+              3,
+              1
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "water_cells": [
+            [
+              0,
+              0
+            ],
+            [
+              1,
+              0
+            ],
+            [
+              5,
+              3
+            ],
+            [
+              6,
+              3
+            ]
+          ],
+          "high_cells": [
+            [
+              4,
+              0
+            ],
+            [
+              5,
+              0
+            ],
+            [
+              6,
+              0
+            ]
+          ],
+          "note": "A muralha do fortim manda no centro; quem toma a altura dita o passo."
+        },
+        "victory_actions": [
+          {
+            "type": "set_flag",
+            "flag": "lisboa_boss_defeated",
+            "value": true
+          },
+          {
+            "type": "set_quest_state",
+            "quest_id": "first_voyage",
+            "status": "ready_to_turn_in"
+          }
+        ]
+      }
+    }
+  ],
+  "dialogues": [],
+  "shops": []
+}

@@ -1,0 +1,122 @@
+{
+  "interactables": [
+    {
+      "id": "mercador_alfandega",
+      "type": "shop",
+      "label": "Armazem da Alfandega",
+      "prompt": "Carrega E para mercar no Armazem da Alfandega.",
+      "position": {
+        "x": 1172.0,
+        "y": 504.0
+      },
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "56708f",
+      "shop_id": "armazem_da_alfandega"
+    },
+    {
+      "id": "to_ribeira",
+      "type": "transition",
+      "label": "Baixar a Ribeira",
+      "prompt": "Carrega E para tornar a Ribeira.",
+      "position": {
+        "x": 242.0,
+        "y": 706.0
+      },
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "7b6547",
+      "scene": "res://scenes/world/lisboa.tscn",
+      "target_scene_id": "lisboa",
+      "spawn_position": {
+        "x": 1240.0,
+        "y": 650.0
+      }
+    },
+    {
+      "id": "to_se",
+      "type": "transition",
+      "label": "Ir para a Se",
+      "prompt": "Carrega E para seguir para a Se.",
+      "position": {
+        "x": 1516.0,
+        "y": 680.0
+      },
+      "radius": 90.0,
+      "draw_radius": 22.0,
+      "color": "74808a",
+      "scene": "res://scenes/world/lisboa_se.tscn",
+      "target_scene_id": "lisboa_se",
+      "spawn_position": {
+        "x": 1460.0,
+        "y": 716.0
+      }
+    },
+    {
+      "id": "to_porta",
+      "type": "transition",
+      "label": "Porta Oriental",
+      "prompt": "Carrega E para tomar a estrada da Porta Oriental.",
+      "position": {
+        "x": 1716.0,
+        "y": 512.0
+      },
+      "radius": 94.0,
+      "draw_radius": 22.0,
+      "color": "7a5d41",
+      "scene": "res://scenes/world/lisboa_porta_oriental.tscn",
+      "target_scene_id": "lisboa_porta_oriental",
+      "spawn_position": {
+        "x": 252.0,
+        "y": 650.0
+      }
+    },
+    {
+      "id": "pregoeiro_do_rossio",
+      "type": "dialogue",
+      "label": "Pregoeiro",
+      "prompt": "Carrega E para ouvir o pregoeiro.",
+      "position": {
+        "x": 824.0,
+        "y": 648.0
+      },
+      "radius": 88.0,
+      "draw_radius": 20.0,
+      "color": "a26a3c",
+      "default_dialogue_id": "pregoeiro_do_rossio"
+    }
+  ],
+  "dialogues": [
+    {
+      "id": "pregoeiro_do_rossio",
+      "speaker": "Pregoeiro",
+      "text": "Mercancias de toda a parte! Quem tem oiro acha de tudo; quem tem fama, acha ainda mais.",
+      "secondary_label": "Prosseguir"
+    }
+  ],
+  "shops": [
+    {
+      "id": "armazem_da_alfandega",
+      "name": "Armazem da Alfandega",
+      "greeting": "Entre caixas, cordame e barricas, o feitor mede tudo a conta certa. Aqui comprais o que aguenta viagem longa.",
+      "entries": [
+        {
+          "item_id": "mantimentos_de_bordo",
+          "price": 38
+        },
+        {
+          "item_id": "calafeto_de_mestra",
+          "price": 46
+        },
+        {
+          "item_id": "merchant_ring",
+          "price": 85
+        },
+        {
+          "item_id": "spirit_elixir",
+          "price": 30
+        }
+      ]
+    }
+  ]
+}
