@@ -235,14 +235,15 @@ func get_member_learned_skills(member_id: String) -> Array[String]:
 	if member_id == "pembah":
 		return get_player_learned_skills()
 	var member: Dictionary = get_companion(member_id)
-	return _to_string_array(member.get("learned_skills", member.get("skills", [])))
+	return _collect_companion_learned_skills(member)
 
 
 func get_member_equipped_skills(member_id: String) -> Array[String]:
 	if member_id == "pembah":
 		return get_player_equipped_skills()
 	var member: Dictionary = get_companion(member_id)
-	return _to_string_array(member.get("equipped_skills", member.get("skills", [])))
+	var learned_skills: Array[String] = _collect_companion_learned_skills(member)
+	return _collect_companion_equipped_skills(member, learned_skills)
 
 
 func get_player_learned_passives() -> Array[String]:
@@ -576,17 +577,18 @@ func toggle_member_skill_equip(member_id: String, skill_id: String) -> Dictionar
 		return {"ok": false, "reason": "Nao ha companheiro para aparelhar."}
 
 	var companion_name: String = str(companion.get("name", member_id))
-	var learned_skills: Array[String] = _to_string_array(companion.get("learned_skills", companion.get("skills", [])))
+	var learned_skills: Array[String] = _collect_companion_learned_skills(companion)
 	if not learned_skills.has(skill_id):
 		return {"ok": false, "reason": "%s nao conhece essa arte." % companion_name}
 
-	var equipped_skills: Array[String] = _to_string_array(companion.get("equipped_skills", companion.get("skills", [])))
+	var equipped_skills: Array[String] = _collect_companion_equipped_skills(companion, learned_skills)
 	var skill_name: String = str(skill_defs.get(skill_id, {}).get("name", skill_id))
 	if equipped_skills.has(skill_id):
 		equipped_skills.erase(skill_id)
+		companion["learned_skills"] = learned_skills
 		companion["equipped_skills"] = equipped_skills
 		companion["skills"] = equipped_skills.duplicate(true)
-		party[member_id] = companion
+		party[member_id] = _normalize_companion_data(companion)
 		state_changed.emit()
 		return {"ok": true, "reason": "%s baixa %s." % [companion_name, skill_name]}
 
@@ -594,9 +596,10 @@ func toggle_member_skill_equip(member_id: String, skill_id: String) -> Dictionar
 		return {"ok": false, "reason": "%s nao pode levar mais artes." % companion_name}
 
 	equipped_skills.append(skill_id)
+	companion["learned_skills"] = learned_skills
 	companion["equipped_skills"] = equipped_skills
 	companion["skills"] = equipped_skills.duplicate(true)
-	party[member_id] = companion
+	party[member_id] = _normalize_companion_data(companion)
 	state_changed.emit()
 	return {"ok": true, "reason": "%s passa a levar %s." % [companion_name, skill_name]}
 
@@ -712,25 +715,45 @@ func _normalize_player_data(player: Dictionary) -> Dictionary:
 
 
 func _normalize_companion_data(companion: Dictionary) -> Dictionary:
-	var learned_skills: Array[String] = _to_string_array(companion.get("learned_skills", companion.get("skills", [])))
-	if learned_skills.is_empty():
-		learned_skills = _to_string_array(companion.get("skills", []))
+	var learned_skills: Array[String] = _collect_companion_learned_skills(companion)
 	companion["learned_skills"] = learned_skills
 
-	var equipped_skills: Array[String] = _to_string_array(companion.get("equipped_skills", companion.get("skills", [])))
-	if equipped_skills.is_empty():
-		equipped_skills = learned_skills.duplicate(true)
-	else:
-		var filtered: Array[String] = []
-		for skill_id in equipped_skills:
-			if learned_skills.has(skill_id) and not filtered.has(skill_id):
-				filtered.append(skill_id)
-		equipped_skills = filtered
-
-	companion["equipped_skills"] = equipped_skills.slice(0, ACTIVE_SKILL_LIMIT)
+	companion["equipped_skills"] = _collect_companion_equipped_skills(companion, learned_skills)
 	companion["skills"] = companion["equipped_skills"].duplicate(true)
 	companion["defending"] = companion.get("defending", false)
 	return companion
+
+
+func _collect_companion_learned_skills(companion: Dictionary) -> Array[String]:
+	var learned_skills: Array[String] = []
+	for skill_id in _to_string_array(companion.get("learned_skills", [])):
+		if not learned_skills.has(skill_id):
+			learned_skills.append(skill_id)
+	for skill_id in _to_string_array(companion.get("skills", [])):
+		if not learned_skills.has(skill_id):
+			learned_skills.append(skill_id)
+	return learned_skills
+
+
+func _collect_companion_equipped_skills(companion: Dictionary, learned_skills: Array[String]) -> Array[String]:
+	var source: Variant = companion.get("equipped_skills", [])
+	var source_is_migrated: bool = true
+	if not companion.has("equipped_skills"):
+		source = companion.get("skills", [])
+		source_is_migrated = false
+
+	var equipped_skills: Array[String] = []
+	for skill_id in _to_string_array(source):
+		if learned_skills.has(skill_id) and not equipped_skills.has(skill_id):
+			equipped_skills.append(skill_id)
+
+	if equipped_skills.is_empty() and not source_is_migrated:
+		for skill_id in learned_skills:
+			if equipped_skills.size() >= ACTIVE_SKILL_LIMIT:
+				break
+			equipped_skills.append(skill_id)
+
+	return equipped_skills.slice(0, ACTIVE_SKILL_LIMIT)
 
 
 func _recalculate_player_stats(player: Dictionary, preserve_progress: bool) -> Dictionary:

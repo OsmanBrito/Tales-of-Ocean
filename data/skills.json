@@ -40,7 +40,7 @@
 	"cost": 12,
 	"power": 16,
 	"range": 3,
-	"area_radius": 1,
+	"area_radius": 2,
 	"description": "Uma onda larga abate o alvo e os que lhe estao junto."
   },
   {
@@ -64,7 +64,7 @@
 	"school": "Irmandade do Farol de Sagres",
 	"quality": "purple",
 	"cost": 11,
-	"power": 10,
+	"power": 20,
 	"range": 3,
 	"status_effect": {
 	  "id": "stun",
@@ -152,9 +152,9 @@
 	"name": "Rede da Vigia Negra",
 	"school": "Corsarios do Nevoeiro",
 	"quality": "green",
-	"cost": 0,
-	"power": 5,
-	"range": 2,
+	"cost": 9,
+	"power": 12,
+	"range": 3,
 	"status_effect": {
 	  "id": "stun",
 	  "duration": 1,

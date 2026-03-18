@@ -5,7 +5,13 @@ const TRACK_PATHS := {
 	"battle_ballad": "res://assets/audio/battle_ballad.mp3",
 	"porto_morning_tides": "res://assets/audio/porto_morning_tides.mp3",
 	"storm_over_black_cliffs": "res://assets/audio/storm_over_black_cliffs.mp3",
-	"steel_on_saltwind": "res://assets/audio/steel_on_saltwind.mp3"
+	"steel_on_saltwind": "res://assets/audio/steel_on_saltwind.mp3",
+	"fado_of_iron_seas": "res://assets/audio/fado_of_iron_seas.mp3",
+	"fado_of_iron_seas_2": "res://assets/audio/fado_of_iron_seas_2.mp3",
+	"mare_do_destino": "res://assets/audio/mare_do_destino.mp3",
+	"mare_do_destino_2": "res://assets/audio/mare_do_destino_2.mp3",
+	"mar_de_ferro": "res://assets/audio/mar_de_ferro.mp3",
+	"mar_de_ferro_2": "res://assets/audio/mar_de_ferro_2.mp3"
 }
 
 var music_player: AudioStreamPlayer
@@ -62,12 +68,18 @@ func play_menu_music() -> void:
 
 func play_world_music(scene_id: String) -> void:
 	match scene_id:
-		"lisboa", "porto":
-			play_track("porto_morning_tides")
-		"sagres", "ceuta":
-			play_track("storm_over_black_cliffs")
+		"lisboa":
+			play_track("fado_of_iron_seas")
+		"porto":
+			play_track("fado_of_iron_seas_2")
+		"sagres":
+			play_track("mar_de_ferro")
+		"ceuta":
+			play_track("mar_de_ferro_2")
 		"tomar":
-			play_track("celestial_pages")
+			play_track("mare_do_destino")
+		"ilha_bruma", "ilha_sargaco", "terra_vera_cruz":
+			play_track("mare_do_destino_2")
 		_:
 			play_track("porto_morning_tides")
 
