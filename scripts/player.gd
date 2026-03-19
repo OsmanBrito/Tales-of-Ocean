@@ -1,6 +1,10 @@
 extends Node2D
 
-const PLAYER_TEXTURE: Texture2D = preload("res://assets/characters/pembah_world.svg")
+const PLAYER_TEXTURE_FALLBACK: Texture2D = preload("res://assets/characters/pembah_world.svg")
+const PLAYER_TEXTURE_CANDIDATES: Array[String] = [
+	"res://assets/characters/pembah_world_v1.png",
+	"res://assets/characters/pembah_world.svg"
+]
 
 @export var color: Color = Color("f2c14e")
 @export var speed: float = 240.0
@@ -13,10 +17,11 @@ const PLAYER_TEXTURE: Texture2D = preload("res://assets/characters/pembah_world.
 
 var walk_phase: float = 0.0
 var idle_phase: float = 0.0
-var facing_direction: int = 1
+var facing_direction: int = -1
 var motion_intensity: float = 0.0
 var motion_blend: float = 0.0
 var current_input: Vector2 = Vector2.ZERO
+var player_texture: Texture2D = PLAYER_TEXTURE_FALLBACK
 
 
 func _process(delta: float) -> void:
@@ -26,7 +31,8 @@ func _process(delta: float) -> void:
 	motion_blend = move_toward(motion_blend, motion_intensity, delta * 7.0)
 	idle_phase += delta * idle_breathe_speed
 	if absf(input_vector.x) > 0.01:
-		facing_direction = -1 if input_vector.x < 0.0 else 1
+		# The base sprite is authored facing left, so we invert X flip for movement direction.
+		facing_direction = 1 if input_vector.x < 0.0 else -1
 	if motion_blend > 0.01:
 		walk_phase += delta * walk_cycle_speed * (0.82 + (motion_blend * 0.6))
 
@@ -34,6 +40,11 @@ func _process(delta: float) -> void:
 	position.x = clampf(position.x, world_rect.position.x, world_rect.end.x)
 	position.y = clampf(position.y, world_rect.position.y, world_rect.end.y)
 	queue_redraw()
+
+
+func _ready() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	player_texture = _resolve_player_texture()
 
 
 func _draw() -> void:
@@ -57,6 +68,16 @@ func _draw() -> void:
 	draw_circle(Vector2(0.0, 26.0), 18.0, Color(0, 0, 0, shadow_alpha))
 
 	draw_set_transform(Vector2(step_shift * 0.35, bob), body_rotation, body_scale)
-	draw_texture_rect(PLAYER_TEXTURE, Rect2(Vector2(-36.0, -34.0), Vector2(72.0, 96.0)), false)
+	draw_texture_rect(player_texture, Rect2(Vector2(-44.0, -58.0), Vector2(88.0, 128.0)), false)
 
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)
+
+
+func _resolve_player_texture() -> Texture2D:
+	for path in PLAYER_TEXTURE_CANDIDATES:
+		if not ResourceLoader.exists(path):
+			continue
+		var resource: Resource = load(path)
+		if resource is Texture2D:
+			return resource
+	return PLAYER_TEXTURE_FALLBACK

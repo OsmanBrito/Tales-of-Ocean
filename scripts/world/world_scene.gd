@@ -3,6 +3,18 @@ extends Node2D
 const TRAVEL_MAP_PATH := "res://data/world/travel_map.json"
 const PEMBAH_UI_AVATAR_PATH := "res://assets/ui/pembah_avatar_icon.svg"
 const JOAO_UI_AVATAR_PATH := "res://assets/portraits/joao_portrait.svg"
+const DIALOGUE_FRAME_CANDIDATES: Array[String] = [
+	"res://assets/ui/dialogue_frame_v1.png"
+]
+const PEMBAH_UI_AVATAR_CANDIDATES: Array[String] = [
+	"res://assets/portraits/pembah_portrait_v1.png",
+	"res://assets/ui/pembah_avatar_icon.svg",
+	"res://assets/portraits/pembah_portrait.svg"
+]
+const JOAO_UI_AVATAR_CANDIDATES: Array[String] = [
+	"res://assets/portraits/joao_portrait_v1.png",
+	"res://assets/portraits/joao_portrait.svg"
+]
 
 @export_file("*.json") var world_data_path: String = ""
 @export var scene_id: String = ""
@@ -16,6 +28,7 @@ const JOAO_UI_AVATAR_PATH := "res://assets/portraits/joao_portrait.svg"
 @onready var stats_label: Label = %StatsLabel
 @onready var dialogue_panel: PanelContainer = %DialoguePanel
 @onready var dialogue_text: RichTextLabel = %DialogueText
+@onready var dialogue_vbox = get_node_or_null("CanvasLayer/DialoguePanel/DialogueVBox")
 @onready var primary_button: Button = %PrimaryButton
 @onready var secondary_button: Button = %SecondaryButton
 @onready var inventory_panel: PanelContainer = %InventoryPanel
@@ -64,6 +77,7 @@ var companion_skill_list
 func _ready() -> void:
 	_load_world_data()
 	_load_travel_map()
+	_apply_dialogue_frame_theme()
 	GameState.set_current_scene_path(scene_path)
 	GameState.set_overworld_current_node(_get_overworld_node_id())
 	GameState.set_overworld_origin_scene(scene_path)
@@ -653,8 +667,55 @@ func _refresh_inventory() -> void:
 
 func _get_member_avatar_path(member_id: String) -> String:
 	if member_id == "joao":
-		return JOAO_UI_AVATAR_PATH
-	return PEMBAH_UI_AVATAR_PATH
+		return _resolve_existing_asset_path(JOAO_UI_AVATAR_CANDIDATES, JOAO_UI_AVATAR_PATH)
+	return _resolve_existing_asset_path(PEMBAH_UI_AVATAR_CANDIDATES, PEMBAH_UI_AVATAR_PATH)
+
+
+func _resolve_existing_asset_path(candidates: Array[String], fallback: String) -> String:
+	for candidate in candidates:
+		if ResourceLoader.exists(candidate):
+			return candidate
+	if ResourceLoader.exists(fallback):
+		return fallback
+	return ""
+
+
+func _load_optional_texture(candidates: Array[String]) -> Texture2D:
+	for path in candidates:
+		if not ResourceLoader.exists(path):
+			continue
+		var resource: Resource = load(path)
+		if resource is Texture2D:
+			return resource
+	return null
+
+
+func _apply_dialogue_frame_theme() -> void:
+	if dialogue_panel == null:
+		return
+	var frame_texture: Texture2D = _load_optional_texture(DIALOGUE_FRAME_CANDIDATES)
+	if frame_texture == null:
+		return
+
+	var frame_style := StyleBoxTexture.new()
+	frame_style.texture = frame_texture
+	frame_style.region_rect = Rect2(Vector2.ZERO, frame_texture.get_size())
+	frame_style.texture_margin_left = 140.0
+	frame_style.texture_margin_top = 74.0
+	frame_style.texture_margin_right = 116.0
+	frame_style.texture_margin_bottom = 72.0
+	frame_style.content_margin_left = 252.0
+	frame_style.content_margin_top = 28.0
+	frame_style.content_margin_right = 36.0
+	frame_style.content_margin_bottom = 24.0
+	frame_style.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	frame_style.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+
+	dialogue_panel.add_theme_stylebox_override("panel", frame_style)
+	dialogue_panel.custom_minimum_size = Vector2(860.0, 320.0)
+	dialogue_panel.clip_contents = true
+	if dialogue_vbox != null:
+		dialogue_vbox.add_theme_constant_override("separation", 10)
 
 
 func _get_member_avatar_bbcode(member_id: String, size: int = 64) -> String:

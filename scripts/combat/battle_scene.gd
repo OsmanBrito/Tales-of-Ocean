@@ -34,11 +34,73 @@ const CASTILIAN_PORTRAIT: Texture2D = preload("res://assets/portraits/castilian_
 const MOURISH_PORTRAIT: Texture2D = preload("res://assets/portraits/mourish_portrait.svg")
 const CORSAIR_PORTRAIT: Texture2D = preload("res://assets/portraits/corsair_portrait.svg")
 const BOMBARDEIRO_PORTRAIT: Texture2D = preload("res://assets/portraits/bombardeiro_portrait.svg")
+const PEMBAH_ICON_CANDIDATES: Array[String] = [
+	"res://assets/combat/pembah_battler_v1.png",
+	"res://assets/combat/pembah_battle_token.svg",
+	"res://assets/combat/pembah_token.svg"
+]
+const JOAO_ICON_CANDIDATES: Array[String] = [
+	"res://assets/combat/joao_battler_v1.png",
+	"res://assets/combat/joao_token.svg"
+]
+const BANDIT_ICON_CANDIDATES: Array[String] = [
+	"res://assets/combat/bandit_battler_v1.png",
+	"res://assets/combat/bandit_token.svg"
+]
+const CASTILIAN_ICON_CANDIDATES: Array[String] = [
+	"res://assets/combat/castilian_battler_v1.png",
+	"res://assets/combat/castilian_token.svg"
+]
+const MOURISH_ICON_CANDIDATES: Array[String] = [
+	"res://assets/combat/mourish_battler_v1.png",
+	"res://assets/combat/mourish_token.svg"
+]
+const CORSAIR_ICON_CANDIDATES: Array[String] = [
+	"res://assets/combat/corsair_battler_v1.png",
+	"res://assets/combat/corsair_token.svg"
+]
+const BOMBARDEIRO_ICON_CANDIDATES: Array[String] = [
+	"res://assets/combat/bombardeiro_battler_v1.png",
+	"res://assets/combat/bombardeiro_token.svg"
+]
+const PEMBAH_PORTRAIT_CANDIDATES: Array[String] = [
+	"res://assets/portraits/pembah_portrait_v1.png",
+	"res://assets/portraits/pembah_portrait.svg"
+]
+const JOAO_PORTRAIT_CANDIDATES: Array[String] = [
+	"res://assets/portraits/joao_portrait_v1.png",
+	"res://assets/portraits/joao_portrait.svg"
+]
+const BANDIT_PORTRAIT_CANDIDATES: Array[String] = [
+	"res://assets/portraits/bandit_portrait_v1.png",
+	"res://assets/portraits/bandit_portrait.svg"
+]
+const CASTILIAN_PORTRAIT_CANDIDATES: Array[String] = [
+	"res://assets/portraits/castilian_portrait_v1.png",
+	"res://assets/portraits/castilian_portrait.svg"
+]
+const MOURISH_PORTRAIT_CANDIDATES: Array[String] = [
+	"res://assets/portraits/mourish_portrait_v1.png",
+	"res://assets/portraits/mourish_portrait.svg"
+]
+const CORSAIR_PORTRAIT_CANDIDATES: Array[String] = [
+	"res://assets/portraits/corsair_portrait_v1.png",
+	"res://assets/portraits/corsair_portrait.svg"
+]
+const BOMBARDEIRO_PORTRAIT_CANDIDATES: Array[String] = [
+	"res://assets/portraits/bombardeiro_portrait_v1.png",
+	"res://assets/portraits/bombardeiro_portrait.svg"
+]
 const MOVE_ICON: Texture2D = preload("res://assets/ui/move_icon.svg")
 const ATTACK_ICON: Texture2D = preload("res://assets/ui/attack_icon.svg")
 const ITEM_ICON: Texture2D = preload("res://assets/ui/item_icon.svg")
 const GUARD_ICON: Texture2D = preload("res://assets/ui/guard_icon.svg")
 const BATTLE_TILE_ICON: Texture2D = preload("res://assets/ui/battle_tile.svg")
+const VFX_ATLAS_CANDIDATES: Array[String] = [
+	"res://assets/vfx/vfx_pack_slice01_v1.png"
+]
+const VFX_GRID_COLS: int = 3
+const VFX_GRID_ROWS: int = 4
 const SFX_SAMPLE_RATE: int = 22050
 const FLOAT_TEXT_RISE: Vector2 = Vector2(0, -54)
 const IMPACT_FLASH_SIZE: Vector2 = Vector2(72, 72)
@@ -148,6 +210,8 @@ var tutorial_pages: Array[String] = []
 var tutorial_index: int = 0
 var tutorial_active: bool = false
 var battle_idle_time: float = 0.0
+var texture_cache: Dictionary = {}
+var vfx_atlas_texture: Texture2D
 
 
 func _ready() -> void:
@@ -160,6 +224,7 @@ func _ready() -> void:
 	_rebalance_layout()
 	_apply_visual_theme()
 	_setup_effects_layer()
+	_load_vfx_atlas()
 	_build_sfx_library()
 	enemy_scroll.resized.connect(_sync_enemy_status_width)
 	call_deferred("_sync_enemy_status_width")
@@ -426,6 +491,7 @@ func _apply_portrait_theme(portrait: TextureRect) -> void:
 	portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	portrait.custom_minimum_size = Vector2(72, 72)
+	portrait.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	portrait.modulate = Color(0.96, 0.93, 0.84, 1.0)
 
 
@@ -697,7 +763,26 @@ func _remember_control_offsets(control: Control) -> void:
 func _get_control_offsets(control: Control) -> Dictionary:
 	if control == null:
 		return {}
+	if control.has_meta("pose_offsets"):
+		return control.get_meta("pose_offsets", {})
 	return control.get_meta("base_offsets", {})
+
+
+func _set_control_pose_offsets(control: Control, x_shift: float = 0.0, y_shift: float = 0.0) -> void:
+	if control == null:
+		return
+	var base_offsets: Dictionary = control.get_meta("base_offsets", {})
+	if base_offsets.is_empty():
+		return
+	if absf(x_shift) < 0.01 and absf(y_shift) < 0.01:
+		control.remove_meta("pose_offsets")
+		return
+	control.set_meta("pose_offsets", {
+		"left": float(base_offsets.get("left", control.offset_left)) + x_shift,
+		"top": float(base_offsets.get("top", control.offset_top)) + y_shift,
+		"right": float(base_offsets.get("right", control.offset_right)) + x_shift,
+		"bottom": float(base_offsets.get("bottom", control.offset_bottom)) + y_shift
+	})
 
 
 func _apply_control_offsets(control: Control, offsets: Dictionary, y_shift: float = 0.0) -> void:
@@ -863,15 +948,15 @@ func _setup_grid_button_widgets(button: Button) -> void:
 	unit_shadow.anchor_top = 1.0
 	unit_shadow.anchor_right = 0.5
 	unit_shadow.anchor_bottom = 1.0
-	unit_shadow.offset_left = -17.0
-	unit_shadow.offset_top = -18.0
-	unit_shadow.offset_right = 17.0
-	unit_shadow.offset_bottom = -8.0
+	unit_shadow.offset_left = -22.0
+	unit_shadow.offset_top = -20.0
+	unit_shadow.offset_right = 22.0
+	unit_shadow.offset_bottom = -7.0
 	unit_shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	unit_shadow.add_theme_stylebox_override("panel", _make_unit_shadow_style())
 	button.add_child(unit_shadow)
 	_remember_control_offsets(unit_shadow)
-	unit_shadow.pivot_offset = Vector2(17.0, 5.0)
+	unit_shadow.pivot_offset = Vector2(22.0, 6.0)
 
 	var token_frame := PanelContainer.new()
 	token_frame.name = "TokenFrame"
@@ -879,14 +964,14 @@ func _setup_grid_button_widgets(button: Button) -> void:
 	token_frame.anchor_top = 0.5
 	token_frame.anchor_right = 0.5
 	token_frame.anchor_bottom = 0.5
-	token_frame.offset_left = -24.0
-	token_frame.offset_top = -2.0
-	token_frame.offset_right = 24.0
-	token_frame.offset_bottom = 44.0
+	token_frame.offset_left = -35.0
+	token_frame.offset_top = -28.0
+	token_frame.offset_right = 35.0
+	token_frame.offset_bottom = 58.0
 	token_frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	button.add_child(token_frame)
 	_remember_control_offsets(token_frame)
-	token_frame.pivot_offset = Vector2(24.0, 23.0)
+	token_frame.pivot_offset = Vector2(35.0, 43.0)
 
 	var unit_icon := TextureRect.new()
 	unit_icon.name = "UnitIcon"
@@ -894,16 +979,17 @@ func _setup_grid_button_widgets(button: Button) -> void:
 	unit_icon.anchor_top = 0.5
 	unit_icon.anchor_right = 0.5
 	unit_icon.anchor_bottom = 0.5
-	unit_icon.offset_left = -22.0
-	unit_icon.offset_top = -1.0
-	unit_icon.offset_right = 22.0
-	unit_icon.offset_bottom = 43.0
+	unit_icon.offset_left = -34.0
+	unit_icon.offset_top = -26.0
+	unit_icon.offset_right = 34.0
+	unit_icon.offset_bottom = 56.0
 	unit_icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	unit_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	unit_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	unit_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	button.add_child(unit_icon)
 	_remember_control_offsets(unit_icon)
-	unit_icon.pivot_offset = Vector2(22.0, 22.0)
+	unit_icon.pivot_offset = Vector2(34.0, 41.0)
 
 	var unit_label := Label.new()
 	unit_label.name = "UnitLabel"
@@ -911,10 +997,10 @@ func _setup_grid_button_widgets(button: Button) -> void:
 	unit_label.anchor_top = 1.0
 	unit_label.anchor_right = 0.5
 	unit_label.anchor_bottom = 1.0
-	unit_label.offset_left = -18.0
-	unit_label.offset_top = -20.0
-	unit_label.offset_right = 18.0
-	unit_label.offset_bottom = -2.0
+	unit_label.offset_left = -22.0
+	unit_label.offset_top = -24.0
+	unit_label.offset_right = 22.0
+	unit_label.offset_bottom = -4.0
 	unit_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	unit_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	unit_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -968,6 +1054,91 @@ func _setup_effects_layer() -> void:
 	cinematic_bottom_bar.anchor_right = 1.0
 	cinematic_bottom_bar.anchor_bottom = 1.0
 	effects_layer.add_child(cinematic_bottom_bar)
+
+
+func _load_vfx_atlas() -> void:
+	vfx_atlas_texture = null
+	for path in VFX_ATLAS_CANDIDATES:
+		if not ResourceLoader.exists(path):
+			continue
+		var resource: Resource = load(path)
+		if resource is Texture2D:
+			vfx_atlas_texture = resource
+			return
+
+
+func _get_vfx_region_index(region_id: String) -> Vector2i:
+	match region_id:
+		"slash":
+			return Vector2i(0, 0)
+		"spark":
+			return Vector2i(1, 0)
+		"dust":
+			return Vector2i(2, 0)
+		"guard":
+			return Vector2i(0, 1)
+		"heal":
+			return Vector2i(2, 1)
+		"splash":
+			return Vector2i(0, 2)
+		"arc":
+			return Vector2i(1, 2)
+		"bleed":
+			return Vector2i(2, 2)
+		"bleed_strong":
+			return Vector2i(2, 3)
+		_:
+			return Vector2i(1, 0)
+
+
+func _get_vfx_region_rect(region_id: String) -> Rect2:
+	if vfx_atlas_texture == null:
+		return Rect2()
+	var atlas_size: Vector2 = vfx_atlas_texture.get_size()
+	if atlas_size.x <= 0.0 or atlas_size.y <= 0.0:
+		return Rect2()
+	var cell_size := Vector2(atlas_size.x / float(VFX_GRID_COLS), atlas_size.y / float(VFX_GRID_ROWS))
+	var index: Vector2i = _get_vfx_region_index(region_id)
+	var pad := Vector2(cell_size.x * 0.12, cell_size.y * 0.15)
+	return Rect2(
+		Vector2(float(index.x) * cell_size.x + pad.x, float(index.y) * cell_size.y + pad.y),
+		Vector2(cell_size.x - pad.x * 2.0, cell_size.y - pad.y * 2.0)
+	)
+
+
+func _spawn_cell_vfx(cell: Vector2i, region_id: String, tint: Color = Color.WHITE, scale_amount: float = 1.0, y_offset: float = -10.0, duration: float = 0.3) -> void:
+	if vfx_atlas_texture == null or not _cell_in_bounds(cell):
+		return
+	var region: Rect2 = _get_vfx_region_rect(region_id)
+	if region.size.x <= 0.0 or region.size.y <= 0.0:
+		return
+	var atlas := AtlasTexture.new()
+	atlas.atlas = vfx_atlas_texture
+	atlas.region = region
+	var fx := TextureRect.new()
+	fx.texture = atlas
+	fx.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	fx.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	fx.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	fx.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var base_size := Vector2(74.0, 74.0) * scale_amount
+	fx.custom_minimum_size = base_size
+	fx.size = base_size
+	fx.pivot_offset = base_size * 0.5
+	fx.position = _get_cell_effect_position(cell) - (base_size * 0.5) + Vector2(0.0, y_offset)
+	fx.modulate = Color(tint.r, tint.g, tint.b, 0.9)
+	effects_layer.add_child(fx)
+
+	var tween: Tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(fx, "scale", Vector2(1.14, 1.14), duration * 0.55).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(fx, "position:y", fx.position.y - 10.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.tween_property(fx, "modulate:a", 0.0, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tween.finished.connect(fx.queue_free)
+
+
+func _spawn_actor_vfx(actor_id: String, region_id: String, tint: Color = Color.WHITE, scale_amount: float = 1.0, y_offset: float = -10.0, duration: float = 0.3) -> void:
+	_spawn_cell_vfx(_get_actor_cell(actor_id), region_id, tint, scale_amount, y_offset, duration)
 
 
 func _build_sfx_library() -> void:
@@ -1576,6 +1747,42 @@ func _refresh_battle_grid() -> void:
 			_apply_grid_button_state(button, cell, focus_target_actor_id, preview_target_ids)
 
 
+func _get_button_scale_meta(button: Button, key: String, fallback: Vector2 = Vector2.ONE) -> Vector2:
+	if button == null or not button.has_meta(key):
+		return fallback
+	var value: Variant = button.get_meta(key, fallback)
+	if value is Vector2:
+		return value
+	return fallback
+
+
+func _apply_actor_visual_tuning(button: Button, actor_id: String, unit_shadow: PanelContainer, token_frame: PanelContainer, unit_icon: TextureRect, unit_label: Label) -> void:
+	var tuning: Dictionary = _get_actor_visual_tuning(actor_id)
+	var icon_scale: float = float(tuning.get("icon_scale", 1.0))
+	var frame_scale: float = float(tuning.get("frame_scale", 1.0))
+	var shadow_scale: Vector2 = tuning.get("shadow_scale", Vector2.ONE)
+	button.set_meta("icon_base_scale", Vector2(icon_scale, icon_scale))
+	button.set_meta("frame_base_scale", Vector2(frame_scale, frame_scale))
+	button.set_meta("shadow_base_scale", shadow_scale)
+	button.set_meta("ghost_size", float(tuning.get("ghost_size", 68.0)))
+
+	_set_control_pose_offsets(unit_shadow, 0.0, float(tuning.get("shadow_y", 0.0)))
+	_set_control_pose_offsets(token_frame, 0.0, float(tuning.get("frame_y", 0.0)))
+	_set_control_pose_offsets(unit_icon, 0.0, float(tuning.get("icon_y", 0.0)))
+	_set_control_pose_offsets(unit_label, 0.0, float(tuning.get("label_y", 0.0)))
+
+
+func _clear_actor_visual_tuning(button: Button, unit_shadow: PanelContainer, token_frame: PanelContainer, unit_icon: TextureRect, unit_label: Label) -> void:
+	button.set_meta("icon_base_scale", Vector2.ONE)
+	button.set_meta("frame_base_scale", Vector2.ONE)
+	button.set_meta("shadow_base_scale", Vector2.ONE)
+	button.set_meta("ghost_size", 68.0)
+	_set_control_pose_offsets(unit_shadow, 0.0, 0.0)
+	_set_control_pose_offsets(token_frame, 0.0, 0.0)
+	_set_control_pose_offsets(unit_icon, 0.0, 0.0)
+	_set_control_pose_offsets(unit_label, 0.0, 0.0)
+
+
 func _apply_grid_button_state(button: Button, cell: Vector2i, focus_target_actor_id: String, preview_target_ids: Array[String]) -> void:
 	var tint: Color = _get_base_cell_tint(cell)
 	if _cell_is_valid_move(cell):
@@ -1620,6 +1827,7 @@ func _apply_grid_button_state(button: Button, cell: Vector2i, focus_target_actor
 		terrain_label.modulate = Color(0.18, 0.18, 0.2, 0.78)
 	if unit_icon != null and unit_label != null:
 		if occupant_id.is_empty():
+			_clear_actor_visual_tuning(button, unit_shadow, token_frame, unit_icon, unit_label)
 			if unit_shadow != null:
 				unit_shadow.visible = false
 			if token_frame != null:
@@ -1635,6 +1843,7 @@ func _apply_grid_button_state(button: Button, cell: Vector2i, focus_target_actor
 			if unit_shadow != null:
 				unit_shadow.visible = true
 			var occupant_data: Dictionary = _get_combatant_data(occupant_id)
+			_apply_actor_visual_tuning(button, occupant_id, unit_shadow, token_frame, unit_icon, unit_label)
 			if token_frame != null:
 				token_frame.visible = true
 				token_frame.add_theme_stylebox_override("panel", _make_token_frame_style(_get_actor_accent_color(occupant_id)))
@@ -1685,15 +1894,19 @@ func _reset_battle_token_pose(button: Button) -> void:
 	_apply_control_offsets(unit_icon, _get_control_offsets(unit_icon))
 	_apply_control_offsets(unit_label, _get_control_offsets(unit_label))
 
+	var base_shadow_scale: Vector2 = _get_button_scale_meta(button, "shadow_base_scale", Vector2.ONE)
+	var base_frame_scale: Vector2 = _get_button_scale_meta(button, "frame_base_scale", Vector2.ONE)
+	var base_icon_scale: Vector2 = _get_button_scale_meta(button, "icon_base_scale", Vector2.ONE)
+
 	if unit_shadow != null:
-		unit_shadow.scale = Vector2.ONE
+		unit_shadow.scale = base_shadow_scale
 		unit_shadow.self_modulate = Color.WHITE
 	if token_frame != null:
-		token_frame.scale = Vector2.ONE
+		token_frame.scale = base_frame_scale
 		token_frame.rotation = 0.0
 		token_frame.self_modulate = Color.WHITE
 	if unit_icon != null:
-		unit_icon.scale = Vector2.ONE
+		unit_icon.scale = base_icon_scale
 		unit_icon.rotation = 0.0
 		unit_icon.self_modulate = Color.WHITE
 	if unit_label != null:
@@ -1741,6 +1954,9 @@ func _apply_battle_idle_pose(button: Button, actor_id: String, token_index: int)
 	var breath: float = sin(phase * 1.7)
 	var sway: float = sin(phase * 0.8) * (0.028 + active_gain * 0.012)
 	var frame_shift: float = bob * 0.45
+	var base_shadow_scale: Vector2 = _get_button_scale_meta(button, "shadow_base_scale", Vector2.ONE)
+	var base_frame_scale: Vector2 = _get_button_scale_meta(button, "frame_base_scale", Vector2.ONE)
+	var base_icon_scale: Vector2 = _get_button_scale_meta(button, "icon_base_scale", Vector2.ONE)
 
 	_apply_control_offsets(unit_shadow, _get_control_offsets(unit_shadow))
 	_apply_control_offsets(token_frame, _get_control_offsets(token_frame), frame_shift)
@@ -1748,15 +1964,18 @@ func _apply_battle_idle_pose(button: Button, actor_id: String, token_index: int)
 	_apply_control_offsets(unit_label, _get_control_offsets(unit_label), bob * 0.24)
 
 	if unit_shadow != null:
-		unit_shadow.scale = Vector2(1.0 - (bob * 0.02), 1.0 + (active_gain * 0.03))
+		unit_shadow.scale = Vector2(
+			base_shadow_scale.x * (1.0 - (bob * 0.02)),
+			base_shadow_scale.y * (1.0 + (active_gain * 0.03))
+		)
 		unit_shadow.self_modulate = Color(1.0, 1.0, 1.0, 0.72 - (bob * 0.06))
 	if token_frame != null:
-		token_frame.scale = Vector2.ONE * (1.0 + (active_gain * 0.015) + (absf(breath) * 0.012))
+		token_frame.scale = base_frame_scale * (1.0 + (active_gain * 0.015) + (absf(breath) * 0.012))
 		token_frame.rotation = sway * 0.55
 	if unit_icon != null:
 		unit_icon.scale = Vector2(
-			1.0 + (breath * (0.026 + active_gain * 0.012)),
-			1.0 - (breath * (0.018 + active_gain * 0.008))
+			base_icon_scale.x * (1.0 + (breath * (0.026 + active_gain * 0.012))),
+			base_icon_scale.y * (1.0 - (breath * (0.018 + active_gain * 0.008)))
 		)
 		unit_icon.rotation = sway
 		unit_icon.self_modulate = Color(1.0, 1.0, 1.0, 0.97 + (active_gain * 0.03))
@@ -1823,30 +2042,217 @@ func _write_log(message: String) -> void:
 	combat_log.scroll_to_line(combat_log.get_line_count())
 
 
-func _get_actor_portrait(actor_id: String) -> Texture2D:
+func _get_actor_visual_profile(actor_id: String) -> String:
 	if actor_id == "pembah":
-		return PEMBAH_PORTRAIT
+		return "pembah"
 	if actor_id == "joao":
-		return JOAO_PORTRAIT
+		return "joao"
 
 	var enemy: Dictionary = _get_enemy_by_actor_id(actor_id)
 	match enemy.get("id", ""):
 		"castilian_duelist":
+			return "castilian"
+		"mourish_guard", "atalaiador_zenete":
+			return "mourish"
+		"bombardeiro_renegado", "renegado_da_aduana":
+			return "bombardeiro"
+		"corsair_raider", "corsario_barbaresco":
+			return "corsair"
+		_:
+			return "bandit"
+
+
+func _get_actor_visual_tuning(actor_id: String) -> Dictionary:
+	var profile: String = _get_actor_visual_profile(actor_id)
+	match profile:
+		"pembah":
+			return {
+				"icon_scale": 1.08,
+				"frame_scale": 1.03,
+				"shadow_scale": Vector2(1.18, 1.0),
+				"icon_y": 10.0,
+				"frame_y": 8.0,
+				"shadow_y": 6.0,
+				"label_y": 8.0,
+				"ghost_size": 76.0
+			}
+		"joao":
+			return {
+				"icon_scale": 1.05,
+				"frame_scale": 1.02,
+				"shadow_scale": Vector2(1.12, 1.0),
+				"icon_y": 8.0,
+				"frame_y": 7.0,
+				"shadow_y": 5.0,
+				"label_y": 7.0,
+				"ghost_size": 74.0
+			}
+		"bandit":
+			return {
+				"icon_scale": 1.03,
+				"frame_scale": 1.01,
+				"shadow_scale": Vector2(1.24, 1.0),
+				"icon_y": 12.0,
+				"frame_y": 10.0,
+				"shadow_y": 7.0,
+				"label_y": 9.0,
+				"ghost_size": 78.0
+			}
+		"castilian":
+			return {
+				"icon_scale": 1.01,
+				"frame_scale": 1.0,
+				"shadow_scale": Vector2(1.18, 1.0),
+				"icon_y": 9.0,
+				"frame_y": 8.0,
+				"shadow_y": 6.0,
+				"label_y": 8.0,
+				"ghost_size": 74.0
+			}
+		"mourish":
+			return {
+				"icon_scale": 1.02,
+				"frame_scale": 1.0,
+				"shadow_scale": Vector2(1.16, 1.0),
+				"icon_y": 10.0,
+				"frame_y": 8.0,
+				"shadow_y": 6.0,
+				"label_y": 8.0,
+				"ghost_size": 74.0
+			}
+		"corsair":
+			return {
+				"icon_scale": 1.0,
+				"frame_scale": 1.0,
+				"shadow_scale": Vector2(1.18, 1.0),
+				"icon_y": 9.0,
+				"frame_y": 8.0,
+				"shadow_y": 6.0,
+				"label_y": 8.0,
+				"ghost_size": 74.0
+			}
+		"bombardeiro":
+			return {
+				"icon_scale": 1.0,
+				"frame_scale": 1.0,
+				"shadow_scale": Vector2(1.2, 1.0),
+				"icon_y": 10.0,
+				"frame_y": 8.0,
+				"shadow_y": 6.0,
+				"label_y": 8.0,
+				"ghost_size": 74.0
+			}
+		_:
+			return {
+				"icon_scale": 1.0,
+				"frame_scale": 1.0,
+				"shadow_scale": Vector2.ONE,
+				"icon_y": 0.0,
+				"frame_y": 0.0,
+				"shadow_y": 0.0,
+				"label_y": 0.0,
+				"ghost_size": 68.0
+			}
+
+
+func _get_profile_icon_candidates(profile: String) -> Array[String]:
+	match profile:
+		"pembah":
+			return PEMBAH_ICON_CANDIDATES
+		"joao":
+			return JOAO_ICON_CANDIDATES
+		"castilian":
+			return CASTILIAN_ICON_CANDIDATES
+		"mourish":
+			return MOURISH_ICON_CANDIDATES
+		"bombardeiro":
+			return BOMBARDEIRO_ICON_CANDIDATES
+		"corsair":
+			return CORSAIR_ICON_CANDIDATES
+		_:
+			return BANDIT_ICON_CANDIDATES
+
+
+func _get_profile_portrait_candidates(profile: String) -> Array[String]:
+	match profile:
+		"pembah":
+			return PEMBAH_PORTRAIT_CANDIDATES
+		"joao":
+			return JOAO_PORTRAIT_CANDIDATES
+		"castilian":
+			return CASTILIAN_PORTRAIT_CANDIDATES
+		"mourish":
+			return MOURISH_PORTRAIT_CANDIDATES
+		"bombardeiro":
+			return BOMBARDEIRO_PORTRAIT_CANDIDATES
+		"corsair":
+			return CORSAIR_PORTRAIT_CANDIDATES
+		_:
+			return BANDIT_PORTRAIT_CANDIDATES
+
+
+func _get_profile_icon_fallback(profile: String) -> Texture2D:
+	match profile:
+		"pembah":
+			return PEMBAH_ICON
+		"joao":
+			return JOAO_ICON
+		"castilian":
+			return CASTILIAN_ICON
+		"mourish":
+			return MOURISH_ICON
+		"bombardeiro":
+			return BOMBARDEIRO_ICON
+		"corsair":
+			return CORSAIR_ICON
+		_:
+			return BANDIT_ICON
+
+
+func _get_profile_portrait_fallback(profile: String) -> Texture2D:
+	match profile:
+		"pembah":
+			return PEMBAH_PORTRAIT
+		"joao":
+			return JOAO_PORTRAIT
+		"castilian":
 			return CASTILIAN_PORTRAIT
-		"mourish_guard":
+		"mourish":
 			return MOURISH_PORTRAIT
-		"bombardeiro_renegado":
+		"bombardeiro":
 			return BOMBARDEIRO_PORTRAIT
-		"corsair_raider":
+		"corsair":
 			return CORSAIR_PORTRAIT
-		"corsario_barbaresco":
-			return CORSAIR_PORTRAIT
-		"atalaiador_zenete":
-			return MOURISH_PORTRAIT
-		"renegado_da_aduana":
-			return BOMBARDEIRO_PORTRAIT
 		_:
 			return BANDIT_PORTRAIT
+
+
+func _load_texture_with_fallback(cache_key: String, candidates: Array[String], fallback: Texture2D) -> Texture2D:
+	if texture_cache.has(cache_key):
+		var cached: Texture2D = texture_cache[cache_key]
+		if cached != null:
+			return cached
+
+	for path in candidates:
+		if not ResourceLoader.exists(path):
+			continue
+		var resource: Resource = load(path)
+		if resource is Texture2D:
+			var texture: Texture2D = resource
+			texture_cache[cache_key] = texture
+			return texture
+
+	texture_cache[cache_key] = fallback
+	return fallback
+
+
+func _get_actor_portrait(actor_id: String) -> Texture2D:
+	var profile: String = _get_actor_visual_profile(actor_id)
+	return _load_texture_with_fallback(
+		"portrait:%s" % profile,
+		_get_profile_portrait_candidates(profile),
+		_get_profile_portrait_fallback(profile)
+	)
 
 
 func _get_actor_accent_color(actor_id: String) -> Color:
@@ -2309,14 +2715,15 @@ func _animate_actor_action(actor_id: String, mode: String, accent_color: Color =
 	if button != null:
 		_reset_battle_token_pose(button)
 	unit_icon.pivot_offset = unit_icon.size * 0.5
+	var base_icon_scale: Vector2 = _get_button_scale_meta(button, "icon_base_scale", Vector2.ONE)
 	var tween: Tween = create_tween()
 	match mode:
 		"attack":
 			var push_x: float = 8.0 if _is_ally_turn() else -8.0
 			tween.tween_property(unit_icon, "position:x", unit_icon.position.x + push_x, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 			tween.tween_property(unit_icon, "position:x", unit_icon.position.x, 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-			tween.parallel().tween_property(unit_icon, "scale", Vector2(1.1, 0.94), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-			tween.parallel().tween_property(unit_icon, "scale", Vector2.ONE, 0.1).set_delay(0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.1, base_icon_scale.y * 0.94), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", base_icon_scale, 0.1).set_delay(0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		"hit":
 			unit_icon.self_modulate = Color(accent_color.r, accent_color.g, accent_color.b, 0.88)
 			tween.tween_property(unit_icon, "rotation_degrees", -7.0, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
@@ -2325,23 +2732,23 @@ func _animate_actor_action(actor_id: String, mode: String, accent_color: Color =
 			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		"potion":
 			unit_icon.self_modulate = Color(0.58, 0.95, 0.7, 1.0)
-			tween.tween_property(unit_icon, "scale", Vector2(0.93, 1.08), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-			tween.tween_property(unit_icon, "scale", Vector2(1.07, 0.94), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN_OUT)
-			tween.tween_property(unit_icon, "scale", Vector2.ONE, 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 0.93, base_icon_scale.y * 1.08), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.07, base_icon_scale.y * 0.94), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN_OUT)
+			tween.tween_property(unit_icon, "scale", base_icon_scale, 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.26).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		"guard":
 			unit_icon.self_modulate = Color(0.58, 0.74, 0.98, 0.92)
-			tween.tween_property(unit_icon, "scale", Vector2(1.13, 1.13), 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-			tween.tween_property(unit_icon, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+			tween.tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.13, base_icon_scale.y * 1.13), 0.1).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "scale", base_icon_scale, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
 			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.26).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		"cast":
 			unit_icon.self_modulate = Color(accent_color.r, accent_color.g, accent_color.b, 0.9)
-			tween.tween_property(unit_icon, "scale", Vector2(1.08, 1.08), 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-			tween.tween_property(unit_icon, "scale", Vector2.ONE, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			tween.tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.08, base_icon_scale.y * 1.08), 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "scale", base_icon_scale, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.2).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		_:
-			tween.tween_property(unit_icon, "scale", Vector2(1.05, 1.05), 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-			tween.tween_property(unit_icon, "scale", Vector2.ONE, 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			tween.tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.05, base_icon_scale.y * 1.05), 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "scale", base_icon_scale, 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
 	tween.finished.connect(_on_actor_action_tween_finished.bind(actor_id))
 
 
@@ -2363,8 +2770,11 @@ func _animate_actor_move(actor_id: String, from_cell: Vector2i, to_cell: Vector2
 	ghost.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	ghost.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	ghost.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	ghost.custom_minimum_size = Vector2(50.0, 50.0)
-	ghost.size = Vector2(50.0, 50.0)
+	ghost.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	var tuning: Dictionary = _get_actor_visual_tuning(actor_id)
+	var ghost_size: float = float(tuning.get("ghost_size", 68.0))
+	ghost.custom_minimum_size = Vector2(ghost_size, ghost_size)
+	ghost.size = Vector2(ghost_size, ghost_size)
 	ghost.pivot_offset = ghost.size * 0.5
 	ghost.position = start_position - ghost.size * 0.5
 	ghost.modulate = Color(1.0, 1.0, 1.0, 0.9)
@@ -2457,15 +2867,25 @@ func _animate_portrait_feedback(actor_id: String, color: Color) -> void:
 func _play_damage_feedback(actor_id: String, damage: int, status_text: String = "", accent_color: Color = Color(0.84, 0.41, 0.29, 1.0)) -> void:
 	if damage > 0:
 		_show_floating_text(actor_id, "-%d" % damage, accent_color)
+		_spawn_actor_vfx(actor_id, "slash", accent_color, 1.02, -12.0, 0.26)
 		_animate_cell_impact(actor_id, accent_color)
 		_animate_portrait_feedback(actor_id, accent_color)
 		_animate_actor_action(actor_id, "hit", accent_color)
 	if not status_text.is_empty():
 		_show_floating_text(actor_id, status_text, Color(0.96, 0.86, 0.54, 1.0), -24.0)
+		if status_text.begins_with("Sangr"):
+			_spawn_actor_vfx(actor_id, "bleed", Color(0.88, 0.34, 0.29, 1.0), 0.98, -16.0, 0.34)
 
 
 func _play_support_feedback(actor_id: String, text: String, accent_color: Color, secondary_text: String = "") -> void:
 	_show_floating_text(actor_id, text, accent_color)
+	var secondary_lower: String = secondary_text.to_lower()
+	if secondary_lower.contains("guarda"):
+		_spawn_actor_vfx(actor_id, "guard", Color(0.74, 0.85, 0.96, 1.0), 1.0, -14.0, 0.34)
+	elif secondary_lower.contains("vida"):
+		_spawn_actor_vfx(actor_id, "heal", Color(0.8, 0.95, 0.62, 1.0), 1.02, -16.0, 0.38)
+	else:
+		_spawn_actor_vfx(actor_id, "arc", accent_color, 0.94, -14.0, 0.3)
 	_animate_cell_impact(actor_id, accent_color)
 	_animate_portrait_feedback(actor_id, accent_color)
 	_animate_actor_action(actor_id, "cast", accent_color)
@@ -2475,6 +2895,10 @@ func _play_support_feedback(actor_id: String, text: String, accent_color: Color,
 
 func _play_cinematic_strike(attacker_id: String, target_ids: Array[String], strong: bool, accent_color: Color) -> void:
 	_animate_actor_action(attacker_id, "attack" if not target_ids.is_empty() else "cast", accent_color)
+	if not target_ids.is_empty():
+		_spawn_actor_vfx(attacker_id, "slash", accent_color, 0.98 if strong else 0.9, -12.0, 0.24)
+		for target_id in target_ids:
+			_spawn_actor_vfx(target_id, "spark", accent_color.lerp(Color.WHITE, 0.35), 0.9 if strong else 0.82, -10.0, 0.22)
 	var intensity: float = 1.35 if strong else 0.72
 	_play_screen_shake(intensity, 0.24 if strong else 0.14)
 	if strong:
@@ -3875,25 +4299,12 @@ func _execute_enemy_skill(enemy_actor_id: String, primary_target_id: String, ski
 
 
 func _get_actor_icon(actor_id: String) -> Texture2D:
-	if actor_id == "pembah":
-		return PEMBAH_ICON
-	if actor_id == "joao":
-		return JOAO_ICON
-
-	var enemy: Dictionary = _get_enemy_by_actor_id(actor_id)
-	match enemy.get("id", ""):
-		"castilian_duelist":
-			return CASTILIAN_ICON
-		"mourish_guard":
-			return MOURISH_ICON
-		"bombardeiro_renegado", "renegado_da_aduana":
-			return BOMBARDEIRO_ICON
-		"corsair_raider", "corsario_barbaresco":
-			return CORSAIR_ICON
-		"atalaiador_zenete":
-			return MOURISH_ICON
-		_:
-			return BANDIT_ICON
+	var profile: String = _get_actor_visual_profile(actor_id)
+	return _load_texture_with_fallback(
+		"icon:%s" % profile,
+		_get_profile_icon_candidates(profile),
+		_get_profile_icon_fallback(profile)
+	)
 
 
 func _get_actor_grid_label(actor_id: String) -> String:

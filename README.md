@@ -25,7 +25,9 @@ This repository contains a Godot 4 vertical slice for **Tales of the Ocean** bas
 - `scenes/`: UI, world, and combat scenes
 - `scripts/`: gameplay logic and autoloads
 - `data/`: JSON definitions for content
-- `assets/`: placeholder project icon
+- `assets/`: runtime textures, portraits, audio, ui, and world art
+- `docs/art/`: art bible, prompt packs, and slice production checklists
+- `source_art/`: non-runtime art workspace for iterative generation/editing
 
 ## Run
 
