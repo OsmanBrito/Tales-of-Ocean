@@ -29,8 +29,8 @@
       "scene": "res://scenes/world/lisboa.tscn",
       "target_scene_id": "lisboa",
       "spawn_position": {
-        "x": 1240.0,
-        "y": 650.0
+        "x": 2600.0,
+        "y": 1020.0
       }
     },
     {

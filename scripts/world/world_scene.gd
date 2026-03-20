@@ -253,6 +253,10 @@ func _draw_interactables() -> void:
 		)
 
 
+func is_player_movement_locked() -> bool:
+	return dialogue_panel.visible or inventory_panel.visible or character_panel.visible or pause_panel.visible or travel_panel.visible or shop_panel.visible
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("interact") and not dialogue_panel.visible and not inventory_panel.visible and not character_panel.visible and not pause_panel.visible and not travel_panel.visible and not shop_panel.visible:
 		_try_interaction()

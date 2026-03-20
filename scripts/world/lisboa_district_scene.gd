@@ -13,13 +13,18 @@ func _process(delta: float) -> void:
 	queue_redraw()
 
 
+func _get_district_size() -> Vector2:
+	return DISTRICT_SIZE
+
+
 func _draw_district_sky(top_color: Color, haze_color: Color) -> void:
-	draw_rect(Rect2(Vector2.ZERO, DISTRICT_SIZE), top_color)
-	draw_rect(Rect2(0.0, 220.0, DISTRICT_SIZE.x, 860.0), haze_color)
+	var district_size: Vector2 = _get_district_size()
+	draw_rect(Rect2(Vector2.ZERO, district_size), top_color)
+	draw_rect(Rect2(0.0, 220.0, district_size.x, district_size.y - 220.0), haze_color)
 	draw_circle(Vector2(1460.0, 154.0), 84.0, Color(1.0, 0.93, 0.72, 0.16))
 	for band in range(4):
 		var y: float = 152.0 + float(band) * 44.0
-		draw_rect(Rect2(0.0, y, DISTRICT_SIZE.x, 20.0), Color(1.0, 0.97, 0.87, 0.04))
+		draw_rect(Rect2(0.0, y, district_size.x, 20.0), Color(1.0, 0.97, 0.87, 0.04))
 
 
 func _draw_district_water(area: Rect2, deep_color: Color, glow_color: Color) -> void:

@@ -96,6 +96,21 @@ const ATTACK_ICON: Texture2D = preload("res://assets/ui/attack_icon.svg")
 const ITEM_ICON: Texture2D = preload("res://assets/ui/item_icon.svg")
 const GUARD_ICON: Texture2D = preload("res://assets/ui/guard_icon.svg")
 const BATTLE_TILE_ICON: Texture2D = preload("res://assets/ui/battle_tile.svg")
+const PEMBAH_BATTLE_CONTACT_SHEET_CANDIDATES: Array[String] = [
+	"res://pembah_battle_contact.png"
+]
+const JOAO_BATTLE_CONTACT_SHEET_CANDIDATES: Array[String] = [
+	"res://joao_battle_contact.png"
+]
+const BATTLE_CONTACT_FRAME_SIZE := Vector2(150.0, 190.0)
+const BATTLE_CONTACT_FRAME_BY_PROFILE := {
+	"pembah": Vector2i(1, 0),
+	"joao": Vector2i(1, 0)
+}
+const BATTLE_TILE_SHEET_CANDIDATES: Array[String] = [
+	"res://assets/world/iso/battle_grid_v2_iso.png"
+]
+const BATTLE_TILE_SHEET_SOURCE := Rect2(538.0, 24.0, 152.0, 78.0)
 const VFX_ATLAS_CANDIDATES: Array[String] = [
 	"res://assets/vfx/vfx_pack_slice01_v1.png"
 ]
@@ -212,6 +227,7 @@ var tutorial_active: bool = false
 var battle_idle_time: float = 0.0
 var texture_cache: Dictionary = {}
 var vfx_atlas_texture: Texture2D
+var battle_tile_art_texture: Texture2D
 
 
 func _ready() -> void:
@@ -898,7 +914,7 @@ func _setup_grid_button_widgets(button: Button) -> void:
 	tile_art.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	tile_art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	tile_art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	tile_art.texture = BATTLE_TILE_ICON
+	tile_art.texture = _get_battle_tile_art_texture()
 	button.add_child(tile_art)
 
 	var terrain_label := Label.new()
@@ -2173,6 +2189,26 @@ func _get_profile_icon_candidates(profile: String) -> Array[String]:
 			return BANDIT_ICON_CANDIDATES
 
 
+func _get_profile_icon_sheet_candidates(profile: String) -> Array[String]:
+	match profile:
+		"pembah":
+			return PEMBAH_BATTLE_CONTACT_SHEET_CANDIDATES
+		"joao":
+			return JOAO_BATTLE_CONTACT_SHEET_CANDIDATES
+		_:
+			return []
+
+
+func _get_profile_icon_sheet_region(profile: String) -> Rect2:
+	var frame_coords: Vector2i = BATTLE_CONTACT_FRAME_BY_PROFILE.get(profile, Vector2i(-1, -1))
+	if frame_coords.x < 0 or frame_coords.y < 0:
+		return Rect2()
+	return Rect2(
+		Vector2(float(frame_coords.x) * BATTLE_CONTACT_FRAME_SIZE.x, float(frame_coords.y) * BATTLE_CONTACT_FRAME_SIZE.y),
+		BATTLE_CONTACT_FRAME_SIZE
+	)
+
+
 func _get_profile_portrait_candidates(profile: String) -> Array[String]:
 	match profile:
 		"pembah":
@@ -2244,6 +2280,46 @@ func _load_texture_with_fallback(cache_key: String, candidates: Array[String], f
 
 	texture_cache[cache_key] = fallback
 	return fallback
+
+
+func _load_atlas_texture_with_fallback(cache_key: String, candidates: Array[String], region: Rect2, fallback: Texture2D = null) -> Texture2D:
+	if texture_cache.has(cache_key):
+		var cached: Texture2D = texture_cache[cache_key]
+		if cached != null:
+			return cached
+
+	for path in candidates:
+		if not ResourceLoader.exists(path):
+			continue
+		var resource: Resource = load(path)
+		if resource is Texture2D:
+			var atlas := AtlasTexture.new()
+			atlas.atlas = resource
+			atlas.region = region
+			texture_cache[cache_key] = atlas
+			return atlas
+
+	texture_cache[cache_key] = fallback
+	return fallback
+
+
+func _get_battle_tile_art_texture() -> Texture2D:
+	if battle_tile_art_texture != null:
+		return battle_tile_art_texture
+
+	for path in BATTLE_TILE_SHEET_CANDIDATES:
+		if not ResourceLoader.exists(path):
+			continue
+		var resource: Resource = load(path)
+		if resource is Texture2D:
+			var atlas := AtlasTexture.new()
+			atlas.atlas = resource
+			atlas.region = BATTLE_TILE_SHEET_SOURCE
+			battle_tile_art_texture = atlas
+			return battle_tile_art_texture
+
+	battle_tile_art_texture = BATTLE_TILE_ICON
+	return battle_tile_art_texture
 
 
 func _get_actor_portrait(actor_id: String) -> Texture2D:
@@ -4300,6 +4376,15 @@ func _execute_enemy_skill(enemy_actor_id: String, primary_target_id: String, ski
 
 func _get_actor_icon(actor_id: String) -> Texture2D:
 	var profile: String = _get_actor_visual_profile(actor_id)
+	var icon_sheet_region: Rect2 = _get_profile_icon_sheet_region(profile)
+	if icon_sheet_region.size.x > 0.0 and icon_sheet_region.size.y > 0.0:
+		var sheet_icon: Texture2D = _load_atlas_texture_with_fallback(
+			"icon-sheet:%s" % profile,
+			_get_profile_icon_sheet_candidates(profile),
+			icon_sheet_region
+		)
+		if sheet_icon != null:
+			return sheet_icon
 	return _load_texture_with_fallback(
 		"icon:%s" % profile,
 		_get_profile_icon_candidates(profile),

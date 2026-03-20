@@ -1,17 +1,28 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="Script" path="res://scripts/world/lisboa.gd" id="1"]
 [ext_resource type="Script" path="res://scripts/player.gd" id="2"]
+[ext_resource type="Script" path="res://scripts/world/lisboa_foreground_overlay.gd" id="3"]
 
 [node name="Lisboa" type="Node2D"]
 script = ExtResource("1")
 world_data_path = "res://data/world/lisboa.json"
 scene_id = "lisboa"
-default_spawn_position = Vector2(240, 520)
+default_spawn_position = Vector2(320, 980)
 scene_path = "res://scenes/world/lisboa.tscn"
 
 [node name="Player" type="Node2D" parent="."]
 script = ExtResource("2")
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+enabled = true
+position_smoothing_enabled = true
+position_smoothing_speed = 6.5
+limit_smoothed = true
+
+[node name="ForegroundOverlay" type="Node2D" parent="."]
+z_index = 3
+script = ExtResource("3")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 

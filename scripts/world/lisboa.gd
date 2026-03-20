@@ -1,5 +1,30 @@
 extends "res://scripts/world/lisboa_district_scene.gd"
 
+const LISBOA_WORLD_BOUNDS := Rect2(0.0, 0.0, 3200.0, 1760.0)
+const LISBOA_NAVIGATION_BOUNDS := Rect2(180.0, 320.0, 2840.0, 1220.0)
+const LISBOA_COLLISION_RADIUS := 18.0
+const LISBOA_ISO_META_PATH := "res://assets/world/iso/iso_asset_meta_v2.json"
+const LISBOA_ISO_QUAY_CANDIDATES: Array[String] = [
+	"res://assets/world/iso/lisboa_ribeira_ground_v2_iso.png"
+]
+const LISBOA_ISO_BUILDINGS_CANDIDATES: Array[String] = [
+	"res://assets/world/iso/lisboa_ribeira_buildings_v2_iso.png"
+]
+const LISBOA_ISO_PROPS_CANDIDATES: Array[String] = [
+	"res://assets/world/iso/lisboa_ribeira_harbor_props_v2_iso.png"
+]
+const LISBOA_ISO_SHIPS_CANDIDATES: Array[String] = [
+	"res://assets/world/iso/lisboa_ribeira_ships_v2_iso.png"
+]
+const LISBOA_ISO_CROWD_CANDIDATES: Array[String] = [
+	"res://assets/world/iso/lisboa_ribeira_crowd_v2_iso.png"
+]
+const LISBOA_ISO_CROWD_EXTRA_CANDIDATES: Array[String] = [
+	"res://assets/world/iso/lisboa_ribeira_crowd_extra_v2_iso.png"
+]
+const LISBOA_ISO_PASSAGES_CANDIDATES: Array[String] = [
+	"res://assets/world/iso/lisboa_ribeira_passages_v2_iso.png"
+]
 const LISBOA_KEYART_CANDIDATES: Array[String] = [
 	"res://assets/world/lisboa_ribeira_keyart_v1.png",
 	"res://assets/world/lisboa_backdrop.svg"
@@ -28,6 +53,15 @@ const LISBOA_CROWD_CANDIDATES: Array[String] = [
 ]
 
 var lisboa_backdrop_texture: Texture2D
+var lisboa_iso_quay_texture: Texture2D
+var lisboa_iso_buildings_texture: Texture2D
+var lisboa_iso_props_texture: Texture2D
+var lisboa_iso_ships_texture: Texture2D
+var lisboa_iso_crowd_texture: Texture2D
+var lisboa_iso_crowd_extra_texture: Texture2D
+var lisboa_iso_passages_texture: Texture2D
+var lisboa_iso_meta_loaded: bool = false
+var lisboa_iso_meta: Dictionary = {}
 var lisboa_quay_texture: Texture2D
 var lisboa_buildings_texture: Texture2D
 var lisboa_props_texture: Texture2D
@@ -35,8 +69,83 @@ var lisboa_ships_texture: Texture2D
 var lisboa_crowd_texture: Texture2D
 
 
+func _ready() -> void:
+	super._ready()
+	_configure_lisboa_navigation()
+	_configure_lisboa_camera()
+
+
+func _get_district_size() -> Vector2:
+	return LISBOA_WORLD_BOUNDS.size
+
+
+func _configure_lisboa_navigation() -> void:
+	if player == null or not player.has_method("configure_navigation"):
+		return
+	player.call("configure_navigation", LISBOA_NAVIGATION_BOUNDS, _get_lisboa_walkable_polygons(), LISBOA_COLLISION_RADIUS)
+	if player.has_method("is_position_walkable") and not bool(player.call("is_position_walkable", player.position)):
+		player.position = default_spawn_position
+
+
+func _configure_lisboa_camera() -> void:
+	var camera: Camera2D = get_node_or_null("Player/Camera2D")
+	if camera == null:
+		return
+	camera.enabled = true
+	camera.limit_left = int(LISBOA_WORLD_BOUNDS.position.x)
+	camera.limit_top = int(LISBOA_WORLD_BOUNDS.position.y)
+	camera.limit_right = int(LISBOA_WORLD_BOUNDS.end.x)
+	camera.limit_bottom = int(LISBOA_WORLD_BOUNDS.end.y)
+	camera.position_smoothing_enabled = true
+	camera.position_smoothing_speed = 6.5
+	camera.limit_smoothed = true
+	camera.force_update_scroll()
+
+
+func _get_lisboa_walkable_polygons() -> Array:
+	return [
+		PackedVector2Array([
+			Vector2(190.0, 430.0), Vector2(1150.0, 430.0), Vector2(1380.0, 650.0), Vector2(360.0, 680.0)
+		]),
+		PackedVector2Array([
+			Vector2(980.0, 520.0), Vector2(2120.0, 520.0), Vector2(2330.0, 770.0), Vector2(1150.0, 790.0)
+		]),
+		PackedVector2Array([
+			Vector2(1970.0, 610.0), Vector2(3030.0, 610.0), Vector2(3140.0, 840.0), Vector2(2140.0, 860.0)
+		]),
+		PackedVector2Array([
+			Vector2(200.0, 820.0), Vector2(900.0, 820.0), Vector2(1110.0, 1040.0), Vector2(370.0, 1080.0)
+		]),
+		PackedVector2Array([
+			Vector2(860.0, 880.0), Vector2(2100.0, 880.0), Vector2(2330.0, 1190.0), Vector2(1050.0, 1220.0)
+		]),
+		PackedVector2Array([
+			Vector2(1900.0, 1010.0), Vector2(3060.0, 1010.0), Vector2(3160.0, 1350.0), Vector2(2030.0, 1370.0)
+		]),
+		PackedVector2Array([
+			Vector2(180.0, 1080.0), Vector2(760.0, 1080.0), Vector2(920.0, 1320.0), Vector2(250.0, 1380.0)
+		])
+	]
+
+
 func _draw_world() -> void:
 	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	var iso_quay_tiles: Texture2D = _get_lisboa_iso_quay_tiles()
+	var iso_buildings: Texture2D = _get_lisboa_iso_buildings()
+	var iso_props: Texture2D = _get_lisboa_iso_props()
+	var iso_ships: Texture2D = _get_lisboa_iso_ships()
+	var iso_crowd: Texture2D = _get_lisboa_iso_crowd()
+	var iso_crowd_extra: Texture2D = _get_lisboa_iso_crowd_extra()
+	var iso_passages: Texture2D = _get_lisboa_iso_passages()
+	if _has_lisboa_iso_v2_assets(iso_quay_tiles, iso_buildings, iso_props, iso_ships, iso_crowd):
+		_draw_world_modular_base()
+		_draw_lisboa_iso_v2_layers(iso_quay_tiles, iso_buildings, iso_props, iso_ships, iso_crowd, iso_crowd_extra, iso_passages)
+		_draw_zone_label(Vector2(1036.0, 212.0), "Ribeira de Lisboa")
+		_draw_zone_label(Vector2(1114.0, 852.0), "Mercado da Ribeira")
+		_draw_zone_label(Vector2(238.0, 548.0), "Cais do Norte")
+		_draw_zone_label(Vector2(2282.0, 714.0), "Subida da Se")
+		return
+
 	var quay_tiles: Texture2D = _get_lisboa_quay_tiles()
 	var buildings: Texture2D = _get_lisboa_buildings()
 	var props: Texture2D = _get_lisboa_props()
@@ -77,6 +186,55 @@ func _get_lisboa_backdrop() -> Texture2D:
 	return null
 
 
+func _get_lisboa_iso_quay_tiles() -> Texture2D:
+	if lisboa_iso_quay_texture != null:
+		return lisboa_iso_quay_texture
+	lisboa_iso_quay_texture = _load_optional_texture(LISBOA_ISO_QUAY_CANDIDATES)
+	return lisboa_iso_quay_texture
+
+
+func _get_lisboa_iso_buildings() -> Texture2D:
+	if lisboa_iso_buildings_texture != null:
+		return lisboa_iso_buildings_texture
+	lisboa_iso_buildings_texture = _load_optional_texture(LISBOA_ISO_BUILDINGS_CANDIDATES)
+	return lisboa_iso_buildings_texture
+
+
+func _get_lisboa_iso_props() -> Texture2D:
+	if lisboa_iso_props_texture != null:
+		return lisboa_iso_props_texture
+	lisboa_iso_props_texture = _load_optional_texture(LISBOA_ISO_PROPS_CANDIDATES)
+	return lisboa_iso_props_texture
+
+
+func _get_lisboa_iso_ships() -> Texture2D:
+	if lisboa_iso_ships_texture != null:
+		return lisboa_iso_ships_texture
+	lisboa_iso_ships_texture = _load_optional_texture(LISBOA_ISO_SHIPS_CANDIDATES)
+	return lisboa_iso_ships_texture
+
+
+func _get_lisboa_iso_crowd() -> Texture2D:
+	if lisboa_iso_crowd_texture != null:
+		return lisboa_iso_crowd_texture
+	lisboa_iso_crowd_texture = _load_optional_texture(LISBOA_ISO_CROWD_CANDIDATES)
+	return lisboa_iso_crowd_texture
+
+
+func _get_lisboa_iso_crowd_extra() -> Texture2D:
+	if lisboa_iso_crowd_extra_texture != null:
+		return lisboa_iso_crowd_extra_texture
+	lisboa_iso_crowd_extra_texture = _load_optional_texture(LISBOA_ISO_CROWD_EXTRA_CANDIDATES)
+	return lisboa_iso_crowd_extra_texture
+
+
+func _get_lisboa_iso_passages() -> Texture2D:
+	if lisboa_iso_passages_texture != null:
+		return lisboa_iso_passages_texture
+	lisboa_iso_passages_texture = _load_optional_texture(LISBOA_ISO_PASSAGES_CANDIDATES)
+	return lisboa_iso_passages_texture
+
+
 func _get_lisboa_quay_tiles() -> Texture2D:
 	if lisboa_quay_texture != null:
 		return lisboa_quay_texture
@@ -112,6 +270,51 @@ func _get_lisboa_crowd() -> Texture2D:
 	return lisboa_crowd_texture
 
 
+func _has_lisboa_iso_v2_assets(quay_tiles: Texture2D, buildings: Texture2D, props: Texture2D, ships: Texture2D, crowd: Texture2D) -> bool:
+	var has_any_texture: bool = quay_tiles != null or buildings != null or props != null or ships != null or crowd != null
+	return has_any_texture and not _get_lisboa_iso_meta().is_empty()
+
+
+func _get_lisboa_iso_meta() -> Dictionary:
+	if lisboa_iso_meta_loaded:
+		return lisboa_iso_meta
+
+	lisboa_iso_meta_loaded = true
+	if not ResourceLoader.exists(LISBOA_ISO_META_PATH):
+		return lisboa_iso_meta
+
+	var handle: FileAccess = FileAccess.open(LISBOA_ISO_META_PATH, FileAccess.READ)
+	if handle == null:
+		return lisboa_iso_meta
+
+	var parsed: Variant = JSON.parse_string(handle.get_as_text())
+	if parsed is Dictionary:
+		lisboa_iso_meta = parsed
+	return lisboa_iso_meta
+
+
+func _get_lisboa_iso_box(layer_key: String, index: int) -> Rect2:
+	var boxes: Array = _get_lisboa_iso_meta().get(layer_key, [])
+	if index < 0 or index >= boxes.size():
+		return Rect2()
+	var raw_box: Dictionary = boxes[index]
+	return Rect2(
+		float(raw_box.get("x", 0.0)),
+		float(raw_box.get("y", 0.0)),
+		float(raw_box.get("w", 0.0)),
+		float(raw_box.get("h", 0.0))
+	)
+
+
+func _get_lisboa_interactable_position(interactable_id: String, fallback: Vector2) -> Vector2:
+	for raw_interactable in interactables:
+		var interactable: Dictionary = raw_interactable
+		if str(interactable.get("id", "")) != interactable_id:
+			continue
+		return _vector_from_dict(interactable.get("position", {}))
+	return fallback
+
+
 func _load_optional_texture(candidates: Array[String]) -> Texture2D:
 	for path in candidates:
 		if not ResourceLoader.exists(path):
@@ -123,25 +326,308 @@ func _load_optional_texture(candidates: Array[String]) -> Texture2D:
 
 
 func _draw_world_modular_base() -> void:
+	var district_size: Vector2 = _get_district_size()
 	_draw_district_sky(Color(0.84, 0.9, 0.96), Color(0.97, 0.9, 0.76, 0.16))
-	_draw_district_water(Rect2(0.0, 260.0, 742.0, 820.0), Color(0.12, 0.34, 0.46), Color(0.86, 0.95, 0.98, 0.22))
-	_draw_district_water(Rect2(0.0, 738.0, 304.0, 342.0), Color(0.12, 0.31, 0.41), Color(0.86, 0.95, 0.98, 0.12))
+	draw_circle(Vector2(2220.0, 166.0), 210.0, Color(1.0, 0.95, 0.76, 0.08))
+	draw_rect(Rect2(0.0, 178.0, district_size.x, 72.0), Color(1.0, 0.96, 0.82, 0.05))
+	draw_rect(Rect2(0.0, 0.0, district_size.x, 108.0), Color(0.99, 0.95, 0.86, 0.04))
+	_draw_district_water(Rect2(0.0, 240.0, 760.0, district_size.y - 240.0), Color(0.12, 0.34, 0.46), Color(0.86, 0.95, 0.98, 0.22))
+	_draw_district_water(Rect2(0.0, 1160.0, 520.0, district_size.y - 1160.0), Color(0.11, 0.31, 0.42), Color(0.84, 0.94, 0.97, 0.12))
 	_draw_cobbled_plane([
-		Vector2(168.0, 406.0), Vector2(976.0, 406.0), Vector2(1120.0, 554.0), Vector2(306.0, 554.0)
-	], Color(0.79, 0.72, 0.61), Color(0.6, 0.49, 0.35), 9, 18)
+		Vector2(188.0, 430.0), Vector2(1128.0, 430.0), Vector2(1366.0, 648.0), Vector2(366.0, 678.0)
+	], Color(0.79, 0.72, 0.61), Color(0.6, 0.49, 0.35), 10, 20)
 	_draw_cobbled_plane([
-		Vector2(418.0, 532.0), Vector2(1566.0, 532.0), Vector2(1734.0, 760.0), Vector2(588.0, 760.0)
-	], Color(0.75, 0.68, 0.57), Color(0.57, 0.46, 0.33), 11, 22)
+		Vector2(998.0, 520.0), Vector2(2120.0, 520.0), Vector2(2360.0, 772.0), Vector2(1178.0, 792.0)
+	], Color(0.76, 0.69, 0.58), Color(0.58, 0.47, 0.34), 10, 22)
 	_draw_cobbled_plane([
-		Vector2(916.0, 206.0), Vector2(1718.0, 206.0), Vector2(1866.0, 396.0), Vector2(1060.0, 396.0)
-	], Color(0.72, 0.65, 0.54), Color(0.55, 0.44, 0.31), 7, 14)
+		Vector2(1980.0, 610.0), Vector2(3020.0, 610.0), Vector2(3140.0, 838.0), Vector2(2146.0, 860.0)
+	], Color(0.73, 0.66, 0.55), Color(0.56, 0.45, 0.32), 8, 20)
 	_draw_cobbled_plane([
-		Vector2(182.0, 698.0), Vector2(536.0, 698.0), Vector2(688.0, 856.0), Vector2(332.0, 856.0)
-	], Color(0.7, 0.63, 0.53), Color(0.52, 0.42, 0.3), 6, 10)
+		Vector2(204.0, 826.0), Vector2(896.0, 826.0), Vector2(1100.0, 1042.0), Vector2(372.0, 1082.0)
+	], Color(0.71, 0.64, 0.54), Color(0.53, 0.43, 0.31), 8, 14)
 	_draw_cobbled_plane([
-		Vector2(604.0, 758.0), Vector2(1138.0, 758.0), Vector2(1300.0, 938.0), Vector2(766.0, 938.0)
-	], Color(0.67, 0.6, 0.5), Color(0.49, 0.39, 0.28), 6, 12)
-	draw_rect(Rect2(0.0, 900.0, 1920.0, 180.0), Color(0.44, 0.36, 0.29, 0.28))
+		Vector2(884.0, 882.0), Vector2(2104.0, 882.0), Vector2(2342.0, 1192.0), Vector2(1060.0, 1222.0)
+	], Color(0.68, 0.61, 0.51), Color(0.5, 0.4, 0.29), 8, 18)
+	_draw_cobbled_plane([
+		Vector2(1910.0, 1012.0), Vector2(3058.0, 1012.0), Vector2(3158.0, 1348.0), Vector2(2034.0, 1372.0)
+	], Color(0.66, 0.59, 0.49), Color(0.48, 0.38, 0.28), 9, 18)
+	_draw_cobbled_plane([
+		Vector2(184.0, 1084.0), Vector2(760.0, 1084.0), Vector2(922.0, 1320.0), Vector2(252.0, 1378.0)
+	], Color(0.69, 0.61, 0.5), Color(0.5, 0.4, 0.29), 7, 12)
+	draw_rect(Rect2(0.0, district_size.y - 240.0, district_size.x, 240.0), Color(0.44, 0.36, 0.29, 0.28))
+	draw_rect(Rect2(0.0, 1260.0, district_size.x, 80.0), Color(1.0, 0.9, 0.78, 0.03))
+
+
+func _draw_lisboa_iso_v2_layers(
+	quay_tiles: Texture2D,
+	buildings: Texture2D,
+	props: Texture2D,
+	ships: Texture2D,
+	crowd: Texture2D,
+	crowd_extra: Texture2D,
+	passages: Texture2D
+) -> void:
+	_draw_lisboa_iso_v2_ship_layer(ships)
+	_draw_lisboa_iso_v2_quay_layer(quay_tiles)
+	_draw_lisboa_iso_v2_passage_layer(passages)
+	_draw_lisboa_iso_v2_building_layer(buildings)
+	_draw_lisboa_iso_v2_props_layer(props)
+	_draw_lisboa_iso_v2_crowd_extra_layer(crowd_extra)
+	_draw_lisboa_iso_v2_crowd_layer(crowd)
+
+
+func _draw_lisboa_iso_v2_quay_layer(quay_tiles: Texture2D) -> void:
+	if quay_tiles == null:
+		return
+	var placements: Array = [
+		{"index": 10, "position": Vector2(946.0, 236.0), "scale": 0.92, "alpha": 0.82},
+		{"index": 21, "position": Vector2(128.0, 430.0), "scale": 1.05, "alpha": 0.94},
+		{"index": 24, "position": Vector2(1358.0, 576.0), "scale": 0.9, "alpha": 0.9},
+		{"index": 27, "position": Vector2(132.0, 516.0), "scale": 0.95, "alpha": 0.98},
+		{"index": 28, "position": Vector2(522.0, 544.0), "scale": 1.0, "alpha": 0.98},
+		{"index": 31, "position": Vector2(160.0, 734.0), "scale": 0.9, "alpha": 0.9},
+		{"index": 32, "position": Vector2(760.0, 792.0), "scale": 0.82, "alpha": 0.88},
+		{"index": 28, "position": Vector2(1682.0, 600.0), "scale": 1.0, "alpha": 0.98},
+		{"index": 24, "position": Vector2(2228.0, 692.0), "scale": 0.92, "alpha": 0.92},
+		{"index": 10, "position": Vector2(2406.0, 566.0), "scale": 0.98, "alpha": 0.84},
+		{"index": 31, "position": Vector2(2408.0, 1144.0), "scale": 0.9, "alpha": 0.88},
+		{"index": 32, "position": Vector2(1940.0, 1084.0), "scale": 0.84, "alpha": 0.86}
+	]
+	for raw_placement in placements:
+		var placement: Dictionary = raw_placement
+		_draw_lisboa_iso_component(
+			quay_tiles,
+			"ground",
+			int(placement.get("index", -1)),
+			placement.get("position", Vector2.ZERO),
+			float(placement.get("scale", 1.0)),
+			float(placement.get("alpha", 1.0))
+		)
+
+
+func _draw_lisboa_iso_v2_building_layer(buildings: Texture2D) -> void:
+	if buildings == null:
+		return
+	var placements: Array = [
+		{"index": 5, "position": Vector2(256.0, 214.0), "scale": 1.0, "alpha": 0.98},
+		{"index": 8, "position": Vector2(1040.0, 176.0), "scale": 1.0, "alpha": 0.99},
+		{"index": 9, "position": Vector2(1366.0, 210.0), "scale": 0.9, "alpha": 0.98},
+		{"index": 10, "position": Vector2(248.0, 558.0), "scale": 0.86, "alpha": 0.96},
+		{"index": 11, "position": Vector2(676.0, 360.0), "scale": 0.88, "alpha": 0.96},
+		{"index": 6, "position": Vector2(1090.0, 386.0), "scale": 0.86, "alpha": 0.97},
+		{"index": 13, "position": Vector2(1314.0, 402.0), "scale": 0.86, "alpha": 0.97},
+		{"index": 11, "position": Vector2(1762.0, 472.0), "scale": 0.9, "alpha": 0.97},
+		{"index": 6, "position": Vector2(2096.0, 430.0), "scale": 0.86, "alpha": 0.97},
+		{"index": 13, "position": Vector2(2442.0, 456.0), "scale": 0.88, "alpha": 0.97},
+		{"index": 8, "position": Vector2(2696.0, 360.0), "scale": 0.94, "alpha": 0.98},
+		{"index": 10, "position": Vector2(2202.0, 860.0), "scale": 0.84, "alpha": 0.94}
+	]
+	for raw_placement in placements:
+		var placement: Dictionary = raw_placement
+		_draw_lisboa_iso_component(
+			buildings,
+			"buildings",
+			int(placement.get("index", -1)),
+			placement.get("position", Vector2.ZERO),
+			float(placement.get("scale", 1.0)),
+			float(placement.get("alpha", 1.0))
+		)
+
+	var rossio_pos: Vector2 = _get_lisboa_interactable_position("to_rossio", Vector2(1324.0, 646.0))
+	var se_pos: Vector2 = _get_lisboa_interactable_position("to_se", Vector2(1176.0, 598.0))
+	var estaleiro_pos: Vector2 = _get_lisboa_interactable_position("to_estaleiro", Vector2(270.0, 792.0))
+	_draw_lisboa_iso_component_anchored(buildings, "buildings", 0, rossio_pos + Vector2(66.0, -8.0), 0.86, Vector2(0.5, 1.0), 0.98)
+	_draw_lisboa_iso_component_anchored(buildings, "buildings", 6, se_pos + Vector2(26.0, 18.0), 0.8, Vector2(0.5, 1.0), 0.97)
+	_draw_lisboa_iso_component_anchored(buildings, "buildings", 10, estaleiro_pos + Vector2(190.0, 28.0), 0.9, Vector2(0.5, 1.0), 0.95)
+
+
+func _draw_lisboa_iso_v2_passage_layer(passages: Texture2D) -> void:
+	if passages == null:
+		return
+	var roteiros_pos: Vector2 = _get_lisboa_interactable_position("casa_dos_roteiros", Vector2(820.0, 438.0))
+	var caravela_pos: Vector2 = _get_lisboa_interactable_position("caravela_do_norte", Vector2(246.0, 406.0))
+	var rossio_pos: Vector2 = _get_lisboa_interactable_position("to_rossio", Vector2(1324.0, 646.0))
+	var se_pos: Vector2 = _get_lisboa_interactable_position("to_se", Vector2(1176.0, 598.0))
+	var estaleiro_pos: Vector2 = _get_lisboa_interactable_position("to_estaleiro", Vector2(270.0, 792.0))
+	var placements: Array = [
+		{"index": 10, "anchor_position": caravela_pos + Vector2(168.0, 118.0), "scale": 0.72, "alpha": 0.88},
+		{"index": 9, "anchor_position": roteiros_pos + Vector2(154.0, 54.0), "scale": 0.72, "alpha": 0.93},
+		{"index": 18, "anchor_position": se_pos + Vector2(54.0, 42.0), "scale": 0.8, "alpha": 0.97},
+		{"index": 16, "anchor_position": rossio_pos + Vector2(74.0, 38.0), "scale": 0.82, "alpha": 0.98},
+		{"index": 15, "anchor_position": estaleiro_pos + Vector2(142.0, 14.0), "scale": 0.84, "alpha": 0.95},
+		{"index": 13, "anchor_position": Vector2(1840.0, 944.0), "scale": 0.76, "alpha": 0.9},
+		{"index": 11, "anchor_position": Vector2(2060.0, 820.0), "scale": 0.74, "alpha": 0.9}
+	]
+	for raw_placement in placements:
+		var placement: Dictionary = raw_placement
+		_draw_lisboa_iso_component_anchored(
+			passages,
+			"passages",
+			int(placement.get("index", -1)),
+			placement.get("anchor_position", Vector2.ZERO),
+			float(placement.get("scale", 1.0)),
+			Vector2(0.5, 1.0),
+			float(placement.get("alpha", 1.0))
+		)
+
+
+func _draw_lisboa_iso_v2_ship_layer(ships: Texture2D) -> void:
+	if ships == null:
+		return
+	var ship_time: float = district_time * 1.15
+	var placements: Array = [
+		{"index": 1, "position": Vector2(18.0, 236.0), "scale": 0.58, "alpha": 0.98, "bob": 3.2, "phase": 0.0},
+		{"index": 0, "position": Vector2(292.0, 250.0), "scale": 0.62, "alpha": 0.96, "bob": 2.6, "phase": 0.6},
+		{"index": 3, "position": Vector2(42.0, 458.0), "scale": 0.72, "alpha": 0.9, "bob": 1.8, "phase": 1.2},
+		{"index": 4, "position": Vector2(114.0, 792.0), "scale": 0.92, "alpha": 0.84, "bob": 0.9, "phase": 2.0}
+	]
+	for raw_placement in placements:
+		var placement: Dictionary = raw_placement
+		var position: Vector2 = placement.get("position", Vector2.ZERO)
+		position.y += sin(ship_time + float(placement.get("phase", 0.0))) * float(placement.get("bob", 0.0))
+		_draw_lisboa_iso_component(
+			ships,
+			"ships",
+			int(placement.get("index", -1)),
+			position,
+			float(placement.get("scale", 1.0)),
+			float(placement.get("alpha", 1.0))
+		)
+
+
+func _draw_lisboa_iso_v2_props_layer(props: Texture2D) -> void:
+	if props == null:
+		return
+	var cloth_wave: float = sin(district_time * 2.0) * 6.0
+	var placements: Array = [
+		{"index": 22, "position": Vector2(198.0, 718.0), "scale": 0.62, "alpha": 0.94},
+		{"index": 23, "position": Vector2(856.0, 650.0 - cloth_wave * 0.25), "scale": 0.72, "alpha": 0.93},
+		{"index": 24, "position": Vector2(1146.0, 600.0 + cloth_wave * 0.35), "scale": 0.74, "alpha": 0.98},
+		{"index": 8, "position": Vector2(1542.0, 466.0), "scale": 0.56, "alpha": 0.9},
+		{"index": 13, "position": Vector2(566.0, 714.0), "scale": 0.66, "alpha": 0.9},
+		{"index": 21, "position": Vector2(1358.0, 812.0), "scale": 0.82, "alpha": 0.86},
+		{"index": 24, "position": Vector2(1698.0, 928.0 + cloth_wave * 0.25), "scale": 0.72, "alpha": 0.96},
+		{"index": 23, "position": Vector2(1976.0, 904.0 - cloth_wave * 0.2), "scale": 0.7, "alpha": 0.94},
+		{"index": 22, "position": Vector2(2340.0, 1086.0), "scale": 0.62, "alpha": 0.9},
+		{"index": 8, "position": Vector2(2664.0, 858.0), "scale": 0.56, "alpha": 0.88},
+		{"index": 13, "position": Vector2(2870.0, 1214.0), "scale": 0.74, "alpha": 0.9}
+	]
+	for raw_placement in placements:
+		var placement: Dictionary = raw_placement
+		_draw_lisboa_iso_component(
+			props,
+			"harbor_props",
+			int(placement.get("index", -1)),
+			placement.get("position", Vector2.ZERO),
+			float(placement.get("scale", 1.0)),
+			float(placement.get("alpha", 1.0))
+		)
+
+	var casa_pasto_pos: Vector2 = _get_lisboa_interactable_position("casa_de_pasto_da_ribeira", Vector2(522.0, 678.0))
+	var roteiros_pos: Vector2 = _get_lisboa_interactable_position("casa_dos_roteiros", Vector2(820.0, 438.0))
+	var caravela_pos: Vector2 = _get_lisboa_interactable_position("caravela_do_norte", Vector2(246.0, 406.0))
+	_draw_lisboa_iso_component_anchored(props, "harbor_props", 24, casa_pasto_pos + Vector2(58.0, 98.0 + cloth_wave * 0.18), 0.62, Vector2(0.5, 1.0), 0.99)
+	_draw_lisboa_iso_component_anchored(props, "harbor_props", 23, roteiros_pos + Vector2(58.0, 112.0 - cloth_wave * 0.1), 0.58, Vector2(0.5, 1.0), 0.97)
+	_draw_lisboa_iso_component_anchored(props, "harbor_props", 22, Vector2(320.0, 872.0), 0.56, Vector2(0.5, 1.0), 0.94)
+	_draw_lisboa_iso_component_anchored(props, "harbor_props", 3, caravela_pos + Vector2(220.0, 108.0), 0.36, Vector2(0.0, 1.0), 0.9)
+
+
+func _draw_lisboa_iso_v2_crowd_layer(crowd: Texture2D) -> void:
+	if crowd == null:
+		return
+	var placements: Array = [
+		{"index": 0, "position": Vector2(296.0, 356.0), "scale": 0.28, "phase": 0.0},
+		{"index": 4, "position": Vector2(1200.0, 708.0), "scale": 0.25, "phase": 0.8},
+		{"index": 5, "position": Vector2(1142.0, 648.0), "scale": 0.24, "phase": 1.3},
+		{"index": 6, "position": Vector2(728.0, 636.0), "scale": 0.24, "phase": 1.8},
+		{"index": 7, "position": Vector2(1440.0, 700.0), "scale": 0.25, "phase": 2.2},
+		{"index": 8, "position": Vector2(800.0, 402.0), "scale": 0.22, "phase": 2.8},
+		{"index": 9, "position": Vector2(388.0, 672.0), "scale": 0.21, "phase": 3.4},
+		{"index": 10, "position": Vector2(942.0, 724.0), "scale": 0.21, "phase": 4.0},
+		{"index": 11, "position": Vector2(542.0, 718.0), "scale": 0.2, "phase": 4.6},
+		{"index": 4, "position": Vector2(1770.0, 998.0), "scale": 0.24, "phase": 5.1},
+		{"index": 6, "position": Vector2(2128.0, 716.0), "scale": 0.24, "phase": 5.6},
+		{"index": 8, "position": Vector2(2480.0, 772.0), "scale": 0.22, "phase": 6.0},
+		{"index": 10, "position": Vector2(2580.0, 1126.0), "scale": 0.21, "phase": 6.5}
+	]
+	for raw_placement in placements:
+		var placement: Dictionary = raw_placement
+		var position: Vector2 = placement.get("position", Vector2.ZERO)
+		position.y += sin(district_time * 2.4 + float(placement.get("phase", 0.0))) * 2.2
+		_draw_lisboa_iso_component(
+			crowd,
+			"crowd",
+			int(placement.get("index", -1)),
+			position,
+			float(placement.get("scale", 1.0)),
+			0.98
+		)
+
+	var duarte_pos: Vector2 = _get_lisboa_interactable_position("capitao_duarte", Vector2(566.0, 350.0))
+	var tome_pos: Vector2 = _get_lisboa_interactable_position("velho_tome", Vector2(736.0, 654.0))
+	var casa_pasto_pos: Vector2 = _get_lisboa_interactable_position("casa_de_pasto_da_ribeira", Vector2(522.0, 678.0))
+	var roteiros_pos: Vector2 = _get_lisboa_interactable_position("casa_dos_roteiros", Vector2(820.0, 438.0))
+	var rossio_pos: Vector2 = _get_lisboa_interactable_position("to_rossio", Vector2(1324.0, 646.0))
+	var se_pos: Vector2 = _get_lisboa_interactable_position("to_se", Vector2(1176.0, 598.0))
+	var pulse: float = sin(district_time * 2.2) * 1.6
+	_draw_lisboa_iso_component_anchored(crowd, "crowd", 11, duarte_pos + Vector2(-46.0, 18.0 + pulse), 0.26, Vector2(0.5, 1.0), 0.99)
+	_draw_lisboa_iso_component_anchored(crowd, "crowd", 9, tome_pos + Vector2(32.0, 18.0 - pulse), 0.25, Vector2(0.5, 1.0), 0.99)
+	_draw_lisboa_iso_component_anchored(crowd, "crowd", 10, casa_pasto_pos + Vector2(-28.0, 20.0 + pulse * 0.7), 0.24, Vector2(0.5, 1.0), 0.99)
+	_draw_lisboa_iso_component_anchored(crowd, "crowd", 7, roteiros_pos + Vector2(34.0, 20.0 - pulse * 0.7), 0.24, Vector2(0.5, 1.0), 0.99)
+	_draw_lisboa_iso_component_anchored(crowd, "crowd", 1, rossio_pos + Vector2(-42.0, 20.0 + pulse * 0.5), 0.23, Vector2(0.5, 1.0), 0.98)
+	_draw_lisboa_iso_component_anchored(crowd, "crowd", 6, se_pos + Vector2(40.0, 18.0 - pulse * 0.5), 0.23, Vector2(0.5, 1.0), 0.98)
+
+
+func _draw_lisboa_iso_v2_crowd_extra_layer(crowd_extra: Texture2D) -> void:
+	if crowd_extra == null:
+		return
+	var casa_pasto_pos: Vector2 = _get_lisboa_interactable_position("casa_de_pasto_da_ribeira", Vector2(522.0, 678.0))
+	var roteiros_pos: Vector2 = _get_lisboa_interactable_position("casa_dos_roteiros", Vector2(820.0, 438.0))
+	var caravela_pos: Vector2 = _get_lisboa_interactable_position("caravela_do_norte", Vector2(246.0, 406.0))
+	var rossio_pos: Vector2 = _get_lisboa_interactable_position("to_rossio", Vector2(1324.0, 646.0))
+	var se_pos: Vector2 = _get_lisboa_interactable_position("to_se", Vector2(1176.0, 598.0))
+	var duarte_pos: Vector2 = _get_lisboa_interactable_position("capitao_duarte", Vector2(566.0, 350.0))
+	var tome_pos: Vector2 = _get_lisboa_interactable_position("velho_tome", Vector2(736.0, 654.0))
+	var pulse: float = sin(district_time * 1.8) * 1.4
+	var placements: Array = [
+		{"index": 4, "anchor_position": duarte_pos + Vector2(106.0, 12.0 + pulse * 0.3), "scale": 0.18, "alpha": 0.97},
+		{"index": 7, "anchor_position": roteiros_pos + Vector2(132.0, 28.0 - pulse * 0.2), "scale": 0.18, "alpha": 0.97},
+		{"index": 8, "anchor_position": se_pos + Vector2(-104.0, 22.0 + pulse * 0.25), "scale": 0.17, "alpha": 0.97},
+		{"index": 9, "anchor_position": rossio_pos + Vector2(-114.0, 18.0 - pulse * 0.2), "scale": 0.17, "alpha": 0.97},
+		{"index": 11, "anchor_position": casa_pasto_pos + Vector2(118.0, 28.0 + pulse * 0.3), "scale": 0.19, "alpha": 0.97},
+		{"index": 14, "anchor_position": tome_pos + Vector2(104.0, 20.0 - pulse * 0.3), "scale": 0.18, "alpha": 0.97},
+		{"index": 18, "anchor_position": caravela_pos + Vector2(210.0, 118.0 + pulse * 0.2), "scale": 0.17, "alpha": 0.94},
+		{"index": 12, "anchor_position": Vector2(2060.0, 1044.0 + pulse * 0.2), "scale": 0.18, "alpha": 0.96},
+		{"index": 13, "anchor_position": Vector2(2440.0, 1160.0 - pulse * 0.25), "scale": 0.18, "alpha": 0.96}
+	]
+	for raw_placement in placements:
+		var placement: Dictionary = raw_placement
+		_draw_lisboa_iso_component_anchored(
+			crowd_extra,
+			"crowd_extra",
+			int(placement.get("index", -1)),
+			placement.get("anchor_position", Vector2.ZERO),
+			float(placement.get("scale", 1.0)),
+			Vector2(0.5, 1.0),
+			float(placement.get("alpha", 1.0))
+		)
+
+
+func _draw_lisboa_iso_component(texture: Texture2D, layer_key: String, index: int, position: Vector2, scale_value: float, alpha: float = 1.0) -> void:
+	var source_rect: Rect2 = _get_lisboa_iso_box(layer_key, index)
+	if texture == null or source_rect.size.x <= 0.0 or source_rect.size.y <= 0.0:
+		return
+	var dest_rect := Rect2(position, source_rect.size * scale_value)
+	_draw_stamp(texture, source_rect, dest_rect, Color(1.0, 1.0, 1.0, alpha))
+
+
+func _draw_lisboa_iso_component_anchored(texture: Texture2D, layer_key: String, index: int, anchor_position: Vector2, scale_value: float, anchor: Vector2 = Vector2(0.5, 1.0), alpha: float = 1.0) -> void:
+	var source_rect: Rect2 = _get_lisboa_iso_box(layer_key, index)
+	if texture == null or source_rect.size.x <= 0.0 or source_rect.size.y <= 0.0:
+		return
+	var size: Vector2 = source_rect.size * scale_value
+	var top_left: Vector2 = anchor_position - Vector2(size.x * anchor.x, size.y * anchor.y)
+	_draw_stamp(texture, source_rect, Rect2(top_left, size), Color(1.0, 1.0, 1.0, alpha))
 
 
 func _draw_lisboa_modular_layers(quay_tiles: Texture2D, props: Texture2D, buildings: Texture2D, ships: Texture2D, crowd: Texture2D) -> void:

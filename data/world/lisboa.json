@@ -6,8 +6,8 @@
       "label": "Capitao Duarte",
       "prompt": "Carrega E para falar com o Capitao Duarte.",
       "position": {
-        "x": 566.0,
-        "y": 350.0
+        "x": 1080.0,
+        "y": 560.0
       },
       "radius": 92.0,
       "draw_radius": 22.0,
@@ -27,8 +27,8 @@
       "label": "Velho Tome",
       "prompt": "Carrega E para escutar o velho marinheiro.",
       "position": {
-        "x": 736.0,
-        "y": 654.0
+        "x": 1740.0,
+        "y": 1088.0
       },
       "radius": 90.0,
       "draw_radius": 20.0,
@@ -41,8 +41,8 @@
       "label": "Casa de Pasto",
       "prompt": "Carrega E para entrar na Casa de Pasto da Ribeira.",
       "position": {
-        "x": 522.0,
-        "y": 678.0
+        "x": 1280.0,
+        "y": 1048.0
       },
       "radius": 94.0,
       "draw_radius": 22.0,
@@ -55,8 +55,8 @@
       "label": "Casa dos Roteiros",
       "prompt": "Carrega E para consultar cartas e pergaminhos.",
       "position": {
-        "x": 820.0,
-        "y": 438.0
+        "x": 1420.0,
+        "y": 776.0
       },
       "radius": 90.0,
       "draw_radius": 22.0,
@@ -69,8 +69,8 @@
       "label": "Caravela do Norte",
       "prompt": "Carrega E para embarcar rumo ao Porto.",
       "position": {
-        "x": 246.0,
-        "y": 406.0
+        "x": 346.0,
+        "y": 548.0
       },
       "radius": 94.0,
       "draw_radius": 24.0,
@@ -90,8 +90,8 @@
       "label": "Para o Rossio",
       "prompt": "Carrega E para seguir ao Rossio.",
       "position": {
-        "x": 1324.0,
-        "y": 646.0
+        "x": 2710.0,
+        "y": 1038.0
       },
       "radius": 92.0,
       "draw_radius": 22.0,
@@ -109,8 +109,8 @@
       "label": "Rua da Se",
       "prompt": "Carrega E para subir a rua da Se.",
       "position": {
-        "x": 1176.0,
-        "y": 598.0
+        "x": 2360.0,
+        "y": 786.0
       },
       "radius": 88.0,
       "draw_radius": 20.0,
@@ -128,8 +128,8 @@
       "label": "Para o Estaleiro",
       "prompt": "Carrega E para descer ao estaleiro.",
       "position": {
-        "x": 270.0,
-        "y": 792.0
+        "x": 358.0,
+        "y": 1218.0
       },
       "radius": 94.0,
       "draw_radius": 22.0,
