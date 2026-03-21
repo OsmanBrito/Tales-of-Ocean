@@ -8,7 +8,7 @@
 script = ExtResource("1")
 world_data_path = "res://data/world/lisboa.json"
 scene_id = "lisboa"
-default_spawn_position = Vector2(320, 980)
+default_spawn_position = Vector2(1260, 1012)
 scene_path = "res://scenes/world/lisboa.tscn"
 
 [node name="Player" type="Node2D" parent="."]
@@ -21,6 +21,7 @@ position_smoothing_speed = 6.5
 limit_smoothed = true
 
 [node name="ForegroundOverlay" type="Node2D" parent="."]
+visible = false
 z_index = 3
 script = ExtResource("3")
 

@@ -42,17 +42,20 @@ func _draw_district_water(area: Rect2, deep_color: Color, glow_color: Color) -> 
 func _draw_cobbled_plane(corners: Array, fill: Color, edge: Color, rows: int, cols: int) -> void:
 	var polygon := _poly(corners)
 	draw_colored_polygon(polygon, fill)
-	draw_polyline(polygon, edge, 3.0, true)
+	var outline := Color(edge.r, edge.g, edge.b, 0.56)
+	var seam_dark := Color(edge.darkened(0.06).r, edge.darkened(0.06).g, edge.darkened(0.06).b, 0.16)
+	var seam_light := Color(edge.lightened(0.04).r, edge.lightened(0.04).g, edge.lightened(0.04).b, 0.12)
+	draw_polyline(polygon, outline, 2.0, true)
 	var a: Vector2 = corners[0]
 	var b: Vector2 = corners[1]
 	var c: Vector2 = corners[2]
 	var d: Vector2 = corners[3]
 	for row in range(1, rows):
 		var t: float = float(row) / float(rows)
-		draw_line(a.lerp(d, t), b.lerp(c, t), edge.darkened(0.06), 1.0)
+		draw_line(a.lerp(d, t), b.lerp(c, t), seam_dark, 1.0)
 	for col in range(1, cols):
 		var u: float = float(col) / float(cols)
-		draw_line(a.lerp(b, u), d.lerp(c, u), edge.lightened(0.04), 1.0)
+		draw_line(a.lerp(b, u), d.lerp(c, u), seam_light, 1.0)
 
 
 func _draw_iso_building(front_rect: Rect2, wall_color: Color, roof_color: Color, trim_color: Color, door_color: Color, window_color: Color, windows_x: int = 2, windows_y: int = 1, depth_scale: float = 1.0) -> void:

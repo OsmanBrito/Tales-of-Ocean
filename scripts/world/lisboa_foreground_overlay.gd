@@ -34,16 +34,20 @@ func _draw() -> void:
 	var se_pos: Vector2 = _get_root_position(root, "to_se", Vector2(1176.0, 598.0))
 
 	var placements: Array = [
-		{"index": 19, "anchor_position": Vector2(156.0, 708.0), "scale": 0.72, "alpha": 0.94},
-		{"index": 2, "anchor_position": caravela_pos + Vector2(246.0, 122.0), "scale": 0.42, "alpha": 0.98},
-		{"index": 11, "anchor_position": roteiros_pos + Vector2(88.0, 74.0), "scale": 0.44, "alpha": 0.98},
-		{"index": 21, "anchor_position": casa_pasto_pos + Vector2(74.0, 76.0), "scale": 0.48, "alpha": 0.99},
-		{"index": 1, "anchor_position": rossio_pos + Vector2(88.0, -32.0), "scale": 0.42, "alpha": 0.94},
-		{"index": 16, "anchor_position": se_pos + Vector2(10.0, 108.0), "scale": 0.52, "alpha": 0.92},
-		{"index": 25, "anchor_position": Vector2(1116.0, 918.0), "scale": 0.7, "alpha": 0.9},
-		{"index": 25, "anchor_position": Vector2(2440.0, 1320.0), "scale": 0.7, "alpha": 0.88},
-		{"index": 21, "anchor_position": Vector2(1940.0, 1004.0), "scale": 0.48, "alpha": 0.94},
-		{"index": 11, "anchor_position": Vector2(2132.0, 846.0), "scale": 0.46, "alpha": 0.96}
+		{"index": 19, "anchor_position": Vector2(444.0, 748.0), "scale": 0.68, "alpha": 0.92},
+		{"index": 2, "anchor_position": caravela_pos + Vector2(246.0, 124.0), "scale": 0.42, "alpha": 0.98},
+		{"index": 21, "anchor_position": roteiros_pos + Vector2(92.0, 86.0), "scale": 0.42, "alpha": 0.98},
+		{"index": 20, "anchor_position": casa_pasto_pos + Vector2(92.0, 110.0), "scale": 0.44, "alpha": 0.99},
+		{"index": 11, "anchor_position": Vector2(866.0, 964.0), "scale": 0.4, "alpha": 0.94},
+		{"index": 1, "anchor_position": Vector2(1290.0, 988.0), "scale": 0.46, "alpha": 0.96},
+		{"index": 21, "anchor_position": Vector2(1504.0, 1132.0), "scale": 0.42, "alpha": 0.96},
+		{"index": 22, "anchor_position": Vector2(1596.0, 942.0), "scale": 0.44, "alpha": 0.98},
+		{"index": 22, "anchor_position": Vector2(1820.0, 1064.0), "scale": 0.42, "alpha": 0.96},
+		{"index": 11, "anchor_position": Vector2(1044.0, 1118.0), "scale": 0.42, "alpha": 0.98},
+		{"index": 16, "anchor_position": se_pos + Vector2(6.0, 108.0), "scale": 0.5, "alpha": 0.92},
+		{"index": 24, "anchor_position": rossio_pos + Vector2(90.0, 112.0), "scale": 0.54, "alpha": 0.92},
+		{"index": 25, "anchor_position": Vector2(1818.0, 1100.0), "scale": 0.68, "alpha": 0.88},
+		{"index": 25, "anchor_position": Vector2(2438.0, 1326.0), "scale": 0.64, "alpha": 0.86}
 	]
 	for raw_placement in placements:
 		var placement: Dictionary = raw_placement

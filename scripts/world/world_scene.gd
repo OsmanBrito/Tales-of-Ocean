@@ -206,16 +206,24 @@ func _draw_stall(area: Rect2, cloth_color: Color, wood_color: Color) -> void:
 
 
 func _draw_interactables() -> void:
+	var focus_interactable: Dictionary = _find_nearest_interactable()
+	var focus_id: String = str(focus_interactable.get("id", ""))
 	for raw_interactable in interactables:
 		var interactable: Dictionary = raw_interactable
 		if not _is_interactable_available(interactable):
 			continue
 
+		var interactable_id: String = str(interactable.get("id", ""))
 		var position: Vector2 = _vector_from_dict(interactable.get("position", {}))
 		var label: String = interactable.get("label", "")
+		var radius: float = float(interactable.get("radius", 90.0))
 		var draw_radius: float = float(interactable.get("draw_radius", 22.0))
 		var color: Color = Color(interactable.get("color", "ffffff"))
-		draw_circle(position + Vector2(0.0, 18.0), draw_radius * 0.65, Color(0, 0, 0, 0.18))
+		var distance_to_player: float = INF if player == null else player.position.distance_to(position)
+		var is_focus: bool = interactable_id == focus_id
+		var show_label_plate: bool = is_focus or distance_to_player <= maxf(radius * 1.45, 176.0)
+		var marker_alpha: float = 1.0 if show_label_plate else 0.82
+		draw_circle(position + Vector2(0.0, 18.0), draw_radius * 0.65, Color(0, 0, 0, 0.16 * marker_alpha))
 		var interactable_type: String = interactable.get("type", "dialogue")
 		if interactable_type == "encounter":
 			var diamond := PackedVector2Array([
@@ -224,20 +232,22 @@ func _draw_interactables() -> void:
 				position + Vector2(0.0, draw_radius),
 				position + Vector2(-draw_radius * 0.9, 0.0)
 			])
-			draw_colored_polygon(diamond, color)
+			draw_colored_polygon(diamond, Color(color.r, color.g, color.b, marker_alpha))
 			draw_line(position + Vector2(-8.0, 0.0), position + Vector2(8.0, 0.0), Color.WHITE, 2.0)
 			draw_line(position + Vector2(0.0, -8.0), position + Vector2(0.0, 8.0), Color.WHITE, 2.0)
 		elif interactable_type == "transition":
 			var gate_rect := Rect2(position + Vector2(-16.0, -draw_radius), Vector2(32.0, draw_radius * 1.8))
-			draw_rect(gate_rect, color)
-			draw_rect(Rect2(gate_rect.position + Vector2(5.0, 6.0), gate_rect.size - Vector2(10.0, 6.0)), color.lightened(0.12), false, 2.0)
+			draw_rect(gate_rect, Color(color.r, color.g, color.b, marker_alpha))
+			draw_rect(Rect2(gate_rect.position + Vector2(5.0, 6.0), gate_rect.size - Vector2(10.0, 6.0)), Color(color.lightened(0.12).r, color.lightened(0.12).g, color.lightened(0.12).b, marker_alpha), false, 2.0)
 			draw_line(position + Vector2(-8.0, 8.0), position + Vector2(8.0, 8.0), Color.WHITE, 2.0)
 			draw_line(position + Vector2(2.0, 0.0), position + Vector2(8.0, 8.0), Color.WHITE, 2.0)
 			draw_line(position + Vector2(2.0, 16.0), position + Vector2(8.0, 8.0), Color.WHITE, 2.0)
 		else:
-			draw_rect(Rect2(position + Vector2(-12.0, -draw_radius), Vector2(24.0, draw_radius * 1.6)), color)
-			draw_rect(Rect2(position + Vector2(-4.0, draw_radius * 0.55), Vector2(8.0, 18.0)), color.darkened(0.25))
-			draw_circle(position + Vector2(0.0, -draw_radius), 10.0, color.lightened(0.12))
+			draw_rect(Rect2(position + Vector2(-12.0, -draw_radius), Vector2(24.0, draw_radius * 1.6)), Color(color.r, color.g, color.b, marker_alpha))
+			draw_rect(Rect2(position + Vector2(-4.0, draw_radius * 0.55), Vector2(8.0, 18.0)), Color(color.darkened(0.25).r, color.darkened(0.25).g, color.darkened(0.25).b, marker_alpha))
+			draw_circle(position + Vector2(0.0, -draw_radius), 10.0, Color(color.lightened(0.12).r, color.lightened(0.12).g, color.lightened(0.12).b, marker_alpha))
+		if not show_label_plate:
+			continue
 		var plate_size := Vector2(max(120.0, label.length() * 9.4), 28.0)
 		var plate_rect := Rect2(position + Vector2(-plate_size.x * 0.5, -draw_radius - 44.0), plate_size)
 		draw_rect(plate_rect, Color(0.05, 0.12, 0.2, 0.72))

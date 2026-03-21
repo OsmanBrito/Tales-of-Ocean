@@ -1278,12 +1278,186 @@ func _play_sfx(sound_id: String, pitch_jitter: float = 0.03, volume_db: float = 
 	player.play()
 
 
-func _play_skill_sfx(skill: Dictionary, is_enemy: bool = false) -> void:
+func _is_support_skill(skill: Dictionary) -> bool:
+	var effect_id: String = str(skill.get("effect", ""))
+	return effect_id == "defend_buff" or effect_id == "guard_stance" or effect_id == "speed_boost"
+
+
+func _parse_skill_color(raw_value: Variant, fallback: Color) -> Color:
+	var raw_type: int = typeof(raw_value)
+	if raw_type == TYPE_ARRAY:
+		var raw_array: Array = raw_value
+		if raw_array.size() >= 3:
+			return Color(
+				float(raw_array[0]),
+				float(raw_array[1]),
+				float(raw_array[2]),
+				float(raw_array[3]) if raw_array.size() > 3 else 1.0
+			)
+	elif raw_type == TYPE_DICTIONARY:
+		var raw_dict: Dictionary = raw_value
+		return Color(
+			float(raw_dict.get("r", fallback.r)),
+			float(raw_dict.get("g", fallback.g)),
+			float(raw_dict.get("b", fallback.b)),
+			float(raw_dict.get("a", fallback.a))
+		)
+	elif raw_type == TYPE_STRING:
+		var color_text: String = str(raw_value).strip_edges()
+		if not color_text.is_empty():
+			return Color.from_string(color_text, fallback)
+	return fallback
+
+
+func _get_color_energy_profile(accent_color: Color) -> Dictionary:
+	var red: float = clampf(accent_color.r, 0.0, 1.0)
+	var green: float = clampf(accent_color.g, 0.0, 1.0)
+	var blue: float = clampf(accent_color.b, 0.0, 1.0)
+	var max_channel: float = maxf(red, maxf(green, blue))
+	var min_channel: float = minf(red, minf(green, blue))
+	var chroma: float = max_channel - min_channel
+	var brightness: float = max_channel
+	var saturation: float = 0.0 if max_channel <= 0.001 else chroma / max_channel
+	var hue: float = 0.0
+	if chroma > 0.0001:
+		if is_equal_approx(max_channel, red):
+			hue = fmod(((green - blue) / chroma), 6.0)
+		elif is_equal_approx(max_channel, green):
+			hue = ((blue - red) / chroma) + 2.0
+		else:
+			hue = ((red - green) / chroma) + 4.0
+		hue /= 6.0
+		if hue < 0.0:
+			hue += 1.0
+
+	var family: String = "neutral"
+	if chroma <= 0.05:
+		family = "neutral"
+	elif hue >= 0.48 and hue <= 0.63:
+		family = "sea"
+	elif hue >= 0.09 and hue <= 0.17:
+		family = "solar"
+	elif hue >= 0.24 and hue <= 0.42:
+		family = "verdant"
+	elif hue >= 0.68 and hue <= 0.88:
+		family = "mystic"
+	elif hue <= 0.08 or hue >= 0.95:
+		family = "ember"
+	elif red >= blue and red >= green:
+		family = "ember"
+	elif blue >= red and blue >= green:
+		family = "sea"
+
+	var energy: float = clampf(0.92 + saturation * 0.34 + brightness * 0.18, 0.92, 1.42)
+	var motion_boost: float = 1.0 + (energy - 1.0) * 0.46
+	var rotation_boost: float = 1.0 + saturation * 0.3
+	var flash_alpha: float = clampf(0.05 + saturation * 0.05 + brightness * 0.03, 0.05, 0.16)
+	var zoom_bonus: float = saturation * 0.009 + brightness * 0.006
+	var shake_bonus: float = saturation * 0.18 + brightness * 0.08
+	var contact_extension: float = saturation * 0.02
+	var lift_bonus: float = 0.0
+	var origin_echo_vfx: String = "spark"
+	var impact_echo_vfx: String = "spark"
+	match family:
+		"sea":
+			lift_bonus = 2.4
+			origin_echo_vfx = "splash"
+			impact_echo_vfx = "arc"
+		"ember":
+			lift_bonus = 1.2
+			origin_echo_vfx = "slash"
+			impact_echo_vfx = "bleed_strong"
+			flash_alpha += 0.014
+		"solar":
+			lift_bonus = 3.8
+			origin_echo_vfx = "spark"
+			impact_echo_vfx = "arc"
+			flash_alpha += 0.02
+			contact_extension += 0.015
+		"verdant":
+			lift_bonus = 1.8
+			origin_echo_vfx = "arc"
+			impact_echo_vfx = "dust"
+		"mystic":
+			lift_bonus = 2.2
+			origin_echo_vfx = "arc"
+			impact_echo_vfx = "spark"
+			zoom_bonus += 0.004
+
+	return {
+		"family": family,
+		"energy": energy,
+		"saturation": saturation,
+		"brightness": brightness,
+		"motion_boost": motion_boost,
+		"rotation_boost": rotation_boost,
+		"flash_alpha": clampf(flash_alpha, 0.05, 0.18),
+		"zoom_bonus": zoom_bonus,
+		"shake_bonus": shake_bonus,
+		"contact_extension": contact_extension,
+		"lift_bonus": lift_bonus,
+		"origin_scale_bonus": 0.04 + saturation * 0.06,
+		"impact_scale_bonus": 0.06 + saturation * 0.08,
+		"echo_scale_bonus": 0.08 + saturation * 0.08,
+		"highlight_color": accent_color.lerp(Color.WHITE, 0.24 + brightness * 0.16),
+		"shadow_color": accent_color.darkened(0.12 + (1.0 - brightness) * 0.18),
+		"origin_echo_vfx": origin_echo_vfx,
+		"impact_echo_vfx": impact_echo_vfx
+	}
+
+
+func _get_quality_rank(quality_id: String) -> int:
+	match quality_id:
+		"white":
+			return 0
+		"green":
+			return 1
+		"blue":
+			return 2
+		"purple":
+			return 3
+		"gold":
+			return 4
+		"red":
+			return 5
+		_:
+			return 0
+
+
+func _get_skill_quality_rank(skill: Dictionary) -> int:
+	return _get_quality_rank(str(skill.get("quality", "")))
+
+
+func _is_wide_attack_skill(skill: Dictionary) -> bool:
+	var school: String = str(skill.get("school", ""))
+	return bool(skill.get("pierce_row", false)) or int(skill.get("area_radius", 0)) > 0 or school.contains("Douro")
+
+
+func _is_normal_offense_skill(skill: Dictionary) -> bool:
+	return int(skill.get("power", 0)) > 0 and str(skill.get("effect", "")).is_empty() and str(skill.get("status_effect", {}).get("id", "")).is_empty()
+
+
+func _get_default_skill_impact_strength(skill: Dictionary) -> float:
+	var strength: float = 0.96
+	var quality_rank: int = _get_skill_quality_rank(skill)
+	if _is_normal_offense_skill(skill):
+		strength += float(quality_rank) * 0.08
+	if _is_wide_attack_skill(skill):
+		strength += 0.08
+	if int(skill.get("power", 0)) >= 18:
+		strength += 0.08
+	return clampf(strength, 0.8, 1.7)
+
+
+func _get_default_skill_sound_id(skill: Dictionary, is_enemy: bool = false) -> String:
 	var sound_id: String = "blade"
 	var skill_id: String = str(skill.get("id", ""))
 	var school: String = str(skill.get("school", ""))
 	var effect_id: String = str(skill.get("effect", ""))
 	var status_effect: Dictionary = skill.get("status_effect", {})
+	var quality_rank: int = _get_skill_quality_rank(skill)
+	var wide_attack: bool = _is_wide_attack_skill(skill)
+	var normal_offense: bool = _is_normal_offense_skill(skill)
 
 	if skill_id.contains("fogo") or school.contains("Corsarios"):
 		sound_id = "fire"
@@ -1293,12 +1467,166 @@ func _play_skill_sfx(skill: Dictionary, is_enemy: bool = false) -> void:
 		sound_id = "heal"
 	elif str(status_effect.get("id", "")) == "stun" or school.contains("Farol"):
 		sound_id = "stun"
-	elif bool(skill.get("pierce_row", false)) or int(skill.get("area_radius", 0)) > 0 or school.contains("Douro"):
+	elif normal_offense and quality_rank >= 3:
+		sound_id = "wave" if wide_attack else "heavy_blade"
+	elif wide_attack:
 		sound_id = "wave"
 	elif str(status_effect.get("id", "")) == "bleed":
 		sound_id = "bleed"
 	if is_enemy and sound_id == "blade":
 		sound_id = "heavy_blade"
+	return sound_id
+
+
+func _get_default_skill_anim_id(skill: Dictionary) -> String:
+	var school: String = str(skill.get("school", ""))
+	var effect_id: String = str(skill.get("effect", ""))
+	var status_id: String = str(skill.get("status_effect", {}).get("id", ""))
+	var quality_rank: int = _get_skill_quality_rank(skill)
+	var wide_attack: bool = _is_wide_attack_skill(skill)
+	var normal_offense: bool = _is_normal_offense_skill(skill)
+	if effect_id == "defend_buff" or effect_id == "guard_stance":
+		return "guard"
+	if effect_id == "speed_boost":
+		return "cast"
+	if status_id == "stun" or school.contains("Farol"):
+		return "farol_burst"
+	if status_id == "bleed":
+		return "hook_sweep"
+	if normal_offense and quality_rank >= 2:
+		return "grand_surge" if wide_attack else "heroic_strike"
+	if wide_attack:
+		return "tidal_lunge"
+	return "attack"
+
+
+func _get_default_skill_vfx_id(skill: Dictionary) -> String:
+	var skill_id: String = str(skill.get("id", ""))
+	var school: String = str(skill.get("school", ""))
+	var effect_id: String = str(skill.get("effect", ""))
+	var status_id: String = str(skill.get("status_effect", {}).get("id", ""))
+	var quality_rank: int = _get_skill_quality_rank(skill)
+	var wide_attack: bool = _is_wide_attack_skill(skill)
+	var normal_offense: bool = _is_normal_offense_skill(skill)
+	if effect_id == "defend_buff" or effect_id == "guard_stance":
+		return "guard"
+	if effect_id == "speed_boost":
+		return "heal"
+	if status_id == "stun" or school.contains("Farol"):
+		return "arc"
+	if status_id == "bleed":
+		return "slash"
+	if skill_id.contains("fogo"):
+		return "spark"
+	if normal_offense and quality_rank >= 2:
+		return "splash" if wide_attack else "arc"
+	if wide_attack:
+		return "splash"
+	return "slash"
+
+
+func _get_default_skill_impact_vfx_id(skill: Dictionary) -> String:
+	var skill_id: String = str(skill.get("id", ""))
+	var school: String = str(skill.get("school", ""))
+	var effect_id: String = str(skill.get("effect", ""))
+	var status_id: String = str(skill.get("status_effect", {}).get("id", ""))
+	var quality_rank: int = _get_skill_quality_rank(skill)
+	var wide_attack: bool = _is_wide_attack_skill(skill)
+	var normal_offense: bool = _is_normal_offense_skill(skill)
+	if effect_id == "defend_buff" or effect_id == "guard_stance":
+		return "guard"
+	if effect_id == "speed_boost":
+		return "heal"
+	if status_id == "stun" or school.contains("Farol"):
+		return "spark"
+	if status_id == "bleed":
+		return "bleed"
+	if skill_id.contains("fogo"):
+		return "spark"
+	if normal_offense and quality_rank >= 2:
+		return "arc" if wide_attack else "spark"
+	if wide_attack:
+		return "splash"
+	return "spark"
+
+
+func _get_default_skill_camera_profile(skill: Dictionary) -> String:
+	var school: String = str(skill.get("school", ""))
+	var effect_id: String = str(skill.get("effect", ""))
+	var status_id: String = str(skill.get("status_effect", {}).get("id", ""))
+	var quality_rank: int = _get_skill_quality_rank(skill)
+	if effect_id == "defend_buff" or effect_id == "guard_stance" or effect_id == "speed_boost":
+		return "support"
+	if status_id == "stun" or school.contains("Farol"):
+		return "judgement"
+	if status_id == "bleed":
+		return "rake"
+	if _is_normal_offense_skill(skill) and quality_rank >= 4:
+		return "cataclysm"
+	if _is_normal_offense_skill(skill) and quality_rank >= 2:
+		return "heroic"
+	if _is_wide_attack_skill(skill):
+		return "surge"
+	return "strike"
+
+
+func _get_default_skill_accent(skill: Dictionary, is_enemy: bool = false) -> Color:
+	var skill_id: String = str(skill.get("id", ""))
+	var school: String = str(skill.get("school", ""))
+	var effect_id: String = str(skill.get("effect", ""))
+	var status_id: String = str(skill.get("status_effect", {}).get("id", ""))
+	var quality_id: String = str(skill.get("quality", ""))
+	var quality_rank: int = _get_quality_rank(quality_id)
+	var accent_color := Color(0.37, 0.72, 0.86, 1.0)
+
+	if effect_id == "defend_buff" or effect_id == "guard_stance":
+		accent_color = Color(0.58, 0.74, 0.98, 1.0)
+	elif effect_id == "speed_boost":
+		accent_color = Color(0.72, 0.9, 0.58, 1.0)
+	elif status_id == "stun" or school.contains("Farol"):
+		accent_color = Color(0.92, 0.79, 0.43, 1.0)
+	elif status_id == "bleed":
+		accent_color = Color(0.79, 0.32, 0.27, 1.0)
+	elif skill_id.contains("fogo"):
+		accent_color = Color(0.86, 0.46, 0.24, 1.0)
+	elif bool(skill.get("pierce_row", false)) or int(skill.get("area_radius", 0)) > 0 or school.contains("Douro"):
+		accent_color = Color(0.34, 0.69, 0.83, 1.0)
+
+	if quality_rank > 0:
+		var quality_color: Color = _rarity_color(quality_id)
+		quality_color.a = 1.0
+		quality_color = quality_color.lightened(0.18 + float(quality_rank) * 0.02)
+		var quality_blend: float = 0.14 + float(quality_rank) * 0.08
+		if _is_normal_offense_skill(skill):
+			quality_blend += 0.14
+		accent_color = accent_color.lerp(quality_color, clampf(quality_blend, 0.14, 0.72))
+
+	if is_enemy and not _is_support_skill(skill):
+		accent_color = accent_color.darkened(0.1).lerp(Color(0.86, 0.44, 0.29, 1.0), 0.18)
+	return accent_color
+
+
+func _get_skill_visual_profile(skill: Dictionary, target_ids: Array[String] = [], is_enemy: bool = false) -> Dictionary:
+	var visual: Dictionary = skill.get("visual", {})
+	var default_sound_id: String = _get_default_skill_sound_id(skill, is_enemy)
+	var default_accent: Color = _get_default_skill_accent(skill, is_enemy)
+	return {
+		"anim_id": str(visual.get("anim_id", _get_default_skill_anim_id(skill))),
+		"vfx_id": str(visual.get("vfx_id", _get_default_skill_vfx_id(skill))),
+		"impact_vfx_id": str(visual.get("impact_vfx_id", _get_default_skill_impact_vfx_id(skill))),
+		"sfx_id": str(visual.get("sfx_id", default_sound_id)),
+		"accent_color": _parse_skill_color(visual.get("accent_color", []), default_accent),
+		"impact_strength": clampf(float(visual.get("impact_strength", _get_default_skill_impact_strength(skill))), 0.6, 1.8),
+		"camera_profile": str(visual.get("camera_profile", _get_default_skill_camera_profile(skill))),
+		"targets_multiple": target_ids.size() > 1,
+		"quality_rank": _get_skill_quality_rank(skill)
+	}
+
+
+func _play_skill_sfx(skill: Dictionary, is_enemy: bool = false) -> void:
+	var sound_id: String = str(_get_skill_visual_profile(skill, [], is_enemy).get("sfx_id", ""))
+	if sound_id.is_empty():
+		return
 	_play_sfx(sound_id, 0.035, -4.5)
 
 
@@ -2774,6 +3102,21 @@ func _get_actor_unit_icon(actor_id: String) -> TextureRect:
 	return button.get_node_or_null("UnitIcon") as TextureRect
 
 
+func _get_action_push_vector(actor_id: String, target_ids: Array[String], horizontal_distance: float, lift_amount: float = 0.0) -> Vector2:
+	var direction_x: float = 1.0 if not actor_id.begins_with("enemy_") else -1.0
+	if not target_ids.is_empty():
+		var actor_cell: Vector2i = _get_actor_cell(actor_id)
+		var average_target_x: float = 0.0
+		for target_id in target_ids:
+			average_target_x += float(_get_actor_cell(target_id).x)
+		average_target_x /= float(target_ids.size())
+		if average_target_x < float(actor_cell.x) - 0.1:
+			direction_x = -1.0
+		elif average_target_x > float(actor_cell.x) + 0.1:
+			direction_x = 1.0
+	return Vector2(direction_x * horizontal_distance, -absf(lift_amount))
+
+
 func _lock_battle_token_pose(actor_id: String, duration: float) -> Button:
 	var button: Button = _get_grid_button(_get_actor_cell(actor_id))
 	if button == null:
@@ -2782,7 +3125,27 @@ func _lock_battle_token_pose(actor_id: String, duration: float) -> Button:
 	return button
 
 
-func _animate_actor_action(actor_id: String, mode: String, accent_color: Color = Color.WHITE) -> void:
+func _get_action_contact_delay(mode: String, strong: bool = false, impact_strength: float = 1.0) -> float:
+	match mode:
+		"attack":
+			return 0.17 if strong else 0.14
+		"heroic_strike":
+			return 0.21 + maxf(0.0, impact_strength - 1.0) * 0.04
+		"tidal_lunge":
+			return 0.15 + maxf(0.0, impact_strength - 1.0) * 0.03
+		"grand_surge":
+			return 0.26 + maxf(0.0, impact_strength - 1.0) * 0.05
+		"hook_sweep":
+			return 0.2 + maxf(0.0, impact_strength - 1.0) * 0.04
+		"farol_burst":
+			return 0.24 + maxf(0.0, impact_strength - 1.0) * 0.05
+		"bleed_hit", "stun_hit":
+			return 0.08
+		_:
+			return 0.11
+
+
+func _animate_actor_action(actor_id: String, mode: String, accent_color: Color = Color.WHITE, target_ids: Array[String] = []) -> void:
 	var unit_icon: TextureRect = _get_actor_unit_icon(actor_id)
 	if unit_icon == null or not is_instance_valid(unit_icon):
 		return
@@ -2792,20 +3155,174 @@ func _animate_actor_action(actor_id: String, mode: String, accent_color: Color =
 		_reset_battle_token_pose(button)
 	unit_icon.pivot_offset = unit_icon.size * 0.5
 	var base_icon_scale: Vector2 = _get_button_scale_meta(button, "icon_base_scale", Vector2.ONE)
+	var base_position: Vector2 = unit_icon.position
+	var color_profile: Dictionary = _get_color_energy_profile(accent_color)
+	var motion_boost: float = float(color_profile.get("motion_boost", 1.0))
+	var rotation_boost: float = float(color_profile.get("rotation_boost", 1.0))
+	var lift_bonus: float = float(color_profile.get("lift_bonus", 0.0))
+	var highlight_color: Color = color_profile.get("highlight_color", accent_color)
+	var facing_push: Vector2 = _get_action_push_vector(actor_id, target_ids, 10.0, 0.0)
+	var direction: float = 1.0 if facing_push.x >= 0.0 else -1.0
 	var tween: Tween = create_tween()
 	match mode:
 		"attack":
-			var push_x: float = 8.0 if _is_ally_turn() else -8.0
-			tween.tween_property(unit_icon, "position:x", unit_icon.position.x + push_x, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
-			tween.tween_property(unit_icon, "position:x", unit_icon.position.x, 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
-			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.1, base_icon_scale.y * 0.94), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-			tween.parallel().tween_property(unit_icon, "scale", base_icon_scale, 0.1).set_delay(0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			var push: Vector2 = _get_action_push_vector(actor_id, target_ids, 16.0 * motion_boost, 5.0 + lift_bonus * 0.35)
+			unit_icon.self_modulate = Color(highlight_color.r, highlight_color.g, highlight_color.b, 0.94)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(-direction * 8.0, 4.0), 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 0.94, base_icon_scale.y * 1.1), 0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -10.0 * direction * rotation_boost, 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * (6.0 + motion_boost * 1.4), -6.0 - lift_bonus * 0.25), 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.02, base_icon_scale.y * 1.0), 0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 3.0 * direction * rotation_boost, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + push + Vector2(direction * 2.0, -2.0), 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * (1.16 + (motion_boost - 1.0) * 0.2), base_icon_scale.y * (0.86 - (motion_boost - 1.0) * 0.08)), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 13.0 * direction * rotation_boost, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * 7.0, -2.0), 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.06, base_icon_scale.y * 0.94), 0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -4.0 * direction * rotation_boost, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.tween_property(unit_icon, "position", base_position, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", base_icon_scale, 0.12).set_delay(0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 0.0, 0.12).set_delay(0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.26).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		"heroic_strike":
+			var heroic_push: Vector2 = _get_action_push_vector(actor_id, target_ids, 25.0 * motion_boost, 11.0 + lift_bonus * 0.8)
+			unit_icon.self_modulate = Color(highlight_color.r, highlight_color.g, highlight_color.b, 0.96)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(-direction * 12.0, 7.0), 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 0.88, base_icon_scale.y * 1.16), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -15.0 * direction * rotation_boost, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * (9.0 + motion_boost * 2.4), -13.0 - lift_bonus * 0.55), 0.07).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.1, base_icon_scale.y * 0.94), 0.07).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 7.0 * direction * rotation_boost, 0.07).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + heroic_push + Vector2(direction * 3.0, -3.0), 0.09).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * (1.26 + (motion_boost - 1.0) * 0.24), base_icon_scale.y * (0.78 - (motion_boost - 1.0) * 0.1)), 0.09).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 20.0 * direction * rotation_boost, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * 9.0, -7.0), 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.12, base_icon_scale.y * 0.9), 0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -8.0 * direction * rotation_boost, 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * 3.0, -2.0), 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.04, base_icon_scale.y * 0.98), 0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 3.0 * direction * rotation_boost, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position, 0.14).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", base_icon_scale, 0.14).set_delay(0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 0.0, 0.14).set_delay(0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.28).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		"tidal_lunge":
+			var lunge_push: Vector2 = _get_action_push_vector(actor_id, target_ids, 20.0 * motion_boost, 8.0 + lift_bonus)
+			unit_icon.self_modulate = Color(highlight_color.r, highlight_color.g, highlight_color.b, 0.92)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(-direction * 8.0, 4.0), 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 0.94, base_icon_scale.y * 1.1), 0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -10.0 * direction * rotation_boost, 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * (8.0 + motion_boost * 1.6), -8.0 - lift_bonus * 0.45), 0.07).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.06, base_icon_scale.y * 0.98), 0.07).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 4.0 * direction * rotation_boost, 0.07).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + lunge_push, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * (1.18 + (motion_boost - 1.0) * 0.18), base_icon_scale.y * (0.86 - (motion_boost - 1.0) * 0.1)), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 12.0 * direction * rotation_boost, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * 4.0, -2.0), 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -4.0 * direction * rotation_boost, 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.08, base_icon_scale.y * 0.96), 0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position, 0.12).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			tween.parallel().tween_property(unit_icon, "scale", base_icon_scale, 0.12).set_delay(0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 0.0, 0.12).set_delay(0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		"grand_surge":
+			var surge_push: Vector2 = _get_action_push_vector(actor_id, target_ids, 31.0 * motion_boost, 15.0 + lift_bonus * 1.1)
+			unit_icon.self_modulate = Color(highlight_color.r, highlight_color.g, highlight_color.b, 0.96)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(-direction * 14.0, 8.0), 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 0.86, base_icon_scale.y * 1.18), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -16.0 * direction * rotation_boost, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * (12.0 + motion_boost * 2.8), -16.0 - lift_bonus * 0.72), 0.08).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.14, base_icon_scale.y * 0.96), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 8.0 * direction * rotation_boost, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + surge_push + Vector2(direction * 4.0, -5.0), 0.11).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * (1.3 + (motion_boost - 1.0) * 0.24), base_icon_scale.y * (0.76 - (motion_boost - 1.0) * 0.1)), 0.11).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 22.0 * direction * rotation_boost, 0.11).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * 11.0, -8.0), 0.07).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.14, base_icon_scale.y * 0.9), 0.07).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -8.0 * direction * rotation_boost, 0.07).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * 4.0, -3.0), 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.06, base_icon_scale.y * 0.98), 0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 3.0 * direction * rotation_boost, 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position, 0.15).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", base_icon_scale, 0.15).set_delay(0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 0.0, 0.15).set_delay(0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.3).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		"hook_sweep":
+			var sweep_push: Vector2 = _get_action_push_vector(actor_id, target_ids, 18.0 * motion_boost, 10.0 + lift_bonus * 0.8)
+			unit_icon.self_modulate = Color(highlight_color.r, highlight_color.g, highlight_color.b, 0.94)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(-direction * 12.0, 8.0), 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -20.0 * direction * rotation_boost, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 0.92, base_icon_scale.y * 1.14), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * 4.0, -6.0), 0.05).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 10.0 * direction * rotation_boost, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.04, base_icon_scale.y * 0.96), 0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + sweep_push + Vector2(direction * 6.0, -8.0), 0.08).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 24.0 * direction * rotation_boost, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * (1.16 + (motion_boost - 1.0) * 0.18), base_icon_scale.y * (0.88 - (motion_boost - 1.0) * 0.08)), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * 7.0, -5.0), 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -10.0 * direction * rotation_boost, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.08, base_icon_scale.y * 0.92), 0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * 2.0, -1.0), 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 3.0 * direction * rotation_boost, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.02, base_icon_scale.y * 0.98), 0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position, 0.13).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 0.0, 0.13).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", base_icon_scale, 0.15).set_delay(0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.24).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		"farol_burst":
+			unit_icon.self_modulate = Color(highlight_color.r, highlight_color.g, highlight_color.b, 0.94)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(0.0, -14.0 - lift_bonus * 0.52), 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.08, base_icon_scale.y * 1.1), 0.09).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -6.0 * direction * rotation_boost, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(0.0, -24.0 - lift_bonus * 0.9), 0.08).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * (1.18 + (motion_boost - 1.0) * 0.14), base_icon_scale.y * (1.18 + (motion_boost - 1.0) * 0.14)), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 5.0 * direction * rotation_boost, 0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * (6.0 + motion_boost * 1.4), -10.0 - lift_bonus * 0.3), 0.06).set_trans(Tween.TRANS_EXPO).set_ease(Tween.EASE_IN)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * (1.22 + (motion_boost - 1.0) * 0.14), base_icon_scale.y * (0.92 - (motion_boost - 1.0) * 0.06)), 0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 11.0 * direction * rotation_boost, 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * 3.0, -4.0), 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.08, base_icon_scale.y * 0.96), 0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -4.0 * direction * rotation_boost, 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.tween_property(unit_icon, "position", base_position, 0.17).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN)
+			tween.parallel().tween_property(unit_icon, "scale", base_icon_scale, 0.17).set_delay(0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 0.0, 0.17).set_delay(0.08).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.26).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		"hit":
 			unit_icon.self_modulate = Color(accent_color.r, accent_color.g, accent_color.b, 0.88)
 			tween.tween_property(unit_icon, "rotation_degrees", -7.0, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 			tween.tween_property(unit_icon, "rotation_degrees", 5.0, 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 			tween.tween_property(unit_icon, "rotation_degrees", 0.0, 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		"bleed_hit":
+			unit_icon.self_modulate = Color(accent_color.r, accent_color.g, accent_color.b, 0.92)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * 6.0, -6.0), 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 12.0 * direction, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.1, base_icon_scale.y * 0.9), 0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(-direction * 5.0, 3.0), 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -8.0 * direction, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 0.96, base_icon_scale.y * 1.04), 0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * 2.0, -1.0), 0.04).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 4.0 * direction, 0.04).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.02, base_icon_scale.y * 0.98), 0.04).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 0.0, 0.09).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", base_icon_scale, 0.11).set_delay(0.04).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+		"stun_hit":
+			unit_icon.self_modulate = Color(accent_color.r, accent_color.g, accent_color.b, 0.94)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(0.0, -11.0), 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -11.0 * direction, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.12, base_icon_scale.y * 1.04), 0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(direction * 4.0, 2.0), 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 9.0 * direction, 0.06).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 0.96, base_icon_scale.y * 1.06), 0.06).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position + Vector2(-direction * 1.0, 0.0), 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", -3.0 * direction, 0.05).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 1.02, base_icon_scale.y * 0.98), 0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(unit_icon, "position", base_position, 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "rotation_degrees", 0.0, 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "scale", base_icon_scale, 0.11).set_delay(0.05).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.parallel().tween_property(unit_icon, "self_modulate", Color.WHITE, 0.24).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 		"potion":
 			unit_icon.self_modulate = Color(0.58, 0.95, 0.7, 1.0)
 			tween.tween_property(unit_icon, "scale", Vector2(base_icon_scale.x * 0.93, base_icon_scale.y * 1.08), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -2940,17 +3457,52 @@ func _animate_portrait_feedback(actor_id: String, color: Color) -> void:
 	tween.tween_property(portrait, "self_modulate", Color.WHITE, 0.22).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
 
+func _get_damage_reaction_mode(status_text: String) -> String:
+	if status_text.begins_with("Sangr"):
+		return "bleed_hit"
+	if status_text.begins_with("Atord"):
+		return "stun_hit"
+	return "hit"
+
+
 func _play_damage_feedback(actor_id: String, damage: int, status_text: String = "", accent_color: Color = Color(0.84, 0.41, 0.29, 1.0)) -> void:
+	var reaction_mode: String = _get_damage_reaction_mode(status_text)
+	var color_profile: Dictionary = _get_color_energy_profile(accent_color)
+	var highlight_color: Color = color_profile.get("highlight_color", accent_color)
+	var shadow_color: Color = color_profile.get("shadow_color", accent_color)
 	if damage > 0:
 		_show_floating_text(actor_id, "-%d" % damage, accent_color)
-		_spawn_actor_vfx(actor_id, "slash", accent_color, 1.02, -12.0, 0.26)
-		_animate_cell_impact(actor_id, accent_color)
-		_animate_portrait_feedback(actor_id, accent_color)
-		_animate_actor_action(actor_id, "hit", accent_color)
+		_spawn_actor_vfx(actor_id, "slash", highlight_color, 1.02 + float(color_profile.get("impact_scale_bonus", 0.0)) * 0.2, -12.0, 0.26)
+		if reaction_mode == "bleed_hit":
+			_spawn_actor_vfx(actor_id, "bleed_strong", highlight_color, 1.04 + float(color_profile.get("impact_scale_bonus", 0.0)) * 0.22, -14.0, 0.3)
+			_spawn_actor_vfx(actor_id, "bleed", shadow_color, 0.94 + float(color_profile.get("echo_scale_bonus", 0.0)) * 0.16, -12.0, 0.24)
+			_spawn_cell_vfx(_get_actor_cell(actor_id), "dust", shadow_color, 0.7 + float(color_profile.get("echo_scale_bonus", 0.0)) * 0.14, -4.0, 0.18)
+			_play_screen_shake(0.26 + float(color_profile.get("shake_bonus", 0.0)) * 0.24, 0.08)
+		elif reaction_mode == "stun_hit":
+			_spawn_actor_vfx(actor_id, "arc", highlight_color, 0.92 + float(color_profile.get("echo_scale_bonus", 0.0)) * 0.18, -14.0, 0.28)
+			_spawn_actor_vfx(actor_id, "spark", highlight_color.lerp(Color.WHITE, 0.2), 0.92 + float(color_profile.get("echo_scale_bonus", 0.0)) * 0.2, -18.0, 0.22)
+			_flash_scene(Color(highlight_color.r, highlight_color.g, highlight_color.b, 0.05 + float(color_profile.get("flash_alpha", 0.08)) * 0.4))
+			_play_screen_shake(0.3 + float(color_profile.get("shake_bonus", 0.0)) * 0.28, 0.1)
+		else:
+			var impact_echo_vfx: String = str(color_profile.get("impact_echo_vfx", ""))
+			if not impact_echo_vfx.is_empty() and impact_echo_vfx != "slash":
+				_spawn_actor_vfx(actor_id, impact_echo_vfx, shadow_color, 0.76 + float(color_profile.get("echo_scale_bonus", 0.0)) * 0.18, -14.0, 0.24)
+		_animate_cell_impact(actor_id, highlight_color)
+		_animate_portrait_feedback(actor_id, highlight_color)
+		_animate_actor_action(actor_id, reaction_mode, highlight_color)
 	if not status_text.is_empty():
-		_show_floating_text(actor_id, status_text, Color(0.96, 0.86, 0.54, 1.0), -24.0)
+		var status_color: Color = Color(0.96, 0.86, 0.54, 1.0)
+		if status_text.begins_with("Sangr"):
+			status_color = Color(0.94, 0.54, 0.46, 1.0)
+		elif status_text.begins_with("Atord"):
+			status_color = Color(0.97, 0.85, 0.45, 1.0)
+		_show_floating_text(actor_id, status_text, status_color, -24.0)
 		if status_text.begins_with("Sangr"):
 			_spawn_actor_vfx(actor_id, "bleed", Color(0.88, 0.34, 0.29, 1.0), 0.98, -16.0, 0.34)
+			_spawn_actor_vfx(actor_id, "bleed_strong", Color(0.94, 0.46, 0.39, 1.0), 0.88, -12.0, 0.22)
+		elif status_text.begins_with("Atord"):
+			_spawn_actor_vfx(actor_id, "spark", Color(0.98, 0.88, 0.54, 1.0), 0.92, -16.0, 0.26)
+			_spawn_actor_vfx(actor_id, "arc", Color(0.98, 0.92, 0.66, 1.0), 0.9, -18.0, 0.28)
 
 
 func _play_support_feedback(actor_id: String, text: String, accent_color: Color, secondary_text: String = "") -> void:
@@ -2970,19 +3522,236 @@ func _play_support_feedback(actor_id: String, text: String, accent_color: Color,
 
 
 func _play_cinematic_strike(attacker_id: String, target_ids: Array[String], strong: bool, accent_color: Color) -> void:
-	_animate_actor_action(attacker_id, "attack" if not target_ids.is_empty() else "cast", accent_color)
-	if not target_ids.is_empty():
-		_spawn_actor_vfx(attacker_id, "slash", accent_color, 0.98 if strong else 0.9, -12.0, 0.24)
-		for target_id in target_ids:
-			_spawn_actor_vfx(target_id, "spark", accent_color.lerp(Color.WHITE, 0.35), 0.9 if strong else 0.82, -10.0, 0.22)
-	var intensity: float = 1.35 if strong else 0.72
+	var action_mode: String = "attack" if not target_ids.is_empty() else "cast"
+	var color_profile: Dictionary = _get_color_energy_profile(accent_color)
+	var highlight_color: Color = color_profile.get("highlight_color", accent_color)
+	var shadow_color: Color = color_profile.get("shadow_color", accent_color)
+	var zoom_bonus: float = float(color_profile.get("zoom_bonus", 0.0))
+	var shake_bonus: float = float(color_profile.get("shake_bonus", 0.0))
+	var echo_scale_bonus: float = float(color_profile.get("echo_scale_bonus", 0.0))
+	var flash_alpha: float = float(color_profile.get("flash_alpha", 0.08))
+	var contact_delay: float = _get_action_contact_delay(action_mode, strong) + float(color_profile.get("contact_extension", 0.0))
+	_animate_actor_action(attacker_id, action_mode, highlight_color, target_ids)
+	if target_ids.is_empty():
+		_focus_battle_frame(attacker_id, [], 1.01 + zoom_bonus * 0.4, 0.1)
+		await get_tree().create_timer(0.1).timeout
+		return
+
+	_spawn_cell_vfx(_get_actor_cell(attacker_id), "dust", shadow_color, (0.64 if strong else 0.56) + echo_scale_bonus * 0.12, -2.0, 0.18)
+	if strong:
+		_spawn_actor_vfx(attacker_id, "spark", highlight_color, 0.84 + echo_scale_bonus * 0.16, -18.0, contact_delay + 0.04)
+	else:
+		_spawn_actor_vfx(attacker_id, "slash", highlight_color, 0.72 + echo_scale_bonus * 0.12, -16.0, contact_delay + 0.02)
+	if strong:
+		_focus_battle_frame(attacker_id, target_ids, 1.018 + zoom_bonus, 0.14)
+	else:
+		_focus_battle_frame(attacker_id, target_ids, 1.01 + zoom_bonus * 0.6, 0.1)
+
+	await get_tree().create_timer(contact_delay).timeout
+
+	_spawn_actor_vfx(attacker_id, "slash", highlight_color, (1.02 if strong else 0.92) + echo_scale_bonus * 0.16, -14.0, 0.22)
+	var origin_echo_vfx: String = str(color_profile.get("origin_echo_vfx", ""))
+	if not origin_echo_vfx.is_empty() and origin_echo_vfx != "slash":
+		_spawn_actor_vfx(attacker_id, origin_echo_vfx, highlight_color, 0.72 + echo_scale_bonus * 0.18, -16.0, 0.2)
+	for target_id in target_ids:
+		_spawn_actor_vfx(target_id, "spark", highlight_color, (0.94 if strong else 0.84) + echo_scale_bonus * 0.18, -12.0, 0.22)
+		_spawn_cell_vfx(_get_actor_cell(target_id), "dust", shadow_color, (0.62 if strong else 0.54) + echo_scale_bonus * 0.12, -4.0, 0.16)
+		if strong:
+			_spawn_actor_vfx(target_id, "slash", shadow_color, 0.86 + echo_scale_bonus * 0.14, -10.0, 0.18)
+		var impact_echo_vfx: String = str(color_profile.get("impact_echo_vfx", ""))
+		if not impact_echo_vfx.is_empty() and impact_echo_vfx != "spark":
+			_spawn_actor_vfx(target_id, impact_echo_vfx, highlight_color, 0.72 + echo_scale_bonus * 0.2, -14.0, 0.2)
+
+	var intensity: float = (1.35 if strong else 0.72) + shake_bonus
 	_play_screen_shake(intensity, 0.24 if strong else 0.14)
 	if strong:
 		_play_cinematic_bars(34.0, 0.18)
-		_flash_scene(Color(accent_color.r, accent_color.g, accent_color.b, 0.11))
-		_focus_battle_frame(attacker_id, target_ids, 1.028, 0.22)
+		_flash_scene(Color(highlight_color.r, highlight_color.g, highlight_color.b, flash_alpha + 0.01))
+		_focus_battle_frame(attacker_id, target_ids, 1.028 + zoom_bonus, 0.22)
 	else:
-		_focus_battle_frame(attacker_id, target_ids, 1.012, 0.12)
+		_flash_scene(Color(highlight_color.r, highlight_color.g, highlight_color.b, flash_alpha * 0.55))
+		_focus_battle_frame(attacker_id, target_ids, 1.016 + zoom_bonus * 0.7, 0.14)
+
+
+func _play_skill_cinematic(attacker_id: String, target_ids: Array[String], skill: Dictionary, is_enemy: bool = false) -> Dictionary:
+	var visuals: Dictionary = _get_skill_visual_profile(skill, target_ids, is_enemy)
+	var accent_color: Color = visuals.get("accent_color", Color.WHITE)
+	var color_profile: Dictionary = _get_color_energy_profile(accent_color)
+	var highlight_color: Color = color_profile.get("highlight_color", accent_color)
+	var shadow_color: Color = color_profile.get("shadow_color", accent_color)
+	var quality_rank: int = int(visuals.get("quality_rank", 0))
+	var normal_offense: bool = _is_normal_offense_skill(skill)
+	var rarity_overdrive: float = 1.0 + float(max(0, quality_rank - 1)) * 0.12 if normal_offense else 1.0
+	if target_ids.is_empty():
+		await _play_cinematic_strike(attacker_id, [], false, highlight_color)
+		return visuals
+
+	var anim_id: String = str(visuals.get("anim_id", "attack"))
+	var origin_vfx_id: String = str(visuals.get("vfx_id", "slash"))
+	var impact_vfx_id: String = str(visuals.get("impact_vfx_id", "spark"))
+	var camera_profile: String = str(visuals.get("camera_profile", "strike"))
+	var impact_strength: float = float(visuals.get("impact_strength", 1.0))
+	var heroic_style: bool = anim_id == "heroic_strike" or anim_id == "grand_surge"
+	var bleed_style: bool = anim_id == "hook_sweep"
+	var stun_style: bool = anim_id == "farol_burst"
+	var style_overdrive: float = 1.0
+	if heroic_style:
+		style_overdrive = 1.08 + float(max(0, quality_rank - 1)) * 0.05
+	elif bleed_style:
+		style_overdrive = 1.16
+	elif stun_style:
+		style_overdrive = 1.2
+	if normal_offense and quality_rank >= 2:
+		impact_strength = clampf(impact_strength + float(quality_rank) * 0.06, 0.6, 1.95)
+	impact_strength = clampf(impact_strength * style_overdrive, 0.6, 2.15)
+	var origin_scale: float = 0.82 + impact_strength * 0.14 + float(color_profile.get("origin_scale_bonus", 0.0)) + (float(quality_rank) * 0.04 if normal_offense else 0.0)
+	var impact_scale: float = 0.84 + impact_strength * 0.18 + float(color_profile.get("impact_scale_bonus", 0.0)) + (float(quality_rank) * 0.05 if normal_offense else 0.0)
+	var multi_target: bool = bool(visuals.get("targets_multiple", false))
+	var contact_delay: float = _get_action_contact_delay(anim_id, multi_target, impact_strength) + float(color_profile.get("contact_extension", 0.0)) + (float(quality_rank) * 0.008 if normal_offense else 0.0)
+	if heroic_style:
+		contact_delay += 0.01
+	elif bleed_style:
+		contact_delay += 0.014
+	elif stun_style:
+		contact_delay += 0.02
+	var flash_alpha: float = float(color_profile.get("flash_alpha", 0.08))
+	if heroic_style:
+		flash_alpha += 0.012 + float(quality_rank) * 0.003
+	elif bleed_style:
+		flash_alpha += 0.008
+	elif stun_style:
+		flash_alpha += 0.03
+	var zoom_bonus: float = float(color_profile.get("zoom_bonus", 0.0)) + (float(quality_rank) * 0.003 if normal_offense else 0.0)
+	var shake_bonus: float = float(color_profile.get("shake_bonus", 0.0)) + (float(quality_rank) * 0.08 if normal_offense else 0.0)
+	var echo_scale_bonus: float = float(color_profile.get("echo_scale_bonus", 0.0)) + (float(quality_rank) * 0.04 if normal_offense else 0.0)
+	if heroic_style:
+		zoom_bonus += 0.006 + float(quality_rank) * 0.002
+		shake_bonus += 0.12 + float(quality_rank) * 0.06
+		echo_scale_bonus += 0.12 + float(quality_rank) * 0.03
+	elif bleed_style:
+		zoom_bonus += 0.004
+		shake_bonus += 0.18
+		echo_scale_bonus += 0.14
+	elif stun_style:
+		zoom_bonus += 0.01
+		shake_bonus += 0.22
+		echo_scale_bonus += 0.18
+
+	_animate_actor_action(attacker_id, anim_id, highlight_color, target_ids)
+	if not origin_vfx_id.is_empty():
+		_spawn_actor_vfx(attacker_id, origin_vfx_id, highlight_color, origin_scale, -16.0, maxf(0.24 + impact_strength * 0.04, contact_delay + 0.06))
+	var origin_echo_vfx: String = str(color_profile.get("origin_echo_vfx", ""))
+	if not origin_echo_vfx.is_empty() and origin_echo_vfx != origin_vfx_id:
+		_spawn_actor_vfx(attacker_id, origin_echo_vfx, highlight_color, 0.74 + echo_scale_bonus * 0.22, -18.0, contact_delay + 0.04)
+	if normal_offense and quality_rank >= 2:
+		_spawn_actor_vfx(attacker_id, "spark", highlight_color, 0.72 + float(quality_rank) * 0.1, -24.0, contact_delay + 0.06)
+		_spawn_cell_vfx(_get_actor_cell(attacker_id), "dust", shadow_color, 0.64 + float(quality_rank) * 0.08, -6.0, contact_delay + 0.04)
+	if normal_offense and quality_rank >= 4:
+		_flash_scene(Color(highlight_color.r, highlight_color.g, highlight_color.b, flash_alpha * 0.75))
+	match anim_id:
+		"heroic_strike":
+			_spawn_actor_vfx(attacker_id, "arc", highlight_color, 0.86 + echo_scale_bonus * 0.18, -24.0, contact_delay + 0.04)
+			_spawn_actor_vfx(attacker_id, "spark", highlight_color, 0.76 + echo_scale_bonus * 0.16, -22.0, 0.22)
+			_spawn_cell_vfx(_get_actor_cell(attacker_id), "dust", shadow_color, 0.76 + echo_scale_bonus * 0.16, -6.0, 0.22)
+			_focus_battle_frame(attacker_id, target_ids, 1.024 + zoom_bonus, 0.18)
+		"grand_surge":
+			_spawn_cell_vfx(_get_actor_cell(attacker_id), "splash", shadow_color, 0.78 + echo_scale_bonus * 0.18, -8.0, 0.24)
+			_spawn_actor_vfx(attacker_id, "arc", highlight_color, 0.8 + echo_scale_bonus * 0.18, -20.0, 0.24)
+			_spawn_actor_vfx(attacker_id, "spark", highlight_color, 0.8 + echo_scale_bonus * 0.16, -24.0, contact_delay + 0.04)
+			_focus_battle_frame(attacker_id, target_ids, 1.028 + zoom_bonus, 0.2)
+		"tidal_lunge":
+			_spawn_cell_vfx(_get_actor_cell(attacker_id), "splash", shadow_color, 0.68 + echo_scale_bonus * 0.14, -6.0, 0.2)
+		"hook_sweep":
+			_spawn_actor_vfx(attacker_id, "slash", shadow_color, 0.88 + echo_scale_bonus * 0.18, -20.0, contact_delay + 0.03)
+			_spawn_actor_vfx(attacker_id, "bleed", highlight_color, 0.82 + echo_scale_bonus * 0.16, -18.0, contact_delay + 0.04)
+			_spawn_cell_vfx(_get_actor_cell(attacker_id), "dust", shadow_color, 0.72 + echo_scale_bonus * 0.14, -4.0, 0.22)
+			_focus_battle_frame(attacker_id, target_ids, 1.022 + zoom_bonus, 0.18)
+		"farol_burst":
+			_play_cinematic_bars(26.0 + impact_strength * 3.0, 0.14)
+			_flash_scene(Color(highlight_color.r, highlight_color.g, highlight_color.b, flash_alpha * 0.8))
+			_spawn_actor_vfx(attacker_id, "spark", highlight_color, 0.76 + echo_scale_bonus * 0.16, -22.0, 0.22)
+			_spawn_actor_vfx(attacker_id, "arc", highlight_color.lerp(Color.WHITE, 0.18), 0.9 + echo_scale_bonus * 0.18, -26.0, contact_delay + 0.06)
+			_focus_battle_frame(attacker_id, target_ids, 1.026 + zoom_bonus, 0.2)
+
+	await get_tree().create_timer(contact_delay).timeout
+
+	for target_index in range(target_ids.size()):
+		var target_id: String = target_ids[target_index]
+		var tint: Color = highlight_color
+		var duration: float = 0.22 + float(target_index) * 0.03 + impact_strength * 0.03
+		if not impact_vfx_id.is_empty():
+			_spawn_actor_vfx(target_id, impact_vfx_id, tint, impact_scale + float(target_index) * 0.04, -14.0, duration)
+		var impact_echo_vfx: String = str(color_profile.get("impact_echo_vfx", ""))
+		if not impact_echo_vfx.is_empty() and impact_echo_vfx != impact_vfx_id:
+			_spawn_actor_vfx(target_id, impact_echo_vfx, highlight_color, 0.72 + echo_scale_bonus * 0.24 + float(target_index) * 0.04, -15.0, 0.2 + float(target_index) * 0.02)
+		if normal_offense and quality_rank >= 2:
+			_spawn_actor_vfx(target_id, "spark", highlight_color.lerp(Color.WHITE, 0.18), 0.76 + float(quality_rank) * 0.08 + float(target_index) * 0.04, -18.0, 0.22 + float(target_index) * 0.02)
+		if normal_offense and quality_rank >= 3:
+			_spawn_cell_vfx(_get_actor_cell(target_id), "dust", shadow_color, 0.68 + float(quality_rank) * 0.06, -6.0, 0.18 + float(target_index) * 0.02)
+		match anim_id:
+			"heroic_strike":
+				_spawn_actor_vfx(target_id, "slash", shadow_color, 0.92 + echo_scale_bonus * 0.16, -10.0, 0.18)
+				_spawn_actor_vfx(target_id, "spark", highlight_color, 0.96 + echo_scale_bonus * 0.18, -14.0, 0.22)
+				_spawn_cell_vfx(_get_actor_cell(target_id), "dust", shadow_color, 0.72 + echo_scale_bonus * 0.14, -5.0, 0.18)
+			"grand_surge":
+				_spawn_actor_vfx(target_id, "arc", highlight_color, 0.92 + echo_scale_bonus * 0.2, -14.0, 0.22)
+				_spawn_cell_vfx(_get_actor_cell(target_id), "splash", shadow_color, 0.76 + echo_scale_bonus * 0.16, -5.0, 0.2)
+				_spawn_actor_vfx(target_id, "spark", highlight_color.lerp(Color.WHITE, 0.1), 0.94 + echo_scale_bonus * 0.16, -16.0, 0.22)
+			"hook_sweep":
+				_spawn_actor_vfx(target_id, "slash", shadow_color, 0.9 + echo_scale_bonus * 0.16, -10.0, 0.18)
+				_spawn_actor_vfx(target_id, "bleed_strong", highlight_color, 0.98 + echo_scale_bonus * 0.16, -14.0, 0.22)
+				_spawn_actor_vfx(target_id, "bleed", highlight_color.darkened(0.08), 0.92 + echo_scale_bonus * 0.14, -12.0, 0.24)
+				_spawn_cell_vfx(_get_actor_cell(target_id), "dust", shadow_color, 0.7 + echo_scale_bonus * 0.14, -4.0, 0.18)
+			"farol_burst":
+				_spawn_actor_vfx(target_id, "spark", highlight_color, 0.9 + echo_scale_bonus * 0.16, -8.0, 0.18)
+				_spawn_actor_vfx(target_id, "arc", highlight_color.lerp(Color.WHITE, 0.14), 0.92 + echo_scale_bonus * 0.18, -16.0, 0.22)
+				_spawn_actor_vfx(target_id, "spark", highlight_color.lerp(Color.WHITE, 0.28), 0.98 + echo_scale_bonus * 0.18, -20.0, 0.2)
+			"tidal_lunge":
+				_spawn_cell_vfx(_get_actor_cell(target_id), "dust", shadow_color, (0.72 if multi_target else 0.62) + echo_scale_bonus * 0.12, -4.0, 0.18)
+
+	match camera_profile:
+		"surge":
+			_play_screen_shake(0.72 * impact_strength + shake_bonus, 0.14 + impact_strength * 0.03)
+			_focus_battle_frame(attacker_id, target_ids, 1.014 + impact_strength * 0.01 + zoom_bonus, 0.14)
+		"heroic":
+			_play_cinematic_bars(24.0 + impact_strength * 4.0 + float(quality_rank) * 2.0, 0.16)
+			_play_screen_shake((1.02 * impact_strength + shake_bonus * 1.05) * rarity_overdrive, 0.22)
+			_flash_scene(Color(highlight_color.r, highlight_color.g, highlight_color.b, flash_alpha + 0.016 + float(quality_rank) * 0.006))
+			_focus_battle_frame(attacker_id, target_ids, 1.03 + impact_strength * 0.012 + zoom_bonus + float(quality_rank) * 0.004, 0.2)
+		"cataclysm":
+			_play_cinematic_bars(38.0 + 7.0 * impact_strength + float(quality_rank) * 2.4, 0.24)
+			_flash_scene(Color(highlight_color.r, highlight_color.g, highlight_color.b, flash_alpha + 0.04 + float(quality_rank) * 0.006))
+			_play_screen_shake((1.24 * impact_strength + shake_bonus * 1.18) * rarity_overdrive, 0.28)
+			_focus_battle_frame(attacker_id, target_ids, 1.04 + impact_strength * 0.014 + zoom_bonus + float(quality_rank) * 0.004, 0.26)
+		"rake":
+			_play_cinematic_bars(22.0 + impact_strength * 3.0, 0.14)
+			_play_screen_shake(0.98 * impact_strength + shake_bonus * 1.06, 0.22)
+			_flash_scene(Color(highlight_color.r, highlight_color.g, highlight_color.b, flash_alpha + 0.012))
+			_focus_battle_frame(attacker_id, target_ids, 1.026 + impact_strength * 0.01 + zoom_bonus, 0.18)
+		"judgement":
+			_play_cinematic_bars(34.0 + 5.0 * impact_strength, 0.2)
+			_flash_scene(Color(highlight_color.r, highlight_color.g, highlight_color.b, flash_alpha + 0.03))
+			_play_screen_shake(1.12 * impact_strength + shake_bonus * 1.08, 0.26)
+			_focus_battle_frame(attacker_id, target_ids, 1.034 + impact_strength * 0.014 + zoom_bonus, 0.24)
+		"breaker":
+			_play_screen_shake(0.94 * impact_strength + shake_bonus, 0.2)
+			_flash_scene(Color(highlight_color.r, highlight_color.g, highlight_color.b, flash_alpha))
+			_focus_battle_frame(attacker_id, target_ids, 1.02 + impact_strength * 0.01 + zoom_bonus, 0.18)
+		_:
+			_play_screen_shake(0.7 * impact_strength + shake_bonus * 0.85, 0.14)
+			_focus_battle_frame(attacker_id, target_ids, 1.012 + impact_strength * 0.008 + zoom_bonus * 0.7, 0.12)
+	if bleed_style:
+		_play_screen_shake(0.18 + impact_strength * 0.1, 0.1)
+	if stun_style:
+		_flash_scene(Color(highlight_color.r, highlight_color.g, highlight_color.b, flash_alpha * 0.7))
+		_play_screen_shake(0.22 + impact_strength * 0.12, 0.12)
+	if normal_offense and quality_rank >= 3 and camera_profile != "cataclysm":
+		_play_cinematic_bars(24.0 + float(quality_rank) * 3.0, 0.16)
+		_flash_scene(Color(highlight_color.r, highlight_color.g, highlight_color.b, flash_alpha * 0.9 + float(quality_rank) * 0.005))
+	if normal_offense and quality_rank >= 4:
+		_play_screen_shake((0.18 + float(quality_rank) * 0.08) * rarity_overdrive, 0.14)
+		_focus_battle_frame(attacker_id, target_ids, 1.018 + float(quality_rank) * 0.004, 0.14)
+	return visuals
 
 
 func _play_screen_shake(intensity: float, duration: float) -> void:
@@ -3325,9 +4094,10 @@ func _execute_self_skill(skill_id: String) -> void:
 	var skill: Dictionary = GameState.skill_defs.get(skill_id, {})
 	_consume_skill_cost(active_actor_id, skill_id)
 	actor = _get_actor_data(active_actor_id)
+	var support_visuals: Dictionary = _get_skill_visual_profile(skill, [], false)
 	var support_text: String = ""
 	var support_subtext: String = ""
-	var support_color: Color = Color(0.44, 0.72, 0.93, 1.0)
+	var support_color: Color = support_visuals.get("accent_color", Color(0.44, 0.72, 0.93, 1.0))
 
 	match skill.get("effect", ""):
 		"defend_buff":
@@ -3349,7 +4119,7 @@ func _execute_self_skill(skill_id: String) -> void:
 	_set_actor_data(active_actor_id, actor)
 	if not support_text.is_empty():
 		_play_skill_sfx(skill)
-		_play_cinematic_strike(active_actor_id, [], false, support_color)
+		await _play_cinematic_strike(active_actor_id, [], false, support_color)
 		_play_support_feedback(active_actor_id, support_text, support_color, support_subtext)
 		await get_tree().create_timer(0.18).timeout
 	await _finish_ally_action()
@@ -3440,7 +4210,7 @@ func _execute_basic_attack() -> void:
 		damage
 	])
 	_play_attack_sfx(false, damage >= 24)
-	_play_cinematic_strike(active_actor_id, [str(target.get("actor_id", ""))], damage >= 24, Color(0.86, 0.52, 0.25, 1.0))
+	await _play_cinematic_strike(active_actor_id, [str(target.get("actor_id", ""))], damage >= 24, Color(0.86, 0.52, 0.25, 1.0))
 	_play_damage_feedback(target.get("actor_id", ""), damage)
 	await get_tree().create_timer(0.18).timeout
 	_handle_enemy_defeat(target.get("actor_id", ""), active_actor_id)
@@ -3463,7 +4233,8 @@ func _execute_target_skill(skill_id: String) -> void:
 		skill.get("name", skill_id)
 	])
 	_play_skill_sfx(skill)
-	_play_cinematic_strike(active_actor_id, target_ids, _is_heavy_skill(skill, target_ids), Color(0.37, 0.72, 0.86, 1.0))
+	var skill_visuals: Dictionary = await _play_skill_cinematic(active_actor_id, target_ids, skill)
+	var skill_accent: Color = skill_visuals.get("accent_color", Color(0.37, 0.72, 0.86, 1.0))
 	for target_id in target_ids:
 		var live_target: Dictionary = _get_enemy_by_actor_id(target_id)
 		if live_target.is_empty() or live_target.get("hp", 0) <= 0:
@@ -3489,7 +4260,7 @@ func _execute_target_skill(skill_id: String) -> void:
 			status_text = _apply_status_to_target(target_id, skill.get("status_effect", {}), actor.get("name", "Aliado"))
 		else:
 			_handle_enemy_defeat(target_id, active_actor_id)
-		_play_damage_feedback(target_id, damage, status_text, Color(0.82, 0.46, 0.27, 1.0))
+		_play_damage_feedback(target_id, damage, status_text, skill_accent)
 		await get_tree().create_timer(0.1).timeout
 
 	await _finish_ally_action()
@@ -3564,7 +4335,7 @@ func _enemy_turn(enemy_actor_id: String) -> void:
 			damage
 		])
 		_play_attack_sfx(true, damage >= 22)
-		_play_cinematic_strike(enemy_actor_id, [target_actor_id], damage >= 22, Color(0.8, 0.38, 0.28, 1.0))
+		await _play_cinematic_strike(enemy_actor_id, [target_actor_id], damage >= 22, Color(0.8, 0.38, 0.28, 1.0))
 		_play_damage_feedback(target_actor_id, damage, "", Color(0.83, 0.38, 0.31, 1.0))
 		await get_tree().create_timer(0.16).timeout
 	else:
@@ -3912,8 +4683,11 @@ func _process_turn_start_effects(actor_id: String) -> bool:
 			})
 		_write_log("%s fica em Atordoamento e perde a vez." % combatant.get("name", "Combatente"))
 		_play_sfx("stun", 0.02, -6.0)
+		_spawn_actor_vfx(actor_id, "arc", Color(0.97, 0.84, 0.44, 1.0), 0.94, -14.0, 0.28)
+		_spawn_actor_vfx(actor_id, "spark", Color(1.0, 0.94, 0.62, 1.0), 0.88, -12.0, 0.22)
 		_show_floating_text(actor_id, "Atord.", Color(0.95, 0.84, 0.49, 1.0), -18.0)
 		_animate_portrait_feedback(actor_id, Color(0.95, 0.84, 0.49, 1.0))
+		_animate_actor_action(actor_id, "stun_hit", Color(0.95, 0.84, 0.49, 1.0))
 
 	combatant["status_effects"] = updated_statuses
 	_set_combatant_data(actor_id, combatant)
@@ -4341,7 +5115,8 @@ func _execute_enemy_skill(enemy_actor_id: String, primary_target_id: String, ski
 		skill.get("name", "Arte")
 	])
 	_play_skill_sfx(skill, true)
-	_play_cinematic_strike(enemy_actor_id, target_ids, _is_heavy_skill(skill, target_ids), Color(0.88, 0.42, 0.26, 1.0))
+	var skill_visuals: Dictionary = await _play_skill_cinematic(enemy_actor_id, target_ids, skill, true)
+	var skill_accent: Color = skill_visuals.get("accent_color", Color(0.88, 0.42, 0.26, 1.0))
 	for target_id in target_ids:
 		var target_data: Dictionary = _get_actor_data(target_id)
 		if target_data.is_empty() or target_data.get("hp", 0) <= 0:
@@ -4369,7 +5144,7 @@ func _execute_enemy_skill(enemy_actor_id: String, primary_target_id: String, ski
 		var status_text: String = ""
 		if target_data.get("hp", 0) > 0:
 			status_text = _apply_status_to_target(target_id, skill.get("status_effect", {}), enemy.get("name", "Inimigo"))
-		_play_damage_feedback(target_id, damage, status_text, Color(0.86, 0.37, 0.28, 1.0))
+		_play_damage_feedback(target_id, damage, status_text, skill_accent)
 		await get_tree().create_timer(0.1).timeout
 	_refresh_status()
 

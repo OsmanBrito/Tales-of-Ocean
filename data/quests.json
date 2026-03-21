@@ -1,128 +1,128 @@
 [
   {
-    "id": "first_voyage",
-    "name": "A Primeira Viagem",
-    "giver": "Capitao Duarte",
-    "description": "Vence o batedor salteador junto da porta oriental e derruba o Capitao da Barra que o cobre.",
-    "objective": "Parte para a porta oriental, derrota o salteador e o Capitao da Barra.",
-    "journal": {
-      "not_started": "Feito principal: fala com o Capitao Duarte em Lisboa.",
-      "active": "Feito principal: vence o batedor salteador e derrota o Capitao da Barra junto do fortim.",
-      "ready_to_turn_in": "Feito principal: torna ao Capitao Duarte para receberes o teu soldo.",
-      "completed": "Feito principal concluido: a barra de Lisboa esta segura, e Pembah esta pronto para partir."
-    },
-    "reward_xp": 100,
-    "reward_gold": 40,
-    "reward_item": "merchant_ring",
-    "reward_items": [
-      "manual_corte_da_sonda",
-      "manual_brisa_da_alvorada",
-      "manual_corrente_da_barra",
-      "manual_firmeza_da_pedra",
+	"id": "first_voyage",
+	"name": "A Primeira Viagem",
+	"giver": "Capitao Duarte",
+	"description": "Vence o batedor salteador junto da porta oriental e derruba o Capitao da Barra que o cobre.",
+	"objective": "Parte para a porta oriental, derrota o salteador e o Capitao da Barra.",
+	"journal": {
+	  "not_started": "Feito principal: fala com o Capitao Duarte em Lisboa.",
+	  "active": "Feito principal: vence o batedor salteador e derrota o Capitao da Barra junto do fortim.",
+	  "ready_to_turn_in": "Feito principal: torna ao Capitao Duarte para receberes o teu soldo.",
+	  "completed": "Feito principal concluido: a barra de Lisboa esta segura, e Pembah esta pronto para partir."
+	},
+	"reward_xp": 100,
+	"reward_gold": 40,
+	"reward_item": "merchant_ring",
+	"reward_items": [
+	  "manual_corte_da_sonda",
+	  "manual_brisa_da_alvorada",
+	  "manual_corrente_da_barra",
+	  "manual_firmeza_da_pedra",
       "manual_mar_de_vidro"
-    ]
+	]
   },
   {
-    "id": "porto_alliance",
-    "name": "Alianca do Porto",
-    "giver": "Joao Tempestade",
-    "description": "Chegado ao Porto, ajuda Joao a limpar o cais de ameacas castelhanas e mouriscas e a derrubar o Capitao do Cais; se o fizeres, ele jurara seguir convosco.",
-    "objective": "Fala com Joao Tempestade, derrota os inimigos do cais e o Capitao do Cais.",
-    "journal": {
-      "not_started": "Feito principal: em Porto, busca Joao Tempestade junto das tabernas do cais.",
-      "active": "Feito principal: vence o duelista de Castela, o guerreiro mourisco e o Capitao do Cais.",
-      "ready_to_turn_in": "Feito principal: torna a Joao Tempestade para selar a alianca.",
-      "completed": "Feito principal concluido: Joao Tempestade juntou-se a vossa companhia."
-    },
-    "reward_xp": 140,
-    "reward_gold": 55,
-    "reward_item": "",
-    "reward_items": [
-      "manual_onda_em_arco",
-      "manual_pele_salgada",
-      "manual_clarim_do_farol",
-      "manual_cabo_da_ribeira",
+	"id": "porto_alliance",
+	"name": "Alianca do Porto",
+	"giver": "Joao Tempestade",
+	"description": "Chegado ao Porto, ajuda Joao a limpar o cais de ameacas castelhanas e mouriscas e a derrubar o Capitao do Cais; se o fizeres, ele jurara seguir convosco.",
+	"objective": "Fala com Joao Tempestade, derrota os inimigos do cais e o Capitao do Cais.",
+	"journal": {
+	  "not_started": "Feito principal: em Porto, busca Joao Tempestade junto das tabernas do cais.",
+	  "active": "Feito principal: vence o duelista de Castela, o guerreiro mourisco e o Capitao do Cais.",
+	  "ready_to_turn_in": "Feito principal: torna a Joao Tempestade para selar a alianca.",
+	  "completed": "Feito principal concluido: Joao Tempestade juntou-se a vossa companhia."
+	},
+	"reward_xp": 140,
+	"reward_gold": 55,
+	"reward_item": "",
+	"reward_items": [
+	  "manual_onda_em_arco",
+	  "manual_pele_salgada",
+	  "manual_clarim_do_farol",
+	  "manual_cabo_da_ribeira",
       "manual_quebra_mar_do_douro"
-    ]
+	]
   },
   {
-    "id": "luz_de_sagres",
-    "name": "Luz de Sagres",
-    "giver": "Mestre Lourenco",
-    "description": "No promontorio de Sagres, a irmandade do farol pede ajuda para quebrar a ronda de corsarios do nevoeiro, derrotar o Mestre do Nevoeiro e reacender a senda da costa.",
-    "objective": "Fala com Mestre Lourenco, limpa a Atalaia Quebrada, a Bateria do Alcatrao e derruba o Mestre do Nevoeiro.",
-    "journal": {
-      "not_started": "Feito principal: em Sagres, busca Mestre Lourenco junto ao farol.",
-      "active": "Feito principal: limpa a Atalaia Quebrada, a Bateria do Alcatrao e derrota o Mestre do Nevoeiro.",
-      "ready_to_turn_in": "Feito principal: torna a Mestre Lourenco para receber a doutrina do farol.",
-      "completed": "Feito principal concluido: a Irmandade do Farol abriu a Pembah os seus livros maiores."
-    },
-    "reward_xp": 180,
-    "reward_gold": 70,
-    "reward_item": "",
-    "reward_items": [
-      "manual_olho_da_estrela_polar",
-      "manual_circulo_da_almenara",
+	"id": "luz_de_sagres",
+	"name": "Luz de Sagres",
+	"giver": "Mestre Lourenco",
+	"description": "No promontorio de Sagres, a irmandade do farol pede ajuda para quebrar a ronda de corsarios do nevoeiro, derrotar o Mestre do Nevoeiro e reacender a senda da costa.",
+	"objective": "Fala com Mestre Lourenco, limpa a Atalaia Quebrada, a Bateria do Alcatrao e derruba o Mestre do Nevoeiro.",
+	"journal": {
+	  "not_started": "Feito principal: em Sagres, busca Mestre Lourenco junto ao farol.",
+	  "active": "Feito principal: limpa a Atalaia Quebrada, a Bateria do Alcatrao e derrota o Mestre do Nevoeiro.",
+	  "ready_to_turn_in": "Feito principal: torna a Mestre Lourenco para receber a doutrina do farol.",
+	  "completed": "Feito principal concluido: a Irmandade do Farol abriu a Pembah os seus livros maiores."
+	},
+	"reward_xp": 180,
+	"reward_gold": 70,
+	"reward_item": "",
+	"reward_items": [
+	  "manual_olho_da_estrela_polar",
+	  "manual_circulo_da_almenara",
       "manual_luz_do_cabo"
-    ]
+	]
   },
   {
-    "id": "roda_de_tomar",
-    "name": "A Roda de Tomar",
-    "giver": "Mestre Gabriel da Esfera",
-    "description": "Em Tomar, um circulo de apostatas furtou cartas e instrumentos da esfera. Limpai o Claustro da Charola, a Azenha do Nabao e derrubai o Prior da Sombra.",
-    "objective": "Fala com Mestre Gabriel da Esfera, limpa o Claustro da Charola, a Azenha do Nabao e vence o Prior da Sombra.",
-    "journal": {
-      "not_started": "Feito principal: em Tomar, busca Mestre Gabriel da Esfera junto ao convento.",
-      "active": "Feito principal: limpa o Claustro da Charola, a Azenha do Nabao e derrota o Prior da Sombra.",
-      "ready_to_turn_in": "Feito principal: torna a Mestre Gabriel para receber a doutrina de Tomar.",
-      "completed": "Feito principal concluido: Pembah ganhou entrada nos livros dourados de Tomar."
-    },
-    "reward_xp": 220,
-    "reward_gold": 90,
-    "reward_item": "",
-    "reward_items": [
-      "manual_roda_do_astrolabio",
-      "manual_regra_da_charola",
+	"id": "roda_de_tomar",
+	"name": "A Roda de Tomar",
+	"giver": "Mestre Gabriel da Esfera",
+	"description": "Em Tomar, um circulo de apostatas furtou cartas e instrumentos da esfera. Limpai o Claustro da Charola, a Azenha do Nabao e derrubai o Prior da Sombra.",
+	"objective": "Fala com Mestre Gabriel da Esfera, limpa o Claustro da Charola, a Azenha do Nabao e vence o Prior da Sombra.",
+	"journal": {
+	  "not_started": "Feito principal: em Tomar, busca Mestre Gabriel da Esfera junto ao convento.",
+	  "active": "Feito principal: limpa o Claustro da Charola, a Azenha do Nabao e derrota o Prior da Sombra.",
+	  "ready_to_turn_in": "Feito principal: torna a Mestre Gabriel para receber a doutrina de Tomar.",
+	  "completed": "Feito principal concluido: Pembah ganhou entrada nos livros dourados de Tomar."
+	},
+	"reward_xp": 220,
+	"reward_gold": 90,
+	"reward_item": "",
+	"reward_items": [
+	  "manual_roda_do_astrolabio",
+	  "manual_regra_da_charola",
       "manual_compasso_da_charola"
-    ]
+	]
   },
   {
-    "id": "porta_de_ceuta",
-    "name": "A Porta de Ceuta",
-    "giver": "Capitao Lourenço da Barra",
-    "description": "Em Ceuta, corsarios barbarescos e renegados da aduana apertam a marina e a alcacova. Quebra-lhes o passo, derruba o Senhor do Estreito e a fortaleza voltara a abrir o estreito.",
-    "objective": "Fala com o Capitao Lourenço da Barra, limpa a Porta da Marina, o Alto da Alcacova e vence o Senhor do Estreito.",
-    "journal": {
-      "not_started": "Feito principal: em Ceuta, busca o Capitao Lourenço da Barra junto da muralha do porto.",
-      "active": "Feito principal: limpa a Porta da Marina, o Alto da Alcacova e derrota o Senhor do Estreito.",
-      "ready_to_turn_in": "Feito principal: torna ao Capitao Lourenço para receber a doutrina do estreito.",
-      "completed": "Feito principal concluido: o estreito abriu-se. Em Sagres fala-se agora do poente."
-    },
-    "reward_xp": 280,
-    "reward_gold": 120,
-    "reward_item": "",
-    "reward_items": [
-      "manual_corte_do_estreito",
-      "manual_guarda_da_alfandega",
+	"id": "porta_de_ceuta",
+	"name": "A Porta de Ceuta",
+	"giver": "Capitao Lourenço da Barra",
+	"description": "Em Ceuta, corsarios barbarescos e renegados da aduana apertam a marina e a alcacova. Quebra-lhes o passo, derruba o Senhor do Estreito e a fortaleza voltara a abrir o estreito.",
+	"objective": "Fala com o Capitao Lourenço da Barra, limpa a Porta da Marina, o Alto da Alcacova e vence o Senhor do Estreito.",
+	"journal": {
+	  "not_started": "Feito principal: em Ceuta, busca o Capitao Lourenço da Barra junto da muralha do porto.",
+	  "active": "Feito principal: limpa a Porta da Marina, o Alto da Alcacova e derrota o Senhor do Estreito.",
+	  "ready_to_turn_in": "Feito principal: torna ao Capitao Lourenço para receber a doutrina do estreito.",
+	  "completed": "Feito principal concluido: o estreito abriu-se. Em Sagres fala-se agora do poente."
+	},
+	"reward_xp": 280,
+	"reward_gold": 120,
+	"reward_item": "",
+	"reward_items": [
+	  "manual_corte_do_estreito",
+	  "manual_guarda_da_alfandega",
       "manual_passo_da_muralha"
-    ]
+	]
   },
   {
-    "id": "terra_de_vera_cruz",
-    "name": "Terra de Vera Cruz",
-    "giver": "Mestre Lourenco",
-    "description": "Com o estreito seguro, Sagres chama pela derrota do poente. Larga para la e prova a terra nova.",
-    "objective": "Larga de Sagres rumo a Terra de Vera Cruz e vence o Guardiao da Terra.",
-    "journal": {
-      "not_started": "Feito principal: em Sagres, fala com Mestre Lourenco sobre a derrota do poente.",
-      "active": "Feito principal: larga de Sagres e alcança a Terra de Vera Cruz. Vence o Guardiao da Terra.",
-      "ready_to_turn_in": "Feito principal: a terra nova foi medida. Falta dar voz ao feito.",
-      "completed": "Feito principal concluido: a Terra de Vera Cruz foi alcançada e a promessa cumprida."
-    },
-    "reward_xp": 360,
-    "reward_gold": 180,
-    "reward_item": "",
-    "reward_items": []
+	"id": "terra_de_vera_cruz",
+	"name": "Terra de Vera Cruz",
+	"giver": "Mestre Lourenco",
+	"description": "Com o estreito seguro, Sagres chama pela derrota do poente. Larga para la e prova a terra nova.",
+	"objective": "Larga de Sagres rumo a Terra de Vera Cruz e vence o Guardiao da Terra.",
+	"journal": {
+	  "not_started": "Feito principal: em Sagres, fala com Mestre Lourenco sobre a derrota do poente.",
+	  "active": "Feito principal: larga de Sagres e alcança a Terra de Vera Cruz. Vence o Guardiao da Terra.",
+	  "ready_to_turn_in": "Feito principal: a terra nova foi medida. Falta dar voz ao feito.",
+	  "completed": "Feito principal concluido: a Terra de Vera Cruz foi alcançada e a promessa cumprida."
+	},
+	"reward_xp": 360,
+	"reward_gold": 180,
+	"reward_item": "",
+	"reward_items": []
   }
 ]

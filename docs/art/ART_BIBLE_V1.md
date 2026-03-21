@@ -131,4 +131,3 @@ The slice is approved when:
 - Pembah and Joao are recognizable at first glance in both portrait and battler view
 - world/combat style feels from the same game
 - composition is clear on first read without visual noise
-

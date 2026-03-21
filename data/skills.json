@@ -8,6 +8,15 @@
 	"power": 22,
 	"range": 2,
 	"pierce_row": true,
+	"visual": {
+	  "anim_id": "tidal_lunge",
+	  "vfx_id": "arc",
+	  "impact_vfx_id": "splash",
+	  "sfx_id": "wave",
+	  "accent_color": [0.33, 0.71, 0.84, 1.0],
+	  "impact_strength": 1.15,
+	  "camera_profile": "surge"
+	},
 	"description": "Golpe firme, guiado pelo Espirito do Mar."
   },
   {
@@ -51,6 +60,15 @@
 	"cost": 9,
 	"power": 15,
 	"range": 2,
+	"visual": {
+	  "anim_id": "hook_sweep",
+	  "vfx_id": "slash",
+	  "impact_vfx_id": "bleed_strong",
+	  "sfx_id": "bleed",
+	  "accent_color": [0.79, 0.32, 0.27, 1.0],
+	  "impact_strength": 1.0,
+	  "camera_profile": "rake"
+	},
 	"status_effect": {
 	  "id": "bleed",
 	  "duration": 2,
@@ -66,6 +84,15 @@
 	"cost": 11,
 	"power": 20,
 	"range": 3,
+	"visual": {
+	  "anim_id": "farol_burst",
+	  "vfx_id": "arc",
+	  "impact_vfx_id": "spark",
+	  "sfx_id": "stun",
+	  "accent_color": [0.92, 0.79, 0.43, 1.0],
+	  "impact_strength": 1.2,
+	  "camera_profile": "judgement"
+	},
 	"status_effect": {
 	  "id": "stun",
 	  "duration": 1

@@ -6,8 +6,8 @@
       "label": "Capitao Duarte",
       "prompt": "Carrega E para falar com o Capitao Duarte.",
       "position": {
-        "x": 1080.0,
-        "y": 560.0
+        "x": 2172.0,
+        "y": 972.0
       },
       "radius": 92.0,
       "draw_radius": 22.0,
@@ -27,8 +27,8 @@
       "label": "Velho Tome",
       "prompt": "Carrega E para escutar o velho marinheiro.",
       "position": {
-        "x": 1740.0,
-        "y": 1088.0
+        "x": 2376.0,
+        "y": 1324.0
       },
       "radius": 90.0,
       "draw_radius": 20.0,
@@ -41,8 +41,8 @@
       "label": "Casa de Pasto",
       "prompt": "Carrega E para entrar na Casa de Pasto da Ribeira.",
       "position": {
-        "x": 1280.0,
-        "y": 1048.0
+        "x": 704.0,
+        "y": 784.0
       },
       "radius": 94.0,
       "draw_radius": 22.0,
@@ -55,8 +55,8 @@
       "label": "Casa dos Roteiros",
       "prompt": "Carrega E para consultar cartas e pergaminhos.",
       "position": {
-        "x": 1420.0,
-        "y": 776.0
+        "x": 1320.0,
+        "y": 796.0
       },
       "radius": 90.0,
       "draw_radius": 22.0,
@@ -69,8 +69,8 @@
       "label": "Caravela do Norte",
       "prompt": "Carrega E para embarcar rumo ao Porto.",
       "position": {
-        "x": 346.0,
-        "y": 548.0
+        "x": 408.0,
+        "y": 1036.0
       },
       "radius": 94.0,
       "draw_radius": 24.0,
@@ -90,8 +90,8 @@
       "label": "Para o Rossio",
       "prompt": "Carrega E para seguir ao Rossio.",
       "position": {
-        "x": 2710.0,
-        "y": 1038.0
+        "x": 2304.0,
+        "y": 1026.0
       },
       "radius": 92.0,
       "draw_radius": 22.0,
@@ -109,8 +109,8 @@
       "label": "Rua da Se",
       "prompt": "Carrega E para subir a rua da Se.",
       "position": {
-        "x": 2360.0,
-        "y": 786.0
+        "x": 1804.0,
+        "y": 782.0
       },
       "radius": 88.0,
       "draw_radius": 20.0,
@@ -128,8 +128,8 @@
       "label": "Para o Estaleiro",
       "prompt": "Carrega E para descer ao estaleiro.",
       "position": {
-        "x": 358.0,
-        "y": 1218.0
+        "x": 2152.0,
+        "y": 1332.0
       },
       "radius": 94.0,
       "draw_radius": 22.0,

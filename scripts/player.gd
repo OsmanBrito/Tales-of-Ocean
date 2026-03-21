@@ -25,6 +25,9 @@ const FOOTSTEP_VARIATION_COUNT: int = 3
 @export var idle_breathe_amount: float = 0.028
 @export var collision_radius: float = 18.0
 @export var footstep_volume_db: float = -24.0
+@export var visual_scale: float = 1.0
+@export var visual_offset: Vector2 = Vector2.ZERO
+@export var animation_scale: float = 1.0
 
 var walk_phase: float = 0.0
 var idle_phase: float = 0.0
@@ -77,30 +80,34 @@ func _ready() -> void:
 
 
 func _draw() -> void:
+	var render_scale: float = maxf(0.2, visual_scale)
+	var motion_scale: float = maxf(0.2, animation_scale)
 	var walk_wave: float = sin(walk_phase)
 	var walk_lift: float = absf(cos(walk_phase))
 	var idle_wave: float = sin(idle_phase)
-	var bob: float = (-walk_lift * walk_bob_amount * motion_blend) + (idle_wave * 0.7 * (1.0 - motion_blend))
-	var step_shift: float = walk_wave * walk_stride_amount * motion_blend
-	var lean: float = clampf(current_input.x * 0.045, -0.045, 0.045)
-	var sway: float = (walk_wave * 0.025 * motion_blend) + (idle_wave * 0.015 * (1.0 - motion_blend))
+	var bob: float = ((-walk_lift * walk_bob_amount * motion_blend) + (idle_wave * 0.7 * (1.0 - motion_blend))) * motion_scale
+	var step_shift: float = walk_wave * walk_stride_amount * motion_blend * motion_scale
+	var lean: float = clampf(current_input.x * 0.045 * motion_scale, -0.045 * motion_scale, 0.045 * motion_scale)
+	var sway: float = ((walk_wave * 0.025 * motion_blend) + (idle_wave * 0.015 * (1.0 - motion_blend))) * motion_scale
 	var body_rotation: float = lean + sway
 	var body_scale := Vector2(
-		1.0 + (absf(walk_wave) * 0.035 * motion_blend) + (idle_wave * idle_breathe_amount * 0.45),
-		1.0 - (absf(walk_wave) * 0.05 * motion_blend) - (idle_wave * idle_breathe_amount)
+		1.0 + (absf(walk_wave) * 0.035 * motion_blend * motion_scale) + (idle_wave * idle_breathe_amount * 0.45 * motion_scale),
+		1.0 - (absf(walk_wave) * 0.05 * motion_blend * motion_scale) - (idle_wave * idle_breathe_amount * motion_scale)
 	)
 	body_scale.x *= float(facing_direction)
 
-	var shadow_scale_x: float = 1.0 + (0.1 * motion_blend) + (0.05 * walk_lift * motion_blend)
+	var shadow_scale_x: float = 1.0 + ((0.1 * motion_blend) + (0.05 * walk_lift * motion_blend)) * motion_scale
 	var shadow_alpha: float = 0.14 + (0.03 * walk_lift * motion_blend) + (0.02 * (1.0 - motion_blend))
 	var draw_texture: Texture2D = _get_current_player_texture()
 	var sprite_rect := Rect2(Vector2(-44.0, -58.0), Vector2(88.0, 128.0))
 	if player_contact_sheet != null:
 		sprite_rect = Rect2(Vector2(-50.0, -82.0), Vector2(100.0, 148.0))
-	draw_set_transform(Vector2.ZERO, 0.0, Vector2(shadow_scale_x, 1.0))
-	draw_circle(Vector2(0.0, 26.0), 18.0, Color(0, 0, 0, shadow_alpha))
+	sprite_rect.position *= render_scale
+	sprite_rect.size *= render_scale
+	draw_set_transform(Vector2(visual_offset.x * 0.25, visual_offset.y * 0.16), 0.0, Vector2(shadow_scale_x, 1.0))
+	draw_circle(Vector2(0.0, 26.0 * render_scale), 18.0 * render_scale, Color(0, 0, 0, shadow_alpha))
 
-	draw_set_transform(Vector2(step_shift * 0.35, bob), body_rotation, body_scale)
+	draw_set_transform(visual_offset + Vector2(step_shift * 0.35, bob), body_rotation, body_scale)
 	draw_texture_rect(draw_texture, sprite_rect, false)
 
 	draw_set_transform(Vector2.ZERO, 0.0, Vector2.ONE)

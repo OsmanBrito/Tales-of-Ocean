@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=3 uid="uid://cx6r48sqbnwka"]
+
+[ext_resource type="Texture2D" uid="uid://beoy7ehmn1o51" path="res://assets/world/QuillBot-generated-image-1 (4).png" id="1_cml0j"]
+[ext_resource type="Script" uid="uid://drpv1lohl5nbv" path="res://scripts/player.gd" id="2_cml0j"]
+
+[node name="Harbor" type="Node2D"]
+
+[node name="Background" type="Sprite2D" parent="."]
+scale = Vector2(2, 2)
+texture = ExtResource("1_cml0j")
+
+[node name="Player" type="Node2D" parent="."]
+script = ExtResource("2_cml0j")
+world_rect = Rect2(-1408, -768, 2816, 1536)
+
+[node name="Camera2D" type="Camera2D" parent="Player"]
+limit_smoothed = true
+position_smoothing_enabled = true
+position_smoothing_speed = 6.5
