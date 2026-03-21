@@ -1,39 +1,114 @@
 {
+  "enter_events": [
+    {
+      "id": "act1_opening",
+      "conditions": {
+        "quest_state": {
+          "mq_001_rapaz_do_cais": "not_started"
+        }
+      },
+      "actions": [
+        {
+          "type": "start_cutscene",
+          "cutscene_id": "cs_001_opening_lisboa"
+        }
+      ]
+    },
+    {
+      "id": "act1_alarm_bells",
+      "conditions": {
+        "quest_state": {
+          "mq_003_fogo_no_armazem": "active"
+        }
+      },
+      "actions": [
+        {
+          "type": "start_cutscene",
+          "cutscene_id": "cs_020_alarm_bells"
+        }
+      ]
+    }
+  ],
   "interactables": [
     {
-      "id": "capitao_duarte",
+      "id": "npc_estivador",
       "type": "dialogue",
-      "label": "Capitao Duarte",
-      "prompt": "Carrega E para falar com o Capitao Duarte.",
+      "label": "Estivador",
+      "prompt": "Carrega E para falar com o estivador.",
       "position": {
-        "x": 2172.0,
-        "y": 972.0
+        "x": 694.0,
+        "y": 810.0
       },
       "radius": 92.0,
       "draw_radius": 22.0,
-      "color": "ba3a3a",
-      "dialogues_by_quest_state": {
-        "first_voyage": {
-          "not_started": "duarte_inicio",
-          "active": "duarte_em_curso",
-          "ready_to_turn_in": "duarte_recompensa",
-          "completed": "duarte_fecho"
-        }
-      }
+      "color": "8d5e3b",
+      "visual_profile": "dock_worker",
+      "quest_target_id": "npc_estivador",
+      "default_dialogue_id": "dlg_002_estivador"
     },
     {
-      "id": "velho_tome",
+      "id": "npc_marinheiro_veterano",
       "type": "dialogue",
-      "label": "Velho Tome",
-      "prompt": "Carrega E para escutar o velho marinheiro.",
+      "label": "Marinheiro Veterano",
+      "prompt": "Carrega E para falar com o marinheiro veterano.",
       "position": {
-        "x": 2376.0,
-        "y": 1324.0
+        "x": 954.0,
+        "y": 818.0
       },
-      "radius": 90.0,
-      "draw_radius": 20.0,
-      "color": "476c9b",
-      "default_dialogue_id": "tome_cais"
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "456e97",
+      "visual_profile": "old_sailor",
+      "quest_target_id": "npc_marinheiro_veterano",
+      "default_dialogue_id": "dlg_003_marinheiro_veterano"
+    },
+    {
+      "id": "npc_peixeira_velha",
+      "type": "dialogue",
+      "label": "Peixeira Velha",
+      "prompt": "Carrega E para falar com a peixeira.",
+      "position": {
+        "x": 1176.0,
+        "y": 758.0
+      },
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "a35c4d",
+      "visual_profile": "fishwife",
+      "quest_target_id": "npc_peixeira_velha",
+      "default_dialogue_id": "dlg_004_peixeira"
+    },
+    {
+      "id": "npc_merchant_rodrigo",
+      "type": "dialogue",
+      "label": "Rodrigo Mercador",
+      "prompt": "Carrega E para falar com Rodrigo.",
+      "position": {
+        "x": 1456.0,
+        "y": 774.0
+      },
+      "radius": 92.0,
+      "draw_radius": 22.0,
+      "color": "7b5f38",
+      "visual_profile": "merchant",
+      "quest_target_id": "npc_merchant_rodrigo",
+      "quest_events_by_quest_state": {
+        "sq_001_a_caixa_perdida": {
+          "ready_to_turn_in": {
+            "kind": "return",
+            "target": "npc_merchant_rodrigo"
+          }
+        }
+      },
+      "dialogues_by_quest_state": {
+        "sq_001_a_caixa_perdida": {
+          "not_started": "merchant_offer",
+          "active": "merchant_active",
+          "ready_to_turn_in": "merchant_reward",
+          "completed": "merchant_done"
+        }
+      },
+      "default_dialogue_id": "merchant_offer"
     },
     {
       "id": "casa_de_pasto_da_ribeira",
@@ -41,12 +116,13 @@
       "label": "Casa de Pasto",
       "prompt": "Carrega E para entrar na Casa de Pasto da Ribeira.",
       "position": {
-        "x": 704.0,
-        "y": 784.0
+        "x": 700.0,
+        "y": 788.0
       },
       "radius": 94.0,
       "draw_radius": 22.0,
       "color": "8a5b34",
+      "visual_profile": "fishwife",
       "shop_id": "casa_de_pasto_da_ribeira"
     },
     {
@@ -55,143 +131,255 @@
       "label": "Casa dos Roteiros",
       "prompt": "Carrega E para consultar cartas e pergaminhos.",
       "position": {
-        "x": 1320.0,
+        "x": 1318.0,
         "y": 796.0
       },
-      "radius": 90.0,
+      "radius": 92.0,
       "draw_radius": 22.0,
       "color": "355a7a",
+      "visual_profile": "merchant",
       "shop_id": "casa_dos_roteiros"
     },
     {
-      "id": "caravela_do_norte",
+      "id": "trigger_capela_porto",
       "type": "dialogue",
-      "label": "Caravela do Norte",
-      "prompt": "Carrega E para embarcar rumo ao Porto.",
+      "label": "Capela do Porto",
+      "prompt": "Carrega E para subir a capela do porto.",
       "position": {
-        "x": 408.0,
-        "y": 1036.0
+        "x": 2142.0,
+        "y": 714.0
+      },
+      "radius": 96.0,
+      "draw_radius": 22.0,
+      "color": "d2b46b",
+      "hide_marker": true,
+      "quest_target_id": "trigger_capela_porto",
+      "quest_event_kind": "trigger",
+      "dialogues_by_quest_state": {
+        "mq_002_um_homem_chamado_tempestade": {
+          "active": "chapel_joao"
+        }
+      },
+      "default_dialogue_id": "chapel_arrive"
+    },
+    {
+      "id": "trigger_dock_alley",
+      "type": "dialogue",
+      "label": "Viela do Cais",
+      "prompt": "Carrega E para entrar na viela do cais.",
+      "position": {
+        "x": 2248.0,
+        "y": 1106.0
       },
       "radius": 94.0,
-      "draw_radius": 24.0,
-      "color": "1f5d8b",
-      "default_dialogue_id": "viagem_porto",
+      "draw_radius": 22.0,
+      "color": "6f4f35",
+      "quest_target_id": "trigger_dock_alley",
+      "quest_event_kind": "trigger",
+      "default_dialogue_id": "dock_alley_search",
       "conditions": {
         "quest_state": {
-          "first_voyage": [
-            "completed"
-          ]
+          "sq_001_a_caixa_perdida": "active"
         }
       }
     },
     {
-      "id": "to_rossio",
-      "type": "transition",
-      "label": "Para o Rossio",
-      "prompt": "Carrega E para seguir ao Rossio.",
+      "id": "royal_warehouse",
+      "type": "dialogue",
+      "label": "Armazem Regio",
+      "prompt": "Carrega E para acudir ao armazem.",
       "position": {
-        "x": 2304.0,
-        "y": 1026.0
+        "x": 1524.0,
+        "y": 1094.0
       },
-      "radius": 92.0,
+      "radius": 96.0,
       "draw_radius": 22.0,
-      "color": "7b6547",
-      "scene": "res://scenes/world/lisboa_rossio.tscn",
-      "target_scene_id": "lisboa_rossio",
-      "spawn_position": {
-        "x": 270.0,
+      "color": "b35f3e",
+      "default_dialogue_id": "warehouse_entry",
+      "conditions": {
+        "quest_state": {
+          "mq_003_fogo_no_armazem": "active"
+        }
+      }
+    },
+    {
+      "id": "order_courtyard",
+      "type": "dialogue",
+      "label": "Patio da Ordem",
+      "prompt": "Carrega E para confrontar o capitao.",
+      "position": {
+        "x": 2194.0,
+        "y": 604.0
+      },
+      "radius": 96.0,
+      "draw_radius": 22.0,
+      "color": "8b3d3d",
+      "default_dialogue_id": "captain_entry",
+      "conditions": {
+        "quest_state": {
+          "mq_004_o_capitao_corrompido": "active"
+        }
+      }
+    },
+    {
+      "id": "trigger_north_road",
+      "type": "dialogue",
+      "label": "Estrada do Norte",
+      "prompt": "Carrega E para deixar Lisboa rumo a Tomar.",
+      "position": {
+        "x": 2506.0,
         "y": 720.0
-      }
-    },
-    {
-      "id": "to_se",
-      "type": "transition",
-      "label": "Rua da Se",
-      "prompt": "Carrega E para subir a rua da Se.",
-      "position": {
-        "x": 1804.0,
-        "y": 782.0
       },
-      "radius": 88.0,
-      "draw_radius": 20.0,
-      "color": "74808a",
-      "scene": "res://scenes/world/lisboa_se.tscn",
-      "target_scene_id": "lisboa_se",
-      "spawn_position": {
-        "x": 260.0,
-        "y": 760.0
-      }
-    },
-    {
-      "id": "to_estaleiro",
-      "type": "transition",
-      "label": "Para o Estaleiro",
-      "prompt": "Carrega E para descer ao estaleiro.",
-      "position": {
-        "x": 2152.0,
-        "y": 1332.0
-      },
-      "radius": 94.0,
+      "radius": 96.0,
       "draw_radius": 22.0,
-      "color": "70553d",
-      "scene": "res://scenes/world/lisboa_estaleiro.tscn",
-      "target_scene_id": "lisboa_estaleiro",
-      "spawn_position": {
-        "x": 1380.0,
-        "y": 658.0
+      "color": "5e7d52",
+      "quest_target_id": "trigger_north_road",
+      "quest_events_by_quest_state": {
+        "mq_005_a_estrada_para_tomar": {
+          "active": {
+            "kind": "trigger",
+            "target": "trigger_north_road"
+          }
+        }
+      },
+      "dialogues_by_quest_state": {
+        "mq_005_a_estrada_para_tomar": {
+          "active": "north_road_depart",
+          "completed": "north_road_done"
+        }
+      },
+      "default_dialogue_id": "north_road_hint",
+      "conditions": {
+        "quest_state": {
+          "mq_005_a_estrada_para_tomar": [
+            "active",
+            "completed"
+          ]
+        }
       }
     }
   ],
   "dialogues": [
     {
-      "id": "duarte_inicio",
-      "speaker": "Capitao Duarte",
-      "text": "Pembah, Lisboa nao confia a rota do Oriente a qualquer homem. Um batedor salteador anda a vexar marinheiros junto da porta oriental, e um Capitao da Barra vendido ao ouro alheio cobre-lhe o passo. Vai, mede-te com ambos, e regressa a mim; entao porei o meu selo na tua viagem.",
-      "primary_label": "Aceitar encargo",
+      "id": "merchant_offer",
+      "speaker": "Rodrigo",
+      "text": "Rapaz, preciso de maos rapidas. Roubaram-me uma caixa nas vielas do cais. Se ma trouxeres inteira, pago-vos com prata e boa memoria.",
+      "primary_label": "Aceitar trabalho",
       "secondary_label": "Fechar",
       "actions": [
         {
           "type": "start_quest",
-          "quest_id": "first_voyage"
+          "quest_id": "sq_001_a_caixa_perdida"
         }
       ]
     },
     {
-      "id": "duarte_em_curso",
-      "speaker": "Capitao Duarte",
-      "text": "O batedor ainda respira, e o Capitao da Barra ainda manda no fortim. Nao voltes a mim sem cumprires o encargo que te foi confiado.",
+      "id": "merchant_active",
+      "speaker": "Rodrigo",
+      "text": "Ainda nao tendes a minha caixa. Os ladrões meteram-se pela viela do cais; depressa, antes que vendam o que nao lhes pertence.",
       "secondary_label": "Prosseguir"
     },
     {
-      "id": "duarte_recompensa",
-      "speaker": "Capitao Duarte",
-      "text": "Serviste bem a cidade. Toma o teu soldo e guarda este anel; sera sinal de que ja navegaste ao servico de Lisboa.",
-      "primary_label": "Receber soldo",
+      "id": "merchant_reward",
+      "speaker": "Rodrigo",
+      "text": "A caixa voltou inteira. Fizestes mais do que muitos guardas fariam por menos oiro. Toma a vossa paga e este anel; entre mercadores, uma mao firme vale muito.",
+      "primary_label": "Receber recompensa",
       "secondary_label": "Fechar",
       "actions": [
         {
           "type": "complete_quest",
-          "quest_id": "first_voyage"
+          "quest_id": "sq_001_a_caixa_perdida"
         }
       ]
     },
     {
-      "id": "duarte_fecho",
-      "speaker": "Capitao Duarte",
-      "text": "Ja deste o primeiro passo. A cidade abre-se diante de vos, e a barra aguarda outro rumo quando o desejardes.",
+      "id": "merchant_done",
+      "speaker": "Rodrigo",
+      "text": "Se voltar a perder mercadoria, espero que estejais por perto. Lisboa tem poucos homens discretos e menos ainda com palavra.",
       "secondary_label": "Prosseguir"
     },
     {
-      "id": "tome_cais",
-      "speaker": "Velho Tome",
-      "text": "Na Ribeira aprende-se cedo: o mar ama os ousados, mas estima ainda mais os prevenidos.",
-      "secondary_label": "Agradecer"
+      "id": "chapel_arrive",
+      "speaker": "Capela do Porto",
+      "text": "As velas ardem baixas e o sal pega-se a pedra antiga. A capela espera, silenciosa, como se ainda houvesse algo por cumprir no cais.",
+      "secondary_label": "Prosseguir"
     },
     {
-      "id": "viagem_porto",
-      "speaker": "Mestre da Caravela",
-      "text": "A maré corre de feicao e o vento chama pelo norte. Se assim o quereis, levo-vos ao Porto ainda antes de soar a proxima alvorada.",
-      "primary_label": "Partir para Porto",
+      "id": "chapel_joao",
+      "speaker": "Capela do Porto",
+      "text": "Uma figura espera junto ao altar, meio sombra, meio maruja. O ar dentro da capela parece mais pesado do que la fora.",
+      "primary_label": "Entrar",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "start_cutscene",
+          "cutscene_id": "cs_010_meet_joao"
+        }
+      ]
+    },
+    {
+      "id": "dock_alley_search",
+      "speaker": "Viela do Cais",
+      "text": "As caixas empilham-se contra os muros e ha pegadas frescas entre o lodo e a palha. Alguem vos viu chegar e nao gostou disso.",
+      "primary_label": "Avancar",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "start_battle",
+          "battle_id": "battle_lost_crate_thieves"
+        }
+      ]
+    },
+    {
+      "id": "warehouse_entry",
+      "speaker": "Armazem Regio",
+      "text": "O fumo sobe por cima dos telhados e sinos batem a rebate. Homens correm, gritos cruzam o cais e o ar sabe a madeira queimada.",
+      "primary_label": "Correr ao armazem",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "start_cutscene",
+          "cutscene_id": "cs_020_alarm_bells"
+        }
+      ]
+    },
+    {
+      "id": "captain_entry",
+      "speaker": "Patio da Ordem",
+      "text": "Soldados abrem espaco, mas nao por respeito. No alto do patio, o capitao Lourenco espera como juiz e carrasco na mesma postura.",
+      "primary_label": "Confrontar",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "start_cutscene",
+          "cutscene_id": "cs_040_captain_confrontation"
+        }
+      ]
+    },
+    {
+      "id": "north_road_hint",
+      "speaker": "Estrada do Norte",
+      "text": "A estrada sobe para fora da cidade. Para ja, o vosso rumo ainda se decide entre o cais, a ordem e os ecos do que ardeu em Lisboa.",
+      "secondary_label": "Prosseguir"
+    },
+    {
+      "id": "north_road_depart",
+      "speaker": "Estrada do Norte",
+      "text": "A cidade fica para tras mal se passa o arco. Joao espera ao amanhecer, e a estrada para Tomar ja nao parece promessa, mas destino.",
+      "primary_label": "Partir",
+      "secondary_label": "Fechar",
+      "actions": [
+        {
+          "type": "start_cutscene",
+          "cutscene_id": "cs_050_departure_sunrise"
+        }
+      ]
+    },
+    {
+      "id": "north_road_done",
+      "speaker": "Estrada do Norte",
+      "text": "Tomar esta finalmente ao vosso alcance. Quando quiserdes seguir, basta abrir a carta do reino e escolher o rumo.",
+      "primary_label": "Abrir mapa",
       "secondary_label": "Ficar em Lisboa",
       "actions": [
         {
@@ -204,7 +392,7 @@
     {
       "id": "casa_de_pasto_da_ribeira",
       "name": "Casa de Pasto da Ribeira",
-      "greeting": "A dona da casa poe caldo, pao e cama modesta a quem venha cansado do cais.",
+      "greeting": "A dona da casa serve caldo, pao e cama modesta a quem venha gasto do cais.",
       "entries": [
         {
           "service_id": "rest_house",
@@ -220,13 +408,17 @@
         {
           "item_id": "health_potion",
           "price": 24
+        },
+        {
+          "item_id": "spirit_elixir",
+          "price": 28
         }
       ]
     },
     {
       "id": "casa_dos_roteiros",
       "name": "Casa dos Roteiros",
-      "greeting": "Um escrivao da barra guarda cartas, cadernos e pergaminhos. Nem toda a tinta cabe em maos verdes.",
+      "greeting": "Um escrivao da barra guarda cartas, cadernos e manuais. Nem toda a tinta cabe em maos verdes.",
       "entries": [
         {
           "item_id": "manual_corrente_da_barra",
@@ -238,38 +430,18 @@
         },
         {
           "item_id": "manual_corte_da_sonda",
-          "price": 124,
-          "conditions": {
-            "quest_state": {
-              "first_voyage": [
-                "active",
-                "ready_to_turn_in",
-                "completed"
-              ]
-            }
-          }
+          "price": 124
         },
         {
           "item_id": "manual_mar_de_vidro",
-          "price": 142,
-          "conditions": {
-            "quest_state": {
-              "first_voyage": [
-                "active",
-                "ready_to_turn_in",
-                "completed"
-              ]
-            }
-          }
+          "price": 142
         },
         {
           "item_id": "manual_firmeza_da_pedra",
           "price": 148,
           "conditions": {
-            "quest_state": {
-              "first_voyage": [
-                "completed"
-              ]
+            "world_flags": {
+              "act_1_complete": true
             }
           }
         }

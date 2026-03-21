@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=3]
+[gd_scene load_steps=5 format=3 uid="uid://ypkuc7q1ejec"]
 
-[ext_resource type="Script" path="res://scripts/world/lisboa.gd" id="1"]
-[ext_resource type="Script" path="res://scripts/player.gd" id="2"]
-[ext_resource type="Script" path="res://scripts/world/lisboa_foreground_overlay.gd" id="3"]
+[ext_resource type="Script" uid="uid://8sm2iq2p5ghf" path="res://scripts/world/lisboa.gd" id="1"]
+[ext_resource type="Script" uid="uid://drpv1lohl5nbv" path="res://scripts/player.gd" id="2"]
+[ext_resource type="Script" uid="uid://cc73c87i17ktc" path="res://scripts/world/lisboa_foreground_overlay.gd" id="3"]
+[ext_resource type="Texture2D" uid="uid://beoy7ehmn1o51" path="res://assets/world/QuillBot-generated-image-1 (4).png" id="4"]
 
 [node name="Lisboa" type="Node2D"]
 script = ExtResource("1")
@@ -11,14 +12,29 @@ scene_id = "lisboa"
 default_spawn_position = Vector2(1260, 1012)
 scene_path = "res://scenes/world/lisboa.tscn"
 
+[node name="BackgroundPreview" type="Sprite2D" parent="."]
+z_index = -20
+scale = Vector2(2, 2)
+texture = ExtResource("4")
+
 [node name="Player" type="Node2D" parent="."]
 script = ExtResource("2")
+speed = 208.0
+move_acceleration = 1360.0
+move_deceleration = 1980.0
+reverse_acceleration_multiplier = 1.68
+walk_cycle_speed = 7.6
+walk_bob_amount = 2.05
+walk_stride_amount = 1.9
+collision_radius = 14.0
+visual_scale = 0.72
+animation_scale = 0.82
 
 [node name="Camera2D" type="Camera2D" parent="Player"]
-enabled = true
+zoom = Vector2(30, 30)
+limit_smoothed = true
 position_smoothing_enabled = true
 position_smoothing_speed = 6.5
-limit_smoothed = true
 
 [node name="ForegroundOverlay" type="Node2D" parent="."]
 visible = false
@@ -60,34 +76,73 @@ theme_override_font_sizes/font_size = 18
 [node name="DialoguePanel" type="PanelContainer" parent="CanvasLayer"]
 unique_name_in_owner = true
 visible = false
-offset_left = 980.0
-offset_top = 690.0
-offset_right = 1840.0
-offset_bottom = 1000.0
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -610.0
+offset_top = -332.0
+offset_right = 610.0
+offset_bottom = -20.0
 
-[node name="DialogueVBox" type="VBoxContainer" parent="CanvasLayer/DialoguePanel"]
+[node name="DialogueContent" type="HBoxContainer" parent="CanvasLayer/DialoguePanel"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 22
 
-[node name="DialogueText" type="RichTextLabel" parent="CanvasLayer/DialoguePanel/DialogueVBox"]
+[node name="DialoguePortraitFrame" type="PanelContainer" parent="CanvasLayer/DialoguePanel/DialogueContent"]
+unique_name_in_owner = true
+visible = false
+custom_minimum_size = Vector2(178, 214)
+layout_mode = 2
+
+[node name="DialoguePortrait" type="TextureRect" parent="CanvasLayer/DialoguePanel/DialogueContent/DialoguePortraitFrame"]
 unique_name_in_owner = true
 layout_mode = 2
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DialogueVBox" type="VBoxContainer" parent="CanvasLayer/DialoguePanel/DialogueContent"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(840, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 14
+
+[node name="DialogueText" type="RichTextLabel" parent="CanvasLayer/DialoguePanel/DialogueContent/DialogueVBox"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 156)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/default_color = Color(0.95, 0.93, 0.88, 1)
+theme_override_font_sizes/normal_font_size = 22
+theme_override_font_sizes/bold_font_size = 30
 bbcode_enabled = true
-fit_content = true
 scroll_active = false
 
-[node name="DialogueButtons" type="HBoxContainer" parent="CanvasLayer/DialoguePanel/DialogueVBox"]
+[node name="DialogueButtons" type="HBoxContainer" parent="CanvasLayer/DialoguePanel/DialogueContent/DialogueVBox"]
 layout_mode = 2
+alignment = 2
 
-[node name="PrimaryButton" type="Button" parent="CanvasLayer/DialoguePanel/DialogueVBox/DialogueButtons"]
+[node name="PrimaryButton" type="Button" parent="CanvasLayer/DialoguePanel/DialogueContent/DialogueVBox/DialogueButtons"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(182, 48)
 layout_mode = 2
 text = "Aceitar"
 
-[node name="SecondaryButton" type="Button" parent="CanvasLayer/DialoguePanel/DialogueVBox/DialogueButtons"]
+[node name="SecondaryButton" type="Button" parent="CanvasLayer/DialoguePanel/DialogueContent/DialogueVBox/DialogueButtons"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(168, 48)
 layout_mode = 2
 text = "Fechar"
+
+[node name="SceneFade" type="ColorRect" parent="CanvasLayer"]
+z_index = 999
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0, 0, 0, 0)
 
 [node name="InventoryPanel" type="PanelContainer" parent="CanvasLayer"]
 unique_name_in_owner = true
@@ -187,10 +242,11 @@ scroll_active = false
 [node name="CharacterFooterLabel" type="Label" parent="CanvasLayer/CharacterPanel/CharacterVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-autowrap_mode = 3
 text = "C fecha. Podeis equipar ate 10 artes e 10 passivas."
+autowrap_mode = 3
 
 [node name="CharacterCloseButton" type="Button" parent="CanvasLayer/CharacterPanel/CharacterVBox"]
+layout_mode = 2
 text = "Fechar Personagem"
 
 [node name="ShopPanel" type="PanelContainer" parent="CanvasLayer"]
@@ -247,8 +303,8 @@ horizontal_alignment = 1
 [node name="TravelStatusLabel" type="Label" parent="CanvasLayer/TravelPanel/TravelVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-autowrap_mode = 3
 horizontal_alignment = 1
+autowrap_mode = 3
 
 [node name="TravelList" type="VBoxContainer" parent="CanvasLayer/TravelPanel/TravelVBox"]
 unique_name_in_owner = true
@@ -290,8 +346,8 @@ text = "Carregar"
 layout_mode = 2
 text = "Voltar ao Menu"
 
-[connection signal="pressed" from="CanvasLayer/DialoguePanel/DialogueVBox/DialogueButtons/PrimaryButton" to="." method="_on_primary_button_pressed"]
-[connection signal="pressed" from="CanvasLayer/DialoguePanel/DialogueVBox/DialogueButtons/SecondaryButton" to="." method="_on_secondary_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/DialoguePanel/DialogueContent/DialogueVBox/DialogueButtons/PrimaryButton" to="." method="_on_primary_button_pressed"]
+[connection signal="pressed" from="CanvasLayer/DialoguePanel/DialogueContent/DialogueVBox/DialogueButtons/SecondaryButton" to="." method="_on_secondary_button_pressed"]
 [connection signal="item_selected" from="CanvasLayer/CharacterPanel/CharacterVBox/CharacterFilterRow/BuildSchoolFilter" to="." method="_on_build_school_filter_item_selected"]
 [connection signal="item_selected" from="CanvasLayer/CharacterPanel/CharacterVBox/CharacterFilterRow/BuildQualityFilter" to="." method="_on_build_quality_filter_item_selected"]
 [connection signal="item_selected" from="CanvasLayer/CharacterPanel/CharacterVBox/CharacterFilterRow/BuildStateFilter" to="." method="_on_build_state_filter_item_selected"]

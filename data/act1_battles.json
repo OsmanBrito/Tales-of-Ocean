@@ -1,0 +1,94 @@
+{
+  "battles": [
+    {
+      "id": "battle_training_joao",
+      "type": "tutorial",
+      "scene": "res://scenes/combat/battle_scene.tscn",
+      "map_id": "arena_chapel_yard",
+      "player_party": ["pembah"],
+      "guest_party": ["joao_tempestade"],
+      "enemies": [
+        {"enemy_id": "training_dummy", "count": 2}
+      ],
+      "victory_conditions": [
+        {"type": "defeat_all_enemies"}
+      ],
+      "loss_conditions": [
+        {"type": "party_wiped"}
+      ],
+      "tutorial_tags": ["basic_attack", "defend", "skill_use"]
+    },
+    {
+      "id": "battle_warehouse_fire",
+      "type": "story",
+      "scene": "res://scenes/combat/battle_scene.tscn",
+      "map_id": "lisboa_burning_warehouse",
+      "player_party": ["pembah", "joao_tempestade"],
+      "enemies": [
+        {"enemy_id": "dock_raider", "count": 2},
+        {"enemy_id": "castilian_duelist", "count": 1},
+        {"enemy_id": "warehouse_incendiary", "count": 1}
+      ],
+      "victory_conditions": [
+        {"type": "rescue", "target": "civilians", "required": 2},
+        {"type": "defeat_enemy", "target": "warehouse_incendiary", "required": 1},
+        {"type": "defeat_all_enemies"}
+      ],
+      "loss_conditions": [
+        {"type": "party_wiped"},
+        {"type": "target_destroyed", "target": "powder_store"}
+      ],
+      "environment": {
+        "hazards": ["fire_tiles", "explosive_barrels"],
+        "turn_events": [
+          {"turn": 3, "event": "spread_fire"},
+          {"turn": 5, "event": "barrel_explosion_warning"}
+        ]
+      }
+    },
+    {
+      "id": "battle_boss_lourenco",
+      "type": "boss",
+      "scene": "res://scenes/combat/battle_scene.tscn",
+      "map_id": "lisboa_order_courtyard",
+      "player_party": ["pembah", "joao_tempestade"],
+      "enemies": [
+        {"enemy_id": "captain_lourenco", "count": 1},
+        {"enemy_id": "avis_lancer", "count": 2},
+        {"enemy_id": "avis_archer", "count": 1}
+      ],
+      "victory_conditions": [
+        {"type": "defeat_enemy", "target": "captain_lourenco", "required": 1}
+      ],
+      "loss_conditions": [
+        {"type": "party_wiped"},
+        {"type": "ally_down", "target": "joao_tempestade"}
+      ],
+      "phase_events": [
+        {
+          "trigger": "boss_hp_below_50",
+          "event": "captain_corruption_phase",
+          "effects": ["gain_ocean_wrath", "summon_reinforcement_alert"]
+        }
+      ]
+    },
+    {
+      "id": "battle_lost_crate_thieves",
+      "type": "side",
+      "scene": "res://scenes/combat/battle_scene.tscn",
+      "map_id": "dock_alley_hideout",
+      "player_party": ["pembah"],
+      "guest_party": ["joao_tempestade"],
+      "enemies": [
+        {"enemy_id": "dock_thief", "count": 3}
+      ],
+      "victory_conditions": [
+        {"type": "defeat_all_enemies"},
+        {"type": "interact", "target": "stolen_crate", "required": 1}
+      ],
+      "loss_conditions": [
+        {"type": "party_wiped"}
+      ]
+    }
+  ]
+}

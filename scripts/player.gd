@@ -17,10 +17,14 @@ const FOOTSTEP_VARIATION_COUNT: int = 3
 
 @export var color: Color = Color("f2c14e")
 @export var speed: float = 240.0
+@export var move_acceleration: float = 1160.0
+@export var move_deceleration: float = 1680.0
+@export var reverse_acceleration_multiplier: float = 1.55
 @export var world_rect: Rect2 = Rect2(120.0, 140.0, 1640.0, 760.0)
 @export var walk_cycle_speed: float = 8.2
 @export var walk_bob_amount: float = 2.8
 @export var walk_stride_amount: float = 2.4
+@export var use_directional_contact_rows: bool = false
 @export var idle_breathe_speed: float = 2.6
 @export var idle_breathe_amount: float = 0.028
 @export var collision_radius: float = 18.0
@@ -44,24 +48,54 @@ var footstep_stream_index: int = 0
 var footstep_streams: Array[AudioStream] = []
 var footstep_player: AudioStreamPlayer
 var footstep_rng := RandomNumberGenerator.new()
+var movement_velocity: Vector2 = Vector2.ZERO
 
 
 func _process(delta: float) -> void:
 	var input_vector: Vector2 = Input.get_vector("move_left", "move_right", "move_up", "move_down")
 	var world_root: Node = get_parent()
+	var is_locked: bool = false
 	if world_root != null and world_root.has_method("is_player_movement_locked") and bool(world_root.call("is_player_movement_locked")):
+		is_locked = true
 		input_vector = Vector2.ZERO
-	current_input = input_vector
-	motion_intensity = clampf(input_vector.length(), 0.0, 1.0)
-	motion_blend = move_toward(motion_blend, motion_intensity, delta * 7.0)
+	var desired_velocity: Vector2 = input_vector * speed
+	var accel_rate: float = move_acceleration if desired_velocity.length() > 0.001 else move_deceleration
+	if desired_velocity.length() > 0.001 and movement_velocity.dot(desired_velocity) < 0.0:
+		# Reversing direction should react faster to keep the controls responsive.
+		accel_rate *= reverse_acceleration_multiplier
+	movement_velocity = movement_velocity.move_toward(desired_velocity, accel_rate * delta)
+	if is_locked and movement_velocity.length() < 2.0:
+		movement_velocity = Vector2.ZERO
+	if movement_velocity.length() < 1.0 and desired_velocity.length() < 0.001:
+		movement_velocity = Vector2.ZERO
+
+	var intended_motion: Vector2 = movement_velocity * delta
+	var moved_distance: float = _move_with_collision(intended_motion)
+	var intended_distance: float = intended_motion.length()
+	var movement_ratio: float = 1.0
+	if intended_distance > 0.001:
+		movement_ratio = clampf(moved_distance / intended_distance, 0.0, 1.0)
+	else:
+		movement_ratio = 0.0
+	if input_vector.length() > 0.01 and movement_ratio < 0.22:
+		movement_velocity = movement_velocity.move_toward(Vector2.ZERO, move_deceleration * delta * 1.15)
+
+	var direction_for_animation: Vector2 = Vector2.ZERO
+	if input_vector.length() > 0.01:
+		direction_for_animation = input_vector.normalized()
+	elif movement_velocity.length() > speed * 0.28:
+		direction_for_animation = movement_velocity.normalized()
+	current_input = direction_for_animation
+	motion_intensity = clampf(movement_velocity.length() / maxf(speed, 1.0), 0.0, 1.0)
+	var animation_intensity: float = motion_intensity * movement_ratio
+	motion_blend = move_toward(motion_blend, animation_intensity, delta * 8.5)
 	idle_phase += delta * idle_breathe_speed
-	if absf(input_vector.x) > 0.01:
+	if absf(direction_for_animation.x) > 0.01:
 		# The contact sheet is authored facing right, so we only mirror when moving left.
-		facing_direction = -1 if input_vector.x < 0.0 else 1
+		facing_direction = -1 if direction_for_animation.x < 0.0 else 1
 	if motion_blend > 0.01:
 		walk_phase += delta * walk_cycle_speed * (0.82 + (motion_blend * 0.6))
 
-	var moved_distance: float = _move_with_collision(input_vector * speed * delta)
 	if moved_distance > 0.05:
 		footstep_distance_accumulator += moved_distance
 		while footstep_distance_accumulator >= FOOTSTEP_STEP_DISTANCE:
@@ -151,11 +185,12 @@ func _get_current_player_texture() -> Texture2D:
 	if player_contact_sheet == null:
 		return player_texture
 
-	var row: int = 1
-	if current_input.y < -0.18:
-		row = 2
-	elif current_input.y > 0.18:
-		row = 0
+	var row: int = 0
+	if use_directional_contact_rows:
+		if current_input.y < -0.18:
+			row = 1
+		elif current_input.y > 0.18:
+			row = 0
 
 	var col: int = PLAYER_CONTACT_IDLE_FRAME
 	if motion_blend > 0.05:

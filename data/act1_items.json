@@ -1,0 +1,40 @@
+{
+  "items": [
+    {
+      "id": "quest_medallion_father",
+      "name": "Medalhão do Pai",
+      "category": "quest",
+      "description": "Um medalhão queimado com um símbolo ligado ao passado do pai de Pembah.",
+      "stackable": false
+    },
+    {
+      "id": "quest_burned_seal",
+      "name": "Selo Chamuscado",
+      "category": "quest",
+      "description": "Um selo quebrado encontrado no armazém em chamas.",
+      "stackable": false
+    },
+    {
+      "id": "letter_to_convento_de_cristo",
+      "name": "Carta ao Convento de Cristo",
+      "category": "quest",
+      "description": "Uma carta lacrada destinada ao Convento de Cristo em Tomar.",
+      "stackable": false
+    },
+    {
+      "id": "captain_signet_fragment",
+      "name": "Fragmento do Sinete do Capitão",
+      "category": "quest",
+      "description": "Prova de que Lourenço escondia alianças e ordens não oficiais.",
+      "stackable": false
+    },
+    {
+      "id": "accessory_merchant_ring",
+      "name": "Anel do Mercador",
+      "category": "accessory",
+      "description": "Um anel simples que melhora preços e carisma.",
+      "effects": {"charisma": 1, "shop_discount": 0.05},
+      "stackable": false
+    }
+  ]
+}

@@ -4,6 +4,7 @@ const LISBOA_WORLD_BOUNDS := Rect2(0.0, 0.0, 3200.0, 1760.0)
 const LISBOA_NAVIGATION_BOUNDS := Rect2(180.0, 320.0, 2840.0, 1220.0)
 const LISBOA_COLLISION_RADIUS := 18.0
 const LISBOA_USE_HARBOR_PROTOTYPE := true
+const LISBOA_CAMERA_ZOOM := Vector2(0.98, 0.98)
 const LISBOA_PROTOTYPE_WORLD_BOUNDS := Rect2(0.0, 0.0, 2816.0, 1536.0)
 const LISBOA_PROTOTYPE_NAVIGATION_BOUNDS := Rect2(0.0, 0.0, 2816.0, 1536.0)
 const LISBOA_PROTOTYPE_COLLISION_RADIUS := 8.0
@@ -117,6 +118,7 @@ func _configure_lisboa_camera() -> void:
 	camera.limit_top = int(world_bounds.position.y)
 	camera.limit_right = int(world_bounds.end.x)
 	camera.limit_bottom = int(world_bounds.end.y)
+	camera.zoom = LISBOA_CAMERA_ZOOM
 	camera.position_smoothing_enabled = true
 	camera.position_smoothing_speed = 6.5
 	camera.limit_smoothed = true

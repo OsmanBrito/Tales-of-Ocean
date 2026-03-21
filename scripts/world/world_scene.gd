@@ -15,6 +15,50 @@ const JOAO_UI_AVATAR_CANDIDATES: Array[String] = [
 	"res://assets/portraits/joao_portrait_v1.png",
 	"res://assets/portraits/joao_portrait.svg"
 ]
+const JOAO_WORLD_CANDIDATES: Array[String] = [
+	"res://assets/characters/joao_world_v1.png"
+]
+const CROWD_WORLD_CANDIDATES: Array[String] = [
+	"res://assets/world/lisboa_ribeira_crowd_v001.png"
+]
+const NPC_VISUAL_PROFILES := {
+	"dock_worker": {
+		"texture_key": "crowd",
+		"region": Rect2(56.0, 88.0, 132.0, 222.0),
+		"size": Vector2(58.0, 98.0),
+		"offset": Vector2(0.0, -52.0)
+	},
+	"old_sailor": {
+		"texture_key": "crowd",
+		"region": Rect2(258.0, 530.0, 142.0, 210.0),
+		"size": Vector2(58.0, 96.0),
+		"offset": Vector2(0.0, -50.0)
+	},
+	"fishwife": {
+		"texture_key": "crowd",
+		"region": Rect2(452.0, 468.0, 146.0, 220.0),
+		"size": Vector2(60.0, 98.0),
+		"offset": Vector2(0.0, -52.0)
+	},
+	"merchant": {
+		"texture_key": "crowd",
+		"region": Rect2(598.0, 468.0, 150.0, 220.0),
+		"size": Vector2(60.0, 98.0),
+		"offset": Vector2(0.0, -52.0)
+	},
+	"joao": {
+		"texture_key": "joao_world",
+		"size": Vector2(120.0, 120.0),
+		"offset": Vector2(0.0, -66.0)
+	}
+}
+const DIALOGUE_SPEAKER_PORTRAIT_CANDIDATES := {
+	"Pembah": PEMBAH_UI_AVATAR_CANDIDATES,
+	"Joao": JOAO_UI_AVATAR_CANDIDATES,
+	"João": JOAO_UI_AVATAR_CANDIDATES,
+	"Joao Tempestade": JOAO_UI_AVATAR_CANDIDATES,
+	"João Tempestade": JOAO_UI_AVATAR_CANDIDATES
+}
 
 @export_file("*.json") var world_data_path: String = ""
 @export var scene_id: String = ""
@@ -28,7 +72,21 @@ const JOAO_UI_AVATAR_CANDIDATES: Array[String] = [
 @onready var stats_label: Label = %StatsLabel
 @onready var dialogue_panel: PanelContainer = %DialoguePanel
 @onready var dialogue_text: RichTextLabel = %DialogueText
-@onready var dialogue_vbox = get_node_or_null("CanvasLayer/DialoguePanel/DialogueVBox")
+@onready var dialogue_content: Control = _get_optional_node([
+	"CanvasLayer/DialoguePanel/DialogueContent"
+]) as Control
+@onready var dialogue_portrait_frame: PanelContainer = _get_optional_node([
+	"CanvasLayer/DialoguePanel/DialogueContent/DialoguePortraitFrame",
+	"CanvasLayer/DialoguePanel/DialoguePortraitFrame"
+]) as PanelContainer
+@onready var dialogue_portrait: TextureRect = _get_optional_node([
+	"CanvasLayer/DialoguePanel/DialogueContent/DialoguePortraitFrame/DialoguePortrait",
+	"CanvasLayer/DialoguePanel/DialoguePortraitFrame/DialoguePortrait"
+]) as TextureRect
+@onready var dialogue_vbox: VBoxContainer = _get_optional_node([
+	"CanvasLayer/DialoguePanel/DialogueContent/DialogueVBox",
+	"CanvasLayer/DialoguePanel/DialogueVBox"
+]) as VBoxContainer
 @onready var primary_button: Button = %PrimaryButton
 @onready var secondary_button: Button = %SecondaryButton
 @onready var inventory_panel: PanelContainer = %InventoryPanel
@@ -54,11 +112,16 @@ const JOAO_UI_AVATAR_CANDIDATES: Array[String] = [
 @onready var travel_list: VBoxContainer = %TravelList
 @onready var pause_panel: PanelContainer = %PausePanel
 @onready var pause_label: Label = %PauseLabel
+@onready var scene_fade_rect: ColorRect = get_node_or_null("CanvasLayer/SceneFade")
 
 var interactables: Array = []
 var dialogues: Dictionary = {}
 var shops: Dictionary = {}
+var enter_events: Array = []
 var active_dialogue_actions: Array = []
+var current_dialogue_data: Dictionary = {}
+var current_dialogue_lines: Array = []
+var current_dialogue_line_index: int = -1
 var travel_destinations: Array = []
 var character_status_message: String = ""
 var shop_status_message: String = ""
@@ -72,9 +135,12 @@ var character_focus_select
 var companion_column
 var companion_summary_text
 var companion_skill_list
+var world_crowd_texture: Texture2D
+var joao_world_texture: Texture2D
 
 
 func _ready() -> void:
+	_ensure_scene_fade_rect()
 	_load_world_data()
 	_load_travel_map()
 	_apply_dialogue_frame_theme()
@@ -96,6 +162,7 @@ func _ready() -> void:
 	_refresh_ui()
 	_refresh_inventory()
 	_refresh_shop_panel()
+	call_deferred("_resume_cutscene_or_run_enter_events")
 
 
 func _exit_tree() -> void:
@@ -206,6 +273,7 @@ func _draw_stall(area: Rect2, cloth_color: Color, wood_color: Color) -> void:
 
 
 func _draw_interactables() -> void:
+	texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	var focus_interactable: Dictionary = _find_nearest_interactable()
 	var focus_id: String = str(focus_interactable.get("id", ""))
 	for raw_interactable in interactables:
@@ -223,38 +291,50 @@ func _draw_interactables() -> void:
 		var is_focus: bool = interactable_id == focus_id
 		var show_label_plate: bool = is_focus or distance_to_player <= maxf(radius * 1.45, 176.0)
 		var marker_alpha: float = 1.0 if show_label_plate else 0.82
-		draw_circle(position + Vector2(0.0, 18.0), draw_radius * 0.65, Color(0, 0, 0, 0.16 * marker_alpha))
+		var visual_profile: String = str(interactable.get("visual_profile", ""))
+		var hide_marker: bool = bool(interactable.get("hide_marker", false))
+		var has_npc_visual: bool = not visual_profile.is_empty() and _draw_interactable_npc_visual(position, visual_profile, marker_alpha)
+		var label_anchor_y: float = -draw_radius - 44.0
+		if has_npc_visual:
+			var visual_def: Dictionary = NPC_VISUAL_PROFILES.get(visual_profile, {})
+			var visual_size: Vector2 = visual_def.get("size", Vector2(96.0, 144.0))
+			var visual_offset: Vector2 = visual_def.get("offset", Vector2.ZERO)
+			label_anchor_y = visual_offset.y - visual_size.y * 0.5 - 42.0
 		var interactable_type: String = interactable.get("type", "dialogue")
-		if interactable_type == "encounter":
-			var diamond := PackedVector2Array([
-				position + Vector2(0.0, -draw_radius),
-				position + Vector2(draw_radius * 0.9, 0.0),
-				position + Vector2(0.0, draw_radius),
-				position + Vector2(-draw_radius * 0.9, 0.0)
-			])
-			draw_colored_polygon(diamond, Color(color.r, color.g, color.b, marker_alpha))
-			draw_line(position + Vector2(-8.0, 0.0), position + Vector2(8.0, 0.0), Color.WHITE, 2.0)
-			draw_line(position + Vector2(0.0, -8.0), position + Vector2(0.0, 8.0), Color.WHITE, 2.0)
-		elif interactable_type == "transition":
-			var gate_rect := Rect2(position + Vector2(-16.0, -draw_radius), Vector2(32.0, draw_radius * 1.8))
-			draw_rect(gate_rect, Color(color.r, color.g, color.b, marker_alpha))
-			draw_rect(Rect2(gate_rect.position + Vector2(5.0, 6.0), gate_rect.size - Vector2(10.0, 6.0)), Color(color.lightened(0.12).r, color.lightened(0.12).g, color.lightened(0.12).b, marker_alpha), false, 2.0)
-			draw_line(position + Vector2(-8.0, 8.0), position + Vector2(8.0, 8.0), Color.WHITE, 2.0)
-			draw_line(position + Vector2(2.0, 0.0), position + Vector2(8.0, 8.0), Color.WHITE, 2.0)
-			draw_line(position + Vector2(2.0, 16.0), position + Vector2(8.0, 8.0), Color.WHITE, 2.0)
-		else:
-			draw_rect(Rect2(position + Vector2(-12.0, -draw_radius), Vector2(24.0, draw_radius * 1.6)), Color(color.r, color.g, color.b, marker_alpha))
-			draw_rect(Rect2(position + Vector2(-4.0, draw_radius * 0.55), Vector2(8.0, 18.0)), Color(color.darkened(0.25).r, color.darkened(0.25).g, color.darkened(0.25).b, marker_alpha))
-			draw_circle(position + Vector2(0.0, -draw_radius), 10.0, Color(color.lightened(0.12).r, color.lightened(0.12).g, color.lightened(0.12).b, marker_alpha))
+		if not hide_marker:
+			draw_circle(position + Vector2(0.0, 18.0), draw_radius * 0.65, Color(0, 0, 0, 0.16 * marker_alpha))
+			if has_npc_visual:
+				draw_circle(position + Vector2(0.0, 22.0), draw_radius * 0.9, Color(0, 0, 0, 0.1 * marker_alpha))
+			elif interactable_type == "encounter":
+				var diamond := PackedVector2Array([
+					position + Vector2(0.0, -draw_radius),
+					position + Vector2(draw_radius * 0.9, 0.0),
+					position + Vector2(0.0, draw_radius),
+					position + Vector2(-draw_radius * 0.9, 0.0)
+				])
+				draw_colored_polygon(diamond, Color(color.r, color.g, color.b, marker_alpha))
+				draw_line(position + Vector2(-8.0, 0.0), position + Vector2(8.0, 0.0), Color.WHITE, 2.0)
+				draw_line(position + Vector2(0.0, -8.0), position + Vector2(0.0, 8.0), Color.WHITE, 2.0)
+			elif interactable_type == "transition":
+				var gate_rect := Rect2(position + Vector2(-16.0, -draw_radius), Vector2(32.0, draw_radius * 1.8))
+				draw_rect(gate_rect, Color(color.r, color.g, color.b, marker_alpha))
+				draw_rect(Rect2(gate_rect.position + Vector2(5.0, 6.0), gate_rect.size - Vector2(10.0, 6.0)), Color(color.lightened(0.12).r, color.lightened(0.12).g, color.lightened(0.12).b, marker_alpha), false, 2.0)
+				draw_line(position + Vector2(-8.0, 8.0), position + Vector2(8.0, 8.0), Color.WHITE, 2.0)
+				draw_line(position + Vector2(2.0, 0.0), position + Vector2(8.0, 8.0), Color.WHITE, 2.0)
+				draw_line(position + Vector2(2.0, 16.0), position + Vector2(8.0, 8.0), Color.WHITE, 2.0)
+			else:
+				draw_rect(Rect2(position + Vector2(-12.0, -draw_radius), Vector2(24.0, draw_radius * 1.6)), Color(color.r, color.g, color.b, marker_alpha))
+				draw_rect(Rect2(position + Vector2(-4.0, draw_radius * 0.55), Vector2(8.0, 18.0)), Color(color.darkened(0.25).r, color.darkened(0.25).g, color.darkened(0.25).b, marker_alpha))
+				draw_circle(position + Vector2(0.0, -draw_radius), 10.0, Color(color.lightened(0.12).r, color.lightened(0.12).g, color.lightened(0.12).b, marker_alpha))
 		if not show_label_plate:
 			continue
 		var plate_size := Vector2(max(120.0, label.length() * 9.4), 28.0)
-		var plate_rect := Rect2(position + Vector2(-plate_size.x * 0.5, -draw_radius - 44.0), plate_size)
+		var plate_rect := Rect2(position + Vector2(-plate_size.x * 0.5, label_anchor_y), plate_size)
 		draw_rect(plate_rect, Color(0.05, 0.12, 0.2, 0.72))
 		draw_rect(Rect2(plate_rect.position, Vector2(plate_rect.size.x, 2.0)), color.lightened(0.18))
 		draw_string(
 			ThemeDB.fallback_font,
-			position + Vector2(-plate_size.x * 0.44, -draw_radius - 22.0),
+			position + Vector2(-plate_size.x * 0.44, label_anchor_y + 22.0),
 			label,
 			HORIZONTAL_ALIGNMENT_LEFT,
 			-1,
@@ -294,6 +374,7 @@ func _load_world_data() -> void:
 	interactables.clear()
 	dialogues.clear()
 	shops.clear()
+	enter_events.clear()
 
 	var parsed: Variant = GameState.load_json_data(world_data_path)
 	if typeof(parsed) != TYPE_DICTIONARY:
@@ -311,6 +392,9 @@ func _load_world_data() -> void:
 		var shop: Dictionary = raw_shop
 		shops[shop["id"]] = shop
 
+	for raw_enter_event in parsed.get("enter_events", []):
+		enter_events.append(raw_enter_event)
+
 
 func _load_travel_map() -> void:
 	travel_destinations.clear()
@@ -326,6 +410,54 @@ func _load_travel_map() -> void:
 
 func _vector_from_dict(value: Dictionary) -> Vector2:
 	return Vector2(float(value.get("x", 0.0)), float(value.get("y", 0.0)))
+
+
+func _get_optional_node(paths: Array[String]) -> Node:
+	for path in paths:
+		var node := get_node_or_null(path)
+		if node != null:
+			return node
+	return null
+
+
+func _ensure_scene_fade_rect() -> void:
+	if scene_fade_rect != null:
+		return
+	var canvas_layer: CanvasLayer = get_node_or_null("CanvasLayer")
+	if canvas_layer == null:
+		return
+	var existing: ColorRect = canvas_layer.get_node_or_null("SceneFade")
+	if existing != null:
+		scene_fade_rect = existing
+	else:
+		scene_fade_rect = ColorRect.new()
+		scene_fade_rect.name = "SceneFade"
+		scene_fade_rect.set_anchors_preset(Control.PRESET_FULL_RECT)
+		scene_fade_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		scene_fade_rect.color = Color(0.0, 0.0, 0.0, 0.0)
+		scene_fade_rect.z_index = 999
+		canvas_layer.add_child(scene_fade_rect)
+
+
+func _wait_cutscene_seconds(duration: float) -> void:
+	if duration <= 0.0:
+		return
+	await get_tree().create_timer(duration).timeout
+
+
+func _fade_cutscene(target_alpha: float, duration: float) -> void:
+	_ensure_scene_fade_rect()
+	if scene_fade_rect == null:
+		return
+	var clamped_alpha: float = clampf(target_alpha, 0.0, 1.0)
+	if duration <= 0.0:
+		var instant_color: Color = scene_fade_rect.color
+		instant_color.a = clamped_alpha
+		scene_fade_rect.color = instant_color
+		return
+	var tween: Tween = create_tween()
+	tween.tween_property(scene_fade_rect, "color:a", clamped_alpha, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	await tween.finished
 
 
 func _find_nearest_interactable() -> Dictionary:
@@ -405,6 +537,7 @@ func _try_interaction() -> void:
 		return
 
 	var interactable_type: String = interactable.get("type", "dialogue")
+	_register_interactable_quest_event(interactable)
 	match interactable_type:
 		"dialogue":
 			var dialogue_id: String = _resolve_dialogue_id(interactable)
@@ -432,8 +565,45 @@ func _resolve_dialogue_id(interactable: Dictionary) -> String:
 	return interactable.get("default_dialogue_id", "")
 
 
-func _open_dialogue(dialogue_id: String) -> void:
+func _resolve_interactable_quest_event(interactable: Dictionary) -> Dictionary:
+	var event_data: Dictionary = {}
+	var event_map: Dictionary = interactable.get("quest_events_by_quest_state", {})
+	for quest_id in event_map.keys():
+		var state_map: Dictionary = event_map[quest_id]
+		var quest_status: String = GameState.get_quest_state(str(quest_id))
+		if state_map.has(quest_status):
+			var mapped_value: Variant = state_map[quest_status]
+			if typeof(mapped_value) == TYPE_DICTIONARY:
+				event_data = mapped_value
+			else:
+				event_data = {"kind": str(mapped_value)}
+			break
+	if event_data.is_empty() and interactable.has("quest_event_kind"):
+		event_data["kind"] = str(interactable.get("quest_event_kind", ""))
+	if event_data.is_empty():
+		var interactable_type: String = str(interactable.get("type", "dialogue"))
+		if interactable_type == "dialogue":
+			event_data["kind"] = "talk"
+		elif interactable_type == "transition":
+			event_data["kind"] = "trigger"
+	if not event_data.has("target"):
+		event_data["target"] = str(interactable.get("quest_target_id", interactable.get("id", "")))
+	return event_data
+
+
+func _register_interactable_quest_event(interactable: Dictionary) -> void:
+	var event_data: Dictionary = _resolve_interactable_quest_event(interactable)
+	var event_kind: String = str(event_data.get("kind", ""))
+	var event_target: String = str(event_data.get("target", ""))
+	if event_kind.is_empty() or event_target.is_empty():
+		return
+	GameState.register_quest_event(event_kind, event_target)
+
+
+func _open_dialogue(dialogue_id: String, extra_actions: Array = []) -> void:
 	var dialogue: Dictionary = dialogues.get(dialogue_id, {})
+	if dialogue.is_empty():
+		dialogue = GameState.get_dialogue_data(dialogue_id)
 	if dialogue.is_empty():
 		return
 
@@ -443,15 +613,27 @@ func _open_dialogue(dialogue_id: String) -> void:
 	travel_panel.visible = false
 	pause_panel.visible = false
 	shop_panel.visible = false
+	current_dialogue_data = dialogue
+	current_dialogue_lines.clear()
+	current_dialogue_line_index = -1
+	active_dialogue_actions = dialogue.get("actions", []).duplicate(true)
+	var cutscene_locked: bool = false
+	for extra_action in extra_actions:
+		active_dialogue_actions.append(extra_action)
+		if typeof(extra_action) == TYPE_DICTIONARY and str(extra_action.get("type", "")) == "continue_cutscene":
+			cutscene_locked = true
+	secondary_button.visible = not cutscene_locked
+	var raw_lines: Variant = dialogue.get("lines", [])
+	if typeof(raw_lines) == TYPE_ARRAY and not raw_lines.is_empty():
+		current_dialogue_lines = raw_lines.duplicate(true)
+		primary_button.visible = true
+		secondary_button.text = dialogue.get("secondary_label", "Fechar")
+		_advance_dialogue_line()
+		return
 
-	var speaker: String = dialogue.get("speaker", "")
-	var text: String = dialogue.get("text", "")
-	if speaker.is_empty():
-		dialogue_text.text = text
-	else:
-		dialogue_text.text = "[b]%s[/b]\n%s" % [speaker, text]
-
-	active_dialogue_actions = dialogue.get("actions", [])
+	var speaker: String = str(dialogue.get("speaker", ""))
+	var text: String = str(dialogue.get("text", ""))
+	_render_dialogue_text(speaker, text)
 	primary_button.visible = active_dialogue_actions.size() > 0
 	primary_button.text = dialogue.get("primary_label", "Continuar")
 	secondary_button.text = dialogue.get("secondary_label", "Fechar")
@@ -459,7 +641,232 @@ func _open_dialogue(dialogue_id: String) -> void:
 		secondary_button.text = dialogue.get("secondary_label", "Prosseguir")
 
 
+func _advance_dialogue_line() -> void:
+	current_dialogue_line_index += 1
+	if current_dialogue_line_index >= current_dialogue_lines.size():
+		_close_dialogue(true)
+		return
+
+	var line_data: Variant = current_dialogue_lines[current_dialogue_line_index]
+	if typeof(line_data) != TYPE_DICTIONARY:
+		_advance_dialogue_line()
+		return
+
+	var line: Dictionary = line_data
+	_render_dialogue_text(
+		str(line.get("speaker", "")),
+		str(line.get("text", "")),
+		str(line.get("portrait", ""))
+	)
+	var is_last_line: bool = current_dialogue_line_index >= current_dialogue_lines.size() - 1
+	primary_button.text = "Concluir" if is_last_line else "Continuar"
+	secondary_button.text = "Fechar"
+
+
+func _render_dialogue_text(speaker: String, text: String, portrait_path: String = "") -> void:
+	if speaker.is_empty():
+		dialogue_text.text = text
+	else:
+		dialogue_text.text = "[b]%s[/b]\n%s" % [speaker, text]
+	_update_dialogue_portrait(speaker, portrait_path)
+
+
+func _update_dialogue_portrait(speaker: String, portrait_path: String = "") -> void:
+	if dialogue_portrait == null:
+		return
+	var portrait_texture: Texture2D = _resolve_dialogue_portrait_texture(speaker, portrait_path)
+	dialogue_portrait.visible = portrait_texture != null
+	if dialogue_portrait_frame != null:
+		dialogue_portrait_frame.visible = portrait_texture != null
+	dialogue_portrait.texture = portrait_texture
+
+
+func _resolve_dialogue_portrait_texture(speaker: String, portrait_path: String = "") -> Texture2D:
+	if not portrait_path.is_empty() and ResourceLoader.exists(portrait_path):
+		var resource: Resource = load(portrait_path)
+		if resource is Texture2D:
+			return resource
+	var candidate_paths: Array[String] = []
+	if DIALOGUE_SPEAKER_PORTRAIT_CANDIDATES.has(speaker):
+		candidate_paths = DIALOGUE_SPEAKER_PORTRAIT_CANDIDATES[speaker]
+	for candidate_path in candidate_paths:
+		if not ResourceLoader.exists(candidate_path):
+			continue
+		var candidate_resource: Resource = load(candidate_path)
+		if candidate_resource is Texture2D:
+			return candidate_resource
+	return null
+
+
+func _draw_interactable_npc_visual(position: Vector2, visual_profile: String, alpha: float) -> bool:
+	var profile: Dictionary = NPC_VISUAL_PROFILES.get(visual_profile, {})
+	if profile.is_empty():
+		return false
+	var texture_key: String = str(profile.get("texture_key", ""))
+	var texture: Texture2D = _get_interactable_visual_texture(texture_key)
+	if texture == null:
+		return false
+
+	var size: Vector2 = profile.get("size", Vector2(96.0, 144.0))
+	var offset: Vector2 = profile.get("offset", Vector2.ZERO)
+	var draw_rect := Rect2(position + offset - (size * 0.5), size)
+	var region: Rect2 = profile.get("region", Rect2())
+	if region.size.x > 0.0 and region.size.y > 0.0:
+		draw_texture_rect_region(texture, draw_rect, region, Color(1.0, 1.0, 1.0, alpha))
+	else:
+		draw_texture_rect(texture, draw_rect, false, Color(1.0, 1.0, 1.0, alpha))
+	return true
+
+
+func _get_interactable_visual_texture(texture_key: String) -> Texture2D:
+	match texture_key:
+		"crowd":
+			if world_crowd_texture == null:
+				world_crowd_texture = _load_optional_texture(CROWD_WORLD_CANDIDATES)
+			return world_crowd_texture
+		"joao_world":
+			if joao_world_texture == null:
+				joao_world_texture = _load_optional_texture(JOAO_WORLD_CANDIDATES)
+			return joao_world_texture
+		_:
+			return null
+
+
+func _close_dialogue(run_actions: bool) -> void:
+	dialogue_panel.visible = false
+	var actions_to_run: Array = active_dialogue_actions.duplicate(true)
+	active_dialogue_actions.clear()
+	current_dialogue_data = {}
+	current_dialogue_lines.clear()
+	current_dialogue_line_index = -1
+	if not run_actions and GameState.has_active_cutscene():
+		GameState.clear_active_cutscene()
+	if run_actions:
+		_run_actions(actions_to_run)
+
+
+func _run_cutscene(cutscene_id: String, starting_step_index: int = 0) -> void:
+	var cutscene: Dictionary = GameState.get_cutscene_definition(cutscene_id)
+	if cutscene.is_empty():
+		return
+
+	GameState.register_quest_event("cutscene", cutscene_id)
+	GameState.start_cutscene(cutscene_id, starting_step_index)
+
+	var steps: Array = cutscene.get("steps", [])
+	var step_index: int = starting_step_index
+	while step_index < steps.size():
+		var step_data: Variant = steps[step_index]
+		if typeof(step_data) != TYPE_DICTIONARY:
+			step_index += 1
+			GameState.set_active_cutscene_step(step_index)
+			continue
+
+		var step: Dictionary = step_data
+		var next_step_index: int = step_index + 1
+		GameState.set_active_cutscene_step(next_step_index)
+		match str(step.get("type", "")):
+			"show_dialogue":
+				_open_dialogue(
+					str(step.get("dialogue_id", "")),
+					[{"type": "continue_cutscene"}]
+				)
+				return
+			"start_battle":
+				_start_battle({"battle_id": str(step.get("battle_id", ""))})
+				return
+			"camera_pan":
+				await _wait_cutscene_seconds(float(step.get("duration", 0.0)))
+			"pause":
+				await _wait_cutscene_seconds(float(step.get("duration", 0.18)))
+			"fade_in":
+				await _fade_cutscene(0.0, float(step.get("duration", 0.35)))
+			"fade_out":
+				await _fade_cutscene(1.0, float(step.get("duration", 0.22)))
+			"advance_quest_objective":
+				GameState.apply_actions([
+					{
+						"type": "advance_quest_objective",
+						"quest_id": str(step.get("quest_id", "")),
+						"objective_id": str(step.get("objective_id", "")),
+						"amount": int(step.get("amount", 1))
+					}
+				])
+			"set_quest":
+				GameState.apply_actions([
+					{
+						"type": "set_quest",
+						"quest_id": str(step.get("quest_id", ""))
+					}
+				])
+			"set_flag":
+				GameState.apply_actions([
+					{
+						"type": "set_flag",
+						"name": str(step.get("name", "")),
+						"value": step.get("value")
+					}
+				])
+			"unlock_region":
+				GameState.apply_actions([
+					{
+						"type": "unlock_region",
+						"region_id": str(step.get("region_id", ""))
+					}
+				])
+			_:
+				# Camera and staging steps are ignored for now in the world prototype.
+				pass
+		step_index = next_step_index
+
+	GameState.clear_active_cutscene()
+	_refresh_ui()
+	_refresh_inventory()
+	_refresh_shop_panel()
+	call_deferred("_run_enter_events")
+
+
+func _continue_active_cutscene() -> void:
+	var cutscene_state: Dictionary = GameState.get_active_cutscene_state()
+	if cutscene_state.is_empty():
+		return
+	_run_cutscene(str(cutscene_state.get("id", "")), int(cutscene_state.get("step_index", 0)))
+
+
+func _resume_cutscene_or_run_enter_events() -> void:
+	if GameState.has_active_cutscene():
+		var battle_outcome: String = GameState.consume_last_battle_outcome()
+		if battle_outcome == "victory":
+			_continue_active_cutscene()
+			return
+		if battle_outcome == "defeat":
+			GameState.clear_active_cutscene()
+	_run_enter_events()
+
+
+func _run_enter_events() -> void:
+	for raw_event in enter_events:
+		if typeof(raw_event) != TYPE_DICTIONARY:
+			continue
+		var enter_event: Dictionary = raw_event
+		var once_flag: String = str(enter_event.get("once_flag", ""))
+		if not once_flag.is_empty() and bool(GameState.get_flag(once_flag, false)):
+			continue
+		if not _conditions_match(enter_event.get("conditions", {})):
+			continue
+		if not once_flag.is_empty():
+			GameState.set_flag(once_flag, true)
+		_run_actions(enter_event.get("actions", []))
+		return
+
+
 func _start_battle(battle_data: Dictionary) -> void:
+	if battle_data.is_empty():
+		return
+	if battle_data.has("battle_id") and not battle_data.has("enemy_ids") and not battle_data.has("enemy_id"):
+		battle_data = GameState.build_battle_context(str(battle_data.get("battle_id", "")))
+	if battle_data.is_empty():
+		return
 	GameState.current_battle_context = battle_data.duplicate(true)
 	get_tree().change_scene_to_file("res://scenes/combat/battle_scene.tscn")
 
@@ -550,8 +957,17 @@ func _run_actions(actions: Array) -> void:
 		var action: Dictionary = raw_action
 		var action_type: String = action.get("type", "")
 		match action_type:
+			"start_cutscene":
+				_run_cutscene(str(action.get("cutscene_id", "")))
+				return
+			"continue_cutscene":
+				_continue_active_cutscene()
+				return
 			"start_battle":
-				_start_battle(action.get("battle", {}))
+				var battle_payload: Dictionary = action.get("battle", {})
+				if battle_payload.is_empty() and action.has("battle_id"):
+					battle_payload = {"battle_id": str(action.get("battle_id", ""))}
+				_start_battle(battle_payload)
 				return
 			"change_scene":
 				_change_scene_with_spawn(
@@ -574,9 +990,7 @@ func _run_actions(actions: Array) -> void:
 func _focus_quest_id() -> String:
 	var priorities: Dictionary = {
 		"active": 0,
-		"ready_to_turn_in": 1,
-		"not_started": 2,
-		"completed": 3
+		"ready_to_turn_in": 1
 	}
 	var best_quest_id: String = ""
 	var best_rank: int = 99
@@ -640,6 +1054,7 @@ func _refresh_inventory() -> void:
 	var type_order: Array = [
 		"consumable",
 		"accessory",
+		"quest",
 		"ocean_supply",
 		"ocean_repair",
 		"manual_skill",
@@ -649,6 +1064,7 @@ func _refresh_inventory() -> void:
 	var type_labels: Dictionary = {
 		"consumable": "Consumiveis",
 		"accessory": "Acessorios",
+		"quest": "Itens de Missao",
 		"ocean_supply": "Mantimentos de Mar",
 		"ocean_repair": "Reparos de Casco",
 		"manual_skill": "Manuais de Arte",
@@ -707,29 +1123,65 @@ func _load_optional_texture(candidates: Array[String]) -> Texture2D:
 func _apply_dialogue_frame_theme() -> void:
 	if dialogue_panel == null:
 		return
-	var frame_texture: Texture2D = _load_optional_texture(DIALOGUE_FRAME_CANDIDATES)
-	if frame_texture == null:
-		return
+	var panel_style := StyleBoxFlat.new()
+	panel_style.bg_color = Color(0.06, 0.1, 0.15, 0.9)
+	panel_style.border_color = Color(0.83, 0.75, 0.5, 0.74)
+	panel_style.border_width_left = 2
+	panel_style.border_width_top = 2
+	panel_style.border_width_right = 2
+	panel_style.border_width_bottom = 2
+	panel_style.corner_radius_top_left = 18
+	panel_style.corner_radius_top_right = 18
+	panel_style.corner_radius_bottom_right = 18
+	panel_style.corner_radius_bottom_left = 18
+	panel_style.content_margin_left = 20.0
+	panel_style.content_margin_top = 18.0
+	panel_style.content_margin_right = 20.0
+	panel_style.content_margin_bottom = 18.0
+	dialogue_panel.add_theme_stylebox_override("panel", panel_style)
 
-	var frame_style := StyleBoxTexture.new()
-	frame_style.texture = frame_texture
-	frame_style.region_rect = Rect2(Vector2.ZERO, frame_texture.get_size())
-	frame_style.texture_margin_left = 140.0
-	frame_style.texture_margin_top = 74.0
-	frame_style.texture_margin_right = 116.0
-	frame_style.texture_margin_bottom = 72.0
-	frame_style.content_margin_left = 252.0
-	frame_style.content_margin_top = 28.0
-	frame_style.content_margin_right = 36.0
-	frame_style.content_margin_bottom = 24.0
-	frame_style.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
-	frame_style.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
-
-	dialogue_panel.add_theme_stylebox_override("panel", frame_style)
-	dialogue_panel.custom_minimum_size = Vector2(860.0, 320.0)
-	dialogue_panel.clip_contents = true
+	dialogue_panel.custom_minimum_size = Vector2(1220.0, 320.0)
+	dialogue_panel.clip_contents = false
+	if dialogue_content is BoxContainer:
+		(dialogue_content as BoxContainer).add_theme_constant_override("separation", 18)
 	if dialogue_vbox != null:
-		dialogue_vbox.add_theme_constant_override("separation", 10)
+		dialogue_vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		dialogue_vbox.add_theme_constant_override("separation", 14)
+	if dialogue_text != null:
+		dialogue_text.custom_minimum_size = Vector2(0.0, 156.0)
+		dialogue_text.add_theme_font_size_override("normal_font_size", 22)
+		dialogue_text.add_theme_font_size_override("bold_font_size", 30)
+		dialogue_text.add_theme_color_override("default_color", Color(0.95, 0.93, 0.88))
+		dialogue_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		dialogue_text.fit_content = false
+		dialogue_text.scroll_active = false
+	if primary_button != null:
+		primary_button.custom_minimum_size = Vector2(182.0, 48.0)
+	if secondary_button != null:
+		secondary_button.custom_minimum_size = Vector2(168.0, 48.0)
+	if dialogue_portrait_frame != null:
+		var portrait_style := StyleBoxFlat.new()
+		portrait_style.bg_color = Color(0.09, 0.13, 0.19, 0.9)
+		portrait_style.border_width_left = 2
+		portrait_style.border_width_top = 2
+		portrait_style.border_width_right = 2
+		portrait_style.border_width_bottom = 2
+		portrait_style.border_color = Color(0.82, 0.75, 0.5, 0.76)
+		portrait_style.corner_radius_top_left = 14
+		portrait_style.corner_radius_top_right = 14
+		portrait_style.corner_radius_bottom_right = 14
+		portrait_style.corner_radius_bottom_left = 14
+		portrait_style.content_margin_left = 12.0
+		portrait_style.content_margin_top = 12.0
+		portrait_style.content_margin_right = 12.0
+		portrait_style.content_margin_bottom = 12.0
+		dialogue_portrait_frame.add_theme_stylebox_override("panel", portrait_style)
+		dialogue_portrait_frame.custom_minimum_size = Vector2(178.0, 214.0)
+		dialogue_portrait_frame.visible = false
+	if dialogue_portrait != null:
+		dialogue_portrait.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		dialogue_portrait.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		dialogue_portrait.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
 
 
 func _get_member_avatar_bbcode(member_id: String, size: int = 64) -> String:
@@ -1431,12 +1883,14 @@ func _on_character_close_button_pressed() -> void:
 
 
 func _on_primary_button_pressed() -> void:
-	dialogue_panel.visible = false
-	_run_actions(active_dialogue_actions)
+	if not current_dialogue_lines.is_empty():
+		_advance_dialogue_line()
+		return
+	_close_dialogue(true)
 
 
 func _on_secondary_button_pressed() -> void:
-	dialogue_panel.visible = false
+	_close_dialogue(false)
 
 
 func _on_travel_close_button_pressed() -> void:

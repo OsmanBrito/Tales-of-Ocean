@@ -1,0 +1,68 @@
+{
+  "enemies": [
+    {
+      "id": "training_dummy",
+      "name": "Boneco de Treino",
+      "archetype": "dummy",
+      "level": 1,
+      "stats": {"hp": 25, "espirito": 0, "atk": 4, "def": 1, "spd": 2},
+      "skills": []
+    },
+    {
+      "id": "dock_raider",
+      "name": "Saqueador do Cais",
+      "archetype": "bandit",
+      "level": 2,
+      "stats": {"hp": 42, "espirito": 0, "atk": 8, "def": 4, "spd": 5},
+      "skills": ["dirty_slash"]
+    },
+    {
+      "id": "castilian_duelist",
+      "name": "Duelista Castelhana",
+      "archetype": "spanish_duelist",
+      "level": 3,
+      "stats": {"hp": 38, "espirito": 10, "atk": 10, "def": 3, "spd": 8},
+      "skills": ["quick_thrust", "critical_feint"]
+    },
+    {
+      "id": "warehouse_incendiary",
+      "name": "Incendiário",
+      "archetype": "cultist",
+      "level": 2,
+      "stats": {"hp": 30, "espirito": 12, "atk": 6, "def": 2, "spd": 6},
+      "skills": ["fire_bottle", "spark_step"]
+    },
+    {
+      "id": "captain_lourenco",
+      "name": "Capitão Lourenço de Ataíde",
+      "archetype": "boss",
+      "level": 5,
+      "stats": {"hp": 160, "espirito": 40, "atk": 16, "def": 10, "spd": 7},
+      "skills": ["commanding_slash", "authority_roar", "ocean_wrath_corrupt"]
+    },
+    {
+      "id": "avis_lancer",
+      "name": "Lanceiro da Ordem",
+      "archetype": "soldier",
+      "level": 3,
+      "stats": {"hp": 52, "espirito": 0, "atk": 9, "def": 6, "spd": 4},
+      "skills": ["spear_thrust"]
+    },
+    {
+      "id": "avis_archer",
+      "name": "Arqueiro da Ordem",
+      "archetype": "archer",
+      "level": 3,
+      "stats": {"hp": 36, "espirito": 0, "atk": 8, "def": 3, "spd": 6},
+      "skills": ["aimed_shot"]
+    },
+    {
+      "id": "dock_thief",
+      "name": "Ladrão do Cais",
+      "archetype": "bandit",
+      "level": 2,
+      "stats": {"hp": 32, "espirito": 0, "atk": 7, "def": 2, "spd": 7},
+      "skills": ["quick_thrust"]
+    }
+  ]
+}

@@ -54,10 +54,8 @@
         "y": 564.0
       },
       "conditions": {
-        "quest_state": {
-          "luz_de_sagres": [
-            "completed"
-          ]
+        "world_flags": {
+          "tomar_unlocked": true
         }
       }
     },

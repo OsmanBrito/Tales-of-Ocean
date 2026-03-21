@@ -1,0 +1,79 @@
+{
+  "cutscenes": [
+    {
+      "id": "cs_001_opening_lisboa",
+      "title": "Abertura em Lisboa",
+      "location": "lisboa_docks",
+      "steps": [
+        {"type": "fade_out", "duration": 0.01},
+        {"type": "pause", "duration": 0.12},
+        {"type": "fade_in", "duration": 0.55},
+        {"type": "camera_pan", "target": "tejo_horizon", "duration": 0.9},
+        {"type": "show_dialogue", "dialogue_id": "dlg_001_opening_monologue"},
+        {"type": "pause", "duration": 0.14},
+        {"type": "fade_out", "duration": 0.18},
+        {"type": "fade_in", "duration": 0.2},
+        {"type": "set_quest", "quest_id": "mq_001_rapaz_do_cais"},
+        {"type": "show_dialogue", "dialogue_id": "dlg_002_estivador"},
+        {"type": "advance_quest_objective", "quest_id": "mq_001_rapaz_do_cais", "objective_id": "talk_estivador", "amount": 1},
+        {"type": "pause", "duration": 0.1},
+        {"type": "fade_out", "duration": 0.16},
+        {"type": "fade_in", "duration": 0.16},
+        {"type": "show_dialogue", "dialogue_id": "dlg_003_marinheiro_veterano"},
+        {"type": "advance_quest_objective", "quest_id": "mq_001_rapaz_do_cais", "objective_id": "talk_marinheiro", "amount": 1},
+        {"type": "pause", "duration": 0.1},
+        {"type": "fade_out", "duration": 0.16},
+        {"type": "fade_in", "duration": 0.16},
+        {"type": "show_dialogue", "dialogue_id": "dlg_004_peixeira"},
+        {"type": "advance_quest_objective", "quest_id": "mq_001_rapaz_do_cais", "objective_id": "talk_peixeira", "amount": 1}
+      ]
+    },
+    {
+      "id": "cs_010_meet_joao",
+      "title": "Encontro na Capela",
+      "location": "lisboa_port_chapel",
+      "steps": [
+        {"type": "move_actor", "actor": "pembah", "marker": "chapel_entry"},
+        {"type": "focus_actor", "actor": "joao_tempestade"},
+        {"type": "show_dialogue", "dialogue_id": "dlg_010_meet_joao"},
+        {"type": "show_dialogue", "dialogue_id": "dlg_011_training_intro"},
+        {"type": "start_battle", "battle_id": "battle_training_joao"},
+        {"type": "show_dialogue", "dialogue_id": "dlg_012_training_end"}
+      ]
+    },
+    {
+      "id": "cs_020_alarm_bells",
+      "title": "Sinos e Gritos",
+      "location": "lisboa_docks",
+      "steps": [
+        {"type": "play_sfx", "id": "alarm_bell"},
+        {"type": "show_dialogue", "dialogue_id": "dlg_020_warehouse_alarm"},
+        {"type": "start_battle", "battle_id": "battle_warehouse_fire"},
+        {"type": "show_dialogue", "dialogue_id": "dlg_021_warehouse_postbattle"}
+      ]
+    },
+    {
+      "id": "cs_040_captain_confrontation",
+      "title": "O Pátio da Ordem",
+      "location": "lisboa_order_courtyard",
+      "steps": [
+        {"type": "show_dialogue", "dialogue_id": "dlg_040_captain_confrontation"},
+        {"type": "start_battle", "battle_id": "battle_boss_lourenco"},
+        {"type": "show_dialogue", "dialogue_id": "dlg_041_captain_defeat"},
+        {"type": "show_dialogue", "dialogue_id": "dlg_045_alvaro_tease"}
+      ]
+    },
+    {
+      "id": "cs_050_departure_sunrise",
+      "title": "Partida ao Amanhecer",
+      "location": "lisboa_docks_sunrise",
+      "steps": [
+        {"type": "fade_in", "duration": 1.5},
+        {"type": "show_dialogue", "dialogue_id": "dlg_050_departure_sunrise"},
+        {"type": "show_dialogue", "dialogue_id": "dlg_051_father_echo"},
+        {"type": "unlock_region", "region_id": "tomar"},
+        {"type": "set_flag", "name": "tomar_unlocked", "value": true}
+      ]
+    }
+  ]
+}

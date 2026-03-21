@@ -1661,8 +1661,12 @@ func _load_allies() -> void:
 	player_data["attack_range"] = player_data.get("attack_range", 1)
 	player_data["water_stride"] = player_data.get("water_stride", true)
 
-	if GameState.has_companion("joao"):
-		companion_data = GameState.get_companion("joao").duplicate(true)
+	if GameState.has_companion("joao") or _battle_context_has_companion("joao"):
+		companion_data = GameState.get_companion("joao").duplicate(true) if GameState.has_companion("joao") else GameState.companion_defs.get("joao", {}).duplicate(true)
+		if companion_data.is_empty():
+			return
+		companion_data["hp"] = companion_data.get("hp", companion_data.get("max_hp", 0))
+		companion_data["sp"] = companion_data.get("sp", companion_data.get("max_sp", 0))
 		companion_data["defending"] = false
 		companion_data["status_effects"] = companion_data.get("status_effects", [])
 		companion_data["skill_discount_ready"] = false
@@ -1672,6 +1676,20 @@ func _load_allies() -> void:
 		companion_data["water_stride"] = companion_data.get("water_stride", false)
 	else:
 		companion_data = {}
+
+
+func _battle_context_has_companion(companion_id: String) -> bool:
+	var accepted_ids: Array[String] = [companion_id]
+	if companion_id == "joao":
+		accepted_ids.append("joao_tempestade")
+	for raw_key in ["player_party", "guest_party"]:
+		var member_ids: Variant = battle_context.get(raw_key, [])
+		if typeof(member_ids) != TYPE_ARRAY:
+			continue
+		for raw_member_id in member_ids:
+			if accepted_ids.has(str(raw_member_id)):
+				return true
+	return false
 
 
 func _load_enemies() -> void:
@@ -2396,14 +2414,22 @@ func _get_actor_visual_profile(actor_id: String) -> String:
 	match enemy.get("id", ""):
 		"castilian_duelist":
 			return "castilian"
+		"captain_lourenco", "avis_archer":
+			return "castilian"
 		"mourish_guard", "atalaiador_zenete":
 			return "mourish"
-		"bombardeiro_renegado", "renegado_da_aduana":
+		"bombardeiro_renegado", "renegado_da_aduana", "warehouse_incendiary":
 			return "bombardeiro"
 		"corsair_raider", "corsario_barbaresco":
 			return "corsair"
 		_:
-			return "bandit"
+			match str(enemy.get("archetype", "")):
+				"spanish_duelist":
+					return "castilian"
+				"cultist":
+					return "bombardeiro"
+				_:
+					return "bandit"
 
 
 func _get_actor_visual_tuning(actor_id: String) -> Dictionary:

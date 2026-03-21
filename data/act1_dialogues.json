@@ -1,0 +1,216 @@
+{
+  "dialogues": {
+    "dlg_001_opening_monologue": {
+      "id": "dlg_001_opening_monologue",
+      "speakers": ["Pembah"],
+      "lines": [
+        {
+          "speaker": "Pembah",
+          "portrait": "res://assets/portraits/pembah_neutral.png",
+          "text": "Um dia… nem que seja como o último homem do convés. Um dia eu parto.",
+          "mood": "yearning"
+        }
+      ]
+    },
+    "dlg_002_estivador": {
+      "id": "dlg_002_estivador",
+      "speakers": ["Estivador", "Pembah"],
+      "lines": [
+        {"speaker": "Estivador", "text": "Outra vez aqui, rapaz?"},
+        {"speaker": "Pembah", "text": "Só a ver a maré."},
+        {"speaker": "Estivador", "text": "Não. Estás a ver a tua vida fugir."}
+      ]
+    },
+    "dlg_003_marinheiro_veterano": {
+      "id": "dlg_003_marinheiro_veterano",
+      "speakers": ["Marinheiro", "Pembah"],
+      "lines": [
+        {"speaker": "Marinheiro", "text": "Esses teus olhos metem medo à tripulação."},
+        {"speaker": "Pembah", "text": "Olhos não afundam navios."},
+        {"speaker": "Marinheiro", "text": "Não. Mas superstição afunda coragem."}
+      ]
+    },
+    "dlg_004_peixeira": {
+      "id": "dlg_004_peixeira",
+      "speakers": ["Peixeira", "Pembah"],
+      "lines": [
+        {"speaker": "Peixeira", "text": "O mar já te escolheu, menino. Só ainda não disseste sim."},
+        {"speaker": "Pembah", "text": "E como se diz sim ao mar?"},
+        {"speaker": "Peixeira", "text": "Pagando o preço."}
+      ]
+    },
+    "dlg_005_oficial_avis": {
+      "id": "dlg_005_oficial_avis",
+      "speakers": ["Oficial", "Pembah"],
+      "lines": [
+        {"speaker": "Pembah", "text": "Senhor, procuro trabalho num navio. Posso carregar mantimentos, limpar convés, vigiar à noite, o que for."},
+        {"speaker": "Oficial", "text": "Nome?"},
+        {"speaker": "Pembah", "text": "Pembah."},
+        {"speaker": "Oficial", "text": "Família?"},
+        {"speaker": "Pembah", "text": "Nenhuma de título."},
+        {"speaker": "Oficial", "text": "Ofício?"},
+        {"speaker": "Pembah", "text": "Aprendo depressa."},
+        {"speaker": "Oficial", "text": "Não foi o que perguntei."},
+        {"speaker": "Pembah", "text": "...nenhum que vos sirva."},
+        {"speaker": "Oficial", "text": "Então não me faças perder tempo."},
+        {"speaker": "Oficial", "text": "E tapa isso quando falares com homens sérios.", "mood": "disdain"}
+      ]
+    },
+    "dlg_010_meet_joao": {
+      "id": "dlg_010_meet_joao",
+      "speakers": ["João", "Pembah"],
+      "lines": [
+        {"speaker": "João", "portrait": "res://assets/portraits/joao_neutral.png", "text": "Não és homem de igreja."},
+        {"speaker": "Pembah", "text": "Nem de navio."},
+        {"speaker": "João", "text": "Pela cara, diria que tentaste ser um dos dois hoje."},
+        {"speaker": "Pembah", "text": "Falhei nos dois."},
+        {"speaker": "João", "text": "Então ainda estás igual à maioria dos homens."},
+        {"speaker": "Pembah", "text": "Quem és?"},
+        {"speaker": "João", "text": "João Silva. Alguns chamam-me Tempestade."},
+        {"speaker": "Pembah", "text": "Por quê?"},
+        {"speaker": "João", "text": "Porque costumo chegar quando o tempo piora."},
+        {"speaker": "João", "text": "Bonita marca."},
+        {"speaker": "Pembah", "text": "Não zombes."},
+        {"speaker": "João", "text": "Se eu quisesse zombar, já tinhas percebido."},
+        {"speaker": "João", "text": "Tu queres navegar."},
+        {"speaker": "Pembah", "text": "Quero."},
+        {"speaker": "João", "text": "Não. Querer é pouco. Tu pareces homem a morrer de sede diante do rio."},
+        {"speaker": "Pembah", "text": "E de que me serve isso?"},
+        {"speaker": "João", "text": "De tudo, se souberes aguentar a sede."}
+      ]
+    },
+    "dlg_011_training_intro": {
+      "id": "dlg_011_training_intro",
+      "speakers": ["João", "Pembah"],
+      "lines": [
+        {"speaker": "João", "text": "Pega a espada."},
+        {"speaker": "Pembah", "text": "Não sei manejar como um soldado."},
+        {"speaker": "João", "text": "Ótimo. Soldado previsível morre cedo."},
+        {"speaker": "João", "text": "Outra vez."},
+        {"speaker": "Pembah", "text": "Estou a errar."},
+        {"speaker": "João", "text": "Estás a hesitar. É pior."},
+        {"speaker": "João", "text": "Quando fores ao chão, levanta. Quando fores ferido, pensa. Quando vier o medo, avança um passo. Nunca dois. Um basta."}
+      ]
+    },
+    "dlg_012_training_end": {
+      "id": "dlg_012_training_end",
+      "speakers": ["João", "Pembah"],
+      "lines": [
+        {"speaker": "João", "text": "Tu não és marinheiro. Ainda."},
+        {"speaker": "Pembah", "text": "Nem guerreiro."},
+        {"speaker": "João", "text": "Também ainda."}
+      ]
+    },
+    "dlg_020_warehouse_alarm": {
+      "id": "dlg_020_warehouse_alarm",
+      "speakers": ["Pembah", "João"],
+      "lines": [
+        {"speaker": "Pembah", "text": "Quem são eles?"},
+        {"speaker": "João", "text": "Homens pagos."},
+        {"speaker": "Pembah", "text": "Por quem?"},
+        {"speaker": "João", "text": "Hoje não importa. Hoje, separam-se os vivos dos covardes."}
+      ]
+    },
+    "dlg_021_warehouse_postbattle": {
+      "id": "dlg_021_warehouse_postbattle",
+      "speakers": ["João", "Pembah"],
+      "lines": [
+        {"speaker": "João", "text": "Não eram ladrões comuns."},
+        {"speaker": "Pembah", "text": "Que queriam eles?"},
+        {"speaker": "João", "text": "Mapas. Relíquias. Talvez nomes."},
+        {"speaker": "Pembah", "text": "Isso... isso era do meu pai."},
+        {"speaker": "João", "text": "Então o fogo desta noite começou muito antes de hoje."}
+      ]
+    },
+    "dlg_040_captain_confrontation": {
+      "id": "dlg_040_captain_confrontation",
+      "speakers": ["Capitão Lourenço", "Pembah", "João"],
+      "lines": [
+        {"speaker": "Capitão Lourenço", "portrait": "res://assets/portraits/lourenco_angry.png", "text": "Rapaz de cais. Sem nome. Sem ofício. Sem testemunhas de valor. E, por milagre, sempre presente onde há desordem."},
+        {"speaker": "Pembah", "text": "Eu lutei pelos teus homens."},
+        {"speaker": "Capitão Lourenço", "text": "Os ratos também correm quando o navio arde."},
+        {"speaker": "João", "text": "Chega."},
+        {"speaker": "Capitão Lourenço", "text": "Tu não me dás ordens, marinheiro."},
+        {"speaker": "João", "text": "Não. Mas ainda sei reconhecer podridão quando a maré a traz."},
+        {"speaker": "Pembah", "text": "Como sabes o que isto é?"},
+        {"speaker": "Capitão Lourenço", "text": "...porque vi homens morrerem por menos."}
+      ]
+    },
+    "dlg_041_captain_defeat": {
+      "id": "dlg_041_captain_defeat",
+      "speakers": ["Capitão Lourenço", "Pembah", "João"],
+      "lines": [
+        {"speaker": "Capitão Lourenço", "text": "Não compreendes... Castela já mexe as peças... o medalhão... o mapa... Tomar..."},
+        {"speaker": "Pembah", "text": "Quem em Castela?"},
+        {"speaker": "Capitão Lourenço", "text": "Um homem... que escuta o oceano como caça escuta sangue..."}
+      ]
+    },
+    "dlg_045_alvaro_tease": {
+      "id": "dlg_045_alvaro_tease",
+      "speakers": ["Mensageiro", "Don Álvaro"],
+      "lines": [
+        {"speaker": "Mensageiro", "text": "O capitão de Lisboa caiu."},
+        {"speaker": "Don Álvaro", "portrait": "res://assets/portraits/alvaro_shadow.png", "text": "E o rapaz?"},
+        {"speaker": "Mensageiro", "text": "Vivo."},
+        {"speaker": "Don Álvaro", "text": "Melhor assim."},
+        {"speaker": "Don Álvaro", "text": "Há portas que só se abrem para os marcados. Se o mar o tocou, ele virá até nós."}
+      ]
+    },
+    "dlg_050_departure_sunrise": {
+      "id": "dlg_050_departure_sunrise",
+      "speakers": ["Pembah", "João"],
+      "lines": [
+        {"speaker": "Pembah", "text": "Ontem eu só queria embarcar. Hoje há homens mortos por causa de um nome que mal conheço."},
+        {"speaker": "João", "text": "Bem-vindo ao mundo. O mar sempre custou mais do que parece da doca."},
+        {"speaker": "Pembah", "text": "Se eu vier contigo... o que encontras em Tomar?"},
+        {"speaker": "João", "text": "Resposta, se tivermos sorte."},
+        {"speaker": "Pembah", "text": "E se não tivermos?"},
+        {"speaker": "João", "text": "Problemas maiores. O que, sendo honesto, é o mais provável."},
+        {"speaker": "Pembah", "text": "Passei a vida inteira a pedir que me deixassem partir."},
+        {"speaker": "João", "text": "E agora?"},
+        {"speaker": "Pembah", "text": "Agora acho que o mar deixou de pedir licença também."},
+        {"speaker": "João", "text": "Então ouve-me bem, Pembah. De hoje em diante, não lutas para provar nada a homens pequenos. Lutas para descobrir por que razão o oceano ainda não te deixou em paz."}
+      ]
+    },
+    "dlg_051_father_echo": {
+      "id": "dlg_051_father_echo",
+      "speakers": ["Voz do Pai", "Pembah", "João"],
+      "lines": [
+        {"speaker": "Voz do Pai", "text": "Quando o mar te chamar, não respondas com orgulho.", "mood": "echo"},
+        {"speaker": "Pembah", "text": "Eu ouvi-o."},
+        {"speaker": "João", "text": "Quem?"},
+        {"speaker": "Pembah", "text": "...meu pai. Ou a falta dele."}
+      ]
+    },
+    "dlg_sq_001_merchant": {
+      "id": "dlg_sq_001_merchant",
+      "speakers": ["Rodrigo", "Pembah"],
+      "lines": [
+        {"speaker": "Rodrigo", "text": "Rapaz, preciso de mãos rápidas. Roubaram-me uma caixa nas vielas do cais."},
+        {"speaker": "Pembah", "text": "Sabes quem foi?"},
+        {"speaker": "Rodrigo", "text": "Ladrões magros e covardes. Isso basta-me. Trás-me a caixa e pago bem."}
+      ]
+    },
+    "barks": {
+      "battle_training_joao": [
+        {"speaker": "João", "text": "Mantém a guarda alta."},
+        {"speaker": "João", "text": "Boa. Aprende isto cedo: quem sabe aguentar, sabe vencer."}
+      ],
+      "battle_warehouse_fire": [
+        {"speaker": "João", "text": "À esquerda! Protege os civis!"},
+        {"speaker": "Pembah", "text": "Eu?"},
+        {"speaker": "João", "text": "Não vejo outro herói aqui!"},
+        {"speaker": "Civil", "text": "Pelo santo Cristo… obrigado!"}
+      ],
+      "battle_boss_lourenco": [
+        {"speaker": "Capitão Lourenço", "text": "Lisboa não foi feita para bastardos do cais!"},
+        {"speaker": "Pembah", "text": "Então talvez Lisboa esteja menor do que devia."},
+        {"speaker": "Capitão Lourenço", "text": "Eu servi esta coroa enquanto tu mendigavas beira-rio!"},
+        {"speaker": "João", "text": "Serviste o teu bolso. Não confundas."},
+        {"speaker": "Capitão Lourenço", "text": "Há forças no mar que respondem aos fortes!"},
+        {"speaker": "João", "text": "Não. Respondem aos tolos antes de os afogar."},
+        {"speaker": "Pembah", "text": "Não luto para que me aceitem. Luto porque já não vos pertenço."}
+      ]
+    }
+  }
+}

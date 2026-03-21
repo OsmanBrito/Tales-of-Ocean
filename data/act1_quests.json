@@ -1,0 +1,257 @@
+{
+  "act_id": "act_1_call_of_the_sea",
+  "title": "Ato 1 - O Chamado do Mar",
+  "region": "lisboa",
+  "next_region_unlock": "tomar",
+  "quests": [
+    {
+      "id": "mq_001_rapaz_do_cais",
+      "type": "main",
+      "title": "O Rapaz do Cais",
+      "giver_npc_id": "system_intro",
+      "location": "lisboa_docks",
+      "description": "Pembah observa o porto de Lisboa e tenta encontrar um lugar entre homens do mar.",
+      "objectives": [
+        {
+          "id": "talk_estivador",
+          "kind": "talk",
+          "target": "npc_estivador",
+          "text": "Fale com o estivador.",
+          "required": 1
+        },
+        {
+          "id": "talk_marinheiro",
+          "kind": "talk",
+          "target": "npc_marinheiro_veterano",
+          "text": "Fale com o marinheiro veterano.",
+          "required": 1
+        },
+        {
+          "id": "talk_peixeira",
+          "kind": "talk",
+          "target": "npc_peixeira_velha",
+          "text": "Fale com a peixeira.",
+          "required": 1
+        },
+        {
+          "id": "go_port_chapel",
+          "kind": "trigger",
+          "target": "trigger_capela_porto",
+          "text": "Vá até a capela do porto.",
+          "required": 1
+        }
+      ],
+      "auto_complete": true,
+      "rewards": {
+        "xp": 50,
+        "gold": 0,
+        "items": [],
+        "flags": {
+          "pembah_marked_by_sea": true
+        }
+      },
+      "next_quest_id": "mq_002_um_homem_chamado_tempestade"
+    },
+    {
+      "id": "mq_002_um_homem_chamado_tempestade",
+      "type": "main",
+      "title": "Um Homem Chamado Tempestade",
+      "giver_npc_id": "npc_joao_tempestade",
+      "location": "lisboa_port_chapel",
+      "description": "Na capela do porto, Pembah encontra João Silva, chamado Tempestade.",
+      "objectives": [
+        {
+          "id": "meet_joao",
+          "kind": "cutscene",
+          "target": "cs_010_meet_joao",
+          "text": "Converse com João na capela.",
+          "required": 1
+        },
+        {
+          "id": "complete_training",
+          "kind": "battle",
+          "target": "battle_training_joao",
+          "text": "Complete o treino com João.",
+          "required": 1
+        }
+      ],
+      "auto_complete": true,
+      "rewards": {
+        "xp": 100,
+        "gold": 0,
+        "items": [],
+        "party_members": ["joao_tempestade"],
+        "flags": {
+          "joao_joined_party": true
+        }
+      },
+      "next_quest_id": "mq_003_fogo_no_armazem"
+    },
+    {
+      "id": "mq_003_fogo_no_armazem",
+      "type": "main",
+      "title": "Fogo no Armazém",
+      "giver_npc_id": "system_alarm",
+      "location": "lisboa_royal_warehouse",
+      "description": "Um grupo armado ataca o armazém régio e tenta roubar mapas e relíquias.",
+      "objectives": [
+        {
+          "id": "rescue_civilians",
+          "kind": "rescue",
+          "target": "civilian_group_a",
+          "text": "Salve 2 civis do incêndio.",
+          "required": 2
+        },
+        {
+          "id": "stop_incendiary",
+          "kind": "defeat",
+          "target": "enemy_incendiary_01",
+          "text": "Derrote o incendiário antes que ele alcance a pólvora.",
+          "required": 1
+        },
+        {
+          "id": "win_battle",
+          "kind": "battle",
+          "target": "battle_warehouse_fire",
+          "text": "Derrote os invasores.",
+          "required": 1
+        }
+      ],
+      "auto_complete": true,
+      "rewards": {
+        "xp": 180,
+        "gold": 35,
+        "items": [
+          "quest_medallion_father",
+          "quest_burned_seal"
+        ],
+        "flags": {
+          "father_medallion_found": true
+        }
+      },
+      "next_quest_id": "mq_004_o_capitao_corrompido"
+    },
+    {
+      "id": "mq_004_o_capitao_corrompido",
+      "type": "main",
+      "title": "O Capitão Corrompido",
+      "giver_npc_id": "npc_joao_tempestade",
+      "location": "lisboa_order_courtyard",
+      "description": "O Capitão Lourenço de Ataíde tenta culpar Pembah pelo ataque e encobrir a conspiração.",
+      "objectives": [
+        {
+          "id": "confront_captain",
+          "kind": "cutscene",
+          "target": "cs_040_captain_confrontation",
+          "text": "Confronte o Capitão Lourenço.",
+          "required": 1
+        },
+        {
+          "id": "defeat_captain",
+          "kind": "boss_battle",
+          "target": "battle_boss_lourenco",
+          "text": "Derrote o Capitão Lourenço de Ataíde.",
+          "required": 1
+        }
+      ],
+      "auto_complete": true,
+      "rewards": {
+        "xp": 300,
+        "gold": 120,
+        "items": [
+          "letter_to_convento_de_cristo",
+          "captain_signet_fragment"
+        ],
+        "flags": {
+          "lisboa_captain_corrupt_revealed": true,
+          "castile_threat_introduced": true
+        }
+      },
+      "next_quest_id": "mq_005_a_estrada_para_tomar"
+    },
+    {
+      "id": "mq_005_a_estrada_para_tomar",
+      "type": "main",
+      "title": "A Estrada para Tomar",
+      "giver_npc_id": "npc_joao_tempestade",
+      "location": "lisboa_docks_sunrise",
+      "description": "Após a batalha, Pembah decide deixar Lisboa e seguir com João até Tomar.",
+      "objectives": [
+        {
+          "id": "sunrise_talk",
+          "kind": "cutscene",
+          "target": "cs_050_departure_sunrise",
+          "text": "Converse com João ao amanhecer.",
+          "required": 1
+        },
+        {
+          "id": "leave_lisboa",
+          "kind": "trigger",
+          "target": "trigger_north_road",
+          "text": "Saia de Lisboa pela estrada norte.",
+          "required": 1
+        }
+      ],
+      "auto_complete": true,
+      "rewards": {
+        "xp": 150,
+        "gold": 0,
+        "items": [],
+        "region_unlocks": ["tomar"],
+        "flags": {
+          "tomar_unlocked": true,
+          "act_1_complete": true
+        }
+      },
+      "next_quest_id": null
+    },
+    {
+      "id": "sq_001_a_caixa_perdida",
+      "type": "side",
+      "title": "A Caixa Perdida",
+      "giver_npc_id": "npc_merchant_rodrigo",
+      "location": "lisboa_market",
+      "description": "Um mercador perdeu uma caixa nas vielas do cais e suspeita de ladrões locais.",
+      "objectives": [
+        {
+          "id": "talk_merchant",
+          "kind": "talk",
+          "target": "npc_merchant_rodrigo",
+          "text": "Fale com o mercador Rodrigo.",
+          "required": 1
+        },
+        {
+          "id": "search_alley",
+          "kind": "trigger",
+          "target": "trigger_dock_alley",
+          "text": "Procure pistas na viela do cais.",
+          "required": 1
+        },
+        {
+          "id": "recover_crate",
+          "kind": "battle",
+          "target": "battle_lost_crate_thieves",
+          "text": "Recupere a caixa dos ladrões.",
+          "required": 1
+        },
+        {
+          "id": "return_crate",
+          "kind": "return",
+          "target": "npc_merchant_rodrigo",
+          "text": "Devolva a caixa ao mercador.",
+          "required": 1
+        }
+      ],
+      "auto_complete": false,
+      "rewards": {
+        "xp": 120,
+        "gold": 80,
+        "items": ["accessory_merchant_ring"],
+        "flags": {
+          "lost_crate_completed": true
+        }
+      },
+      "next_quest_id": null
+    }
+  ]
+}

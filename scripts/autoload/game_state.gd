@@ -10,9 +10,31 @@ const SKILLS_PATH := "res://data/skills.json"
 const PASSIVES_PATH := "res://data/passives.json"
 const ENEMIES_PATH := "res://data/enemies.json"
 const QUESTS_PATH := "res://data/quests.json"
+const ACT1_ITEMS_PATH := "res://data/act1_items.json"
+const ACT1_ENEMIES_PATH := "res://data/act1_enemies.json"
+const ACT1_QUESTS_PATH := "res://data/act1_quests.json"
+const ACT1_DIALOGUES_PATH := "res://data/act1_dialogues.json"
+const ACT1_CUTSCENES_PATH := "res://data/act1_cutscenes.json"
+const ACT1_BATTLES_PATH := "res://data/act1_battles.json"
+const ACT1_FLAGS_PATH := "res://data/act1_flags.json"
 const ACTIVE_SKILL_LIMIT: int = 10
 const PASSIVE_SKILL_LIMIT: int = 10
 const PORTUGAL_MAP_SCENE := "res://scenes/world/portugal_map.tscn"
+const ACT1_COMPANION_ALIASES := {
+	"joao_tempestade": "joao"
+}
+const ACT1_SKILL_PLACEHOLDERS := {
+	"dirty_slash": "gancho_do_contrabando",
+	"quick_thrust": "estocada_da_proa",
+	"critical_feint": "corte_da_sonda",
+	"fire_bottle": "fogo_de_alcatrao",
+	"spark_step": "clarim_do_farol",
+	"commanding_slash": "linha_do_zodiaco",
+	"authority_roar": "clarim_do_farol",
+	"ocean_wrath_corrupt": "roda_do_astrolabio",
+	"spear_thrust": "estocada_da_proa",
+	"aimed_shot": "quadrado_da_seta"
+}
 
 var companion_defs: Dictionary = {}
 var item_defs: Dictionary = {}
@@ -20,12 +42,18 @@ var skill_defs: Dictionary = {}
 var passive_defs: Dictionary = {}
 var enemy_defs: Dictionary = {}
 var quest_defs: Dictionary = {}
+var act1_dialogue_defs: Dictionary = {}
+var act1_battle_barks: Dictionary = {}
+var act1_cutscene_defs: Dictionary = {}
+var act1_battle_defs: Dictionary = {}
+var act1_flag_defaults: Dictionary = {}
 
 var party: Dictionary = {}
 var party_order: Array = []
 var inventory: Array = []
 var gold: int = 0
 var quest_states: Dictionary = {}
+var quest_objective_progress: Dictionary = {}
 var world_state: Dictionary = {}
 var current_battle_context: Dictionary = {}
 var last_battle_outcome: String = ""
@@ -43,6 +71,7 @@ func load_static_data() -> void:
 	passive_defs = _load_table(PASSIVES_PATH)
 	enemy_defs = _load_table(ENEMIES_PATH)
 	quest_defs = _load_table(QUESTS_PATH)
+	_load_act1_data()
 
 
 func reset_new_game() -> void:
@@ -98,6 +127,8 @@ func reset_new_game() -> void:
 		"ceuta_boss_defeated": false,
 		"vera_cruz_boss_defeated": false
 	}
+	quest_objective_progress = {}
+	_apply_world_flag_defaults()
 	current_battle_context = {}
 	last_battle_outcome = ""
 	_emit_all()
@@ -122,6 +153,180 @@ func _load_table(path: String) -> Dictionary:
 	for entry in parsed:
 		table[entry["id"]] = entry
 	return table
+
+
+func _load_dictionary_root(path: String) -> Dictionary:
+	var parsed: Variant = load_json_data(path)
+	if typeof(parsed) != TYPE_DICTIONARY:
+		push_error("Expected dictionary in %s" % path)
+		return {}
+	return parsed
+
+
+func _load_act1_data() -> void:
+	act1_dialogue_defs.clear()
+	act1_battle_barks.clear()
+	act1_cutscene_defs.clear()
+	act1_battle_defs.clear()
+	act1_flag_defaults.clear()
+
+	var act1_items_root: Dictionary = _load_dictionary_root(ACT1_ITEMS_PATH)
+	for raw_item in act1_items_root.get("items", []):
+		var normalized_item: Dictionary = _normalize_act1_item(raw_item)
+		if normalized_item.is_empty():
+			continue
+		item_defs[str(normalized_item.get("id", ""))] = normalized_item
+
+	var act1_enemies_root: Dictionary = _load_dictionary_root(ACT1_ENEMIES_PATH)
+	for raw_enemy in act1_enemies_root.get("enemies", []):
+		var normalized_enemy: Dictionary = _normalize_act1_enemy(raw_enemy)
+		if normalized_enemy.is_empty():
+			continue
+		enemy_defs[str(normalized_enemy.get("id", ""))] = normalized_enemy
+
+	var act1_quests_root: Dictionary = _load_dictionary_root(ACT1_QUESTS_PATH)
+	for raw_quest in act1_quests_root.get("quests", []):
+		var normalized_quest: Dictionary = _normalize_act1_quest(raw_quest)
+		if normalized_quest.is_empty():
+			continue
+		quest_defs[str(normalized_quest.get("id", ""))] = normalized_quest
+
+	var act1_dialogues_root: Dictionary = _load_dictionary_root(ACT1_DIALOGUES_PATH)
+	var dialogue_table: Dictionary = act1_dialogues_root.get("dialogues", {})
+	for raw_dialogue_id in dialogue_table.keys():
+		var dialogue_id: String = str(raw_dialogue_id)
+		if dialogue_id == "barks":
+			continue
+		var dialogue_data: Variant = dialogue_table[raw_dialogue_id]
+		if typeof(dialogue_data) != TYPE_DICTIONARY:
+			continue
+		act1_dialogue_defs[dialogue_id] = dialogue_data
+	var raw_barks: Variant = dialogue_table.get("barks", {})
+	if typeof(raw_barks) == TYPE_DICTIONARY:
+		for raw_battle_id in raw_barks.keys():
+			act1_battle_barks[str(raw_battle_id)] = raw_barks[raw_battle_id]
+
+	var act1_cutscenes_root: Dictionary = _load_dictionary_root(ACT1_CUTSCENES_PATH)
+	for raw_cutscene in act1_cutscenes_root.get("cutscenes", []):
+		if typeof(raw_cutscene) != TYPE_DICTIONARY:
+			continue
+		var cutscene: Dictionary = raw_cutscene
+		act1_cutscene_defs[str(cutscene.get("id", ""))] = cutscene
+
+	var act1_battles_root: Dictionary = _load_dictionary_root(ACT1_BATTLES_PATH)
+	for raw_battle in act1_battles_root.get("battles", []):
+		if typeof(raw_battle) != TYPE_DICTIONARY:
+			continue
+		var battle: Dictionary = raw_battle
+		act1_battle_defs[str(battle.get("id", ""))] = battle
+
+	var act1_flags_root: Dictionary = _load_dictionary_root(ACT1_FLAGS_PATH)
+	var raw_flags: Variant = act1_flags_root.get("flags", {})
+	if typeof(raw_flags) == TYPE_DICTIONARY:
+		act1_flag_defaults = raw_flags.duplicate(true)
+
+
+func _normalize_act1_item(item: Dictionary) -> Dictionary:
+	if item.is_empty():
+		return {}
+
+	var normalized: Dictionary = item.duplicate(true)
+	var category: String = str(normalized.get("category", normalized.get("type", "misc")))
+	match category:
+		"quest", "accessory", "consumable", "manual_skill", "manual_passive", "ocean_supply", "ocean_repair":
+			normalized["type"] = category
+		_:
+			normalized["type"] = "misc"
+	return normalized
+
+
+func _normalize_act1_enemy(enemy: Dictionary) -> Dictionary:
+	if enemy.is_empty():
+		return {}
+
+	var normalized: Dictionary = enemy.duplicate(true)
+	var stats: Dictionary = normalized.get("stats", {})
+	var archetype: String = str(normalized.get("archetype", "bandit"))
+	var level: int = int(normalized.get("level", 1))
+	normalized["max_hp"] = int(stats.get("hp", normalized.get("max_hp", 30)))
+	normalized["max_sp"] = int(stats.get("espirito", normalized.get("max_sp", 0)))
+	normalized["atk"] = int(stats.get("atk", normalized.get("atk", 6)))
+	normalized["def"] = int(stats.get("def", normalized.get("def", 3)))
+	normalized["spd"] = int(stats.get("spd", normalized.get("spd", 4)))
+	normalized["move_range"] = int(normalized.get("move_range", 2))
+	normalized["attack_range"] = int(normalized.get("attack_range", 3 if archetype == "archer" else 1))
+	normalized["water_stride"] = bool(normalized.get("water_stride", false))
+	normalized["skills"] = _normalize_act1_skill_ids(normalized.get("skills", []))
+	normalized["xp_reward"] = int(normalized.get("xp_reward", max(12, level * 18)))
+	normalized["gold_reward"] = int(normalized.get("gold_reward", max(6, level * 10)))
+	return normalized
+
+
+func _normalize_act1_quest(quest: Dictionary) -> Dictionary:
+	if quest.is_empty():
+		return {}
+
+	var normalized: Dictionary = quest.duplicate(true)
+	var normalized_objectives: Array = []
+	for raw_objective in normalized.get("objectives", []):
+		if typeof(raw_objective) != TYPE_DICTIONARY:
+			continue
+		var objective: Dictionary = raw_objective.duplicate(true)
+		if str(objective.get("kind", "")) == "return":
+			normalized["turn_in_target"] = str(objective.get("target", ""))
+			normalized["turn_in_text"] = str(objective.get("text", ""))
+			continue
+		normalized_objectives.append(objective)
+	normalized["objectives"] = normalized_objectives
+	normalized["name"] = str(normalized.get("title", normalized.get("name", normalized.get("id", ""))))
+	normalized["giver"] = str(normalized.get("giver_npc_id", normalized.get("giver", "")))
+	if not normalized.has("journal"):
+		normalized["journal"] = _build_act1_quest_journal(normalized)
+	return normalized
+
+
+func _build_act1_quest_journal(quest: Dictionary) -> Dictionary:
+	var quest_name: String = str(quest.get("title", quest.get("name", "Missao")))
+	var prefix: String = "Feito principal" if str(quest.get("type", "main")) == "main" else "Missao secundaria"
+	var ready_text: String = "%s: %s pronta para concluir." % [prefix, quest_name]
+	if not str(quest.get("turn_in_text", "")).is_empty():
+		ready_text = "%s: %s" % [prefix, str(quest.get("turn_in_text", ""))]
+	return {
+		"not_started": "%s: %s." % [prefix, quest_name],
+		"active": "%s: %s." % [prefix, str(quest.get("description", quest_name))],
+		"ready_to_turn_in": ready_text,
+		"completed": "%s concluida: %s." % [prefix, quest_name]
+	}
+
+
+func _normalize_act1_skill_ids(raw_values: Variant) -> Array[String]:
+	var normalized: Array[String] = []
+	if typeof(raw_values) != TYPE_ARRAY:
+		return normalized
+
+	for raw_skill_id in raw_values:
+		var skill_id: String = _resolve_skill_placeholder(str(raw_skill_id))
+		if skill_id.is_empty() or not skill_defs.has(skill_id):
+			continue
+		normalized.append(skill_id)
+	return normalized
+
+
+func _resolve_skill_placeholder(skill_id: String) -> String:
+	if skill_defs.has(skill_id):
+		return skill_id
+	return str(ACT1_SKILL_PLACEHOLDERS.get(skill_id, ""))
+
+
+func _resolve_companion_alias(companion_id: String) -> String:
+	return str(ACT1_COMPANION_ALIASES.get(companion_id, companion_id))
+
+
+func _apply_world_flag_defaults() -> void:
+	for raw_flag_name in act1_flag_defaults.keys():
+		var flag_name: String = str(raw_flag_name)
+		if not world_state.has(flag_name):
+			world_state[flag_name] = act1_flag_defaults[raw_flag_name]
 
 
 func get_player() -> Dictionary:
@@ -812,14 +1017,15 @@ func get_party_names() -> Array[String]:
 
 
 func has_companion(companion_id: String) -> bool:
-	return party.has(companion_id)
+	return party.has(_resolve_companion_alias(companion_id))
 
 
 func get_companion(companion_id: String) -> Dictionary:
-	return party.get(companion_id, {})
+	return party.get(_resolve_companion_alias(companion_id), {})
 
 
 func recruit_companion(companion_id: String) -> void:
+	companion_id = _resolve_companion_alias(companion_id)
 	if has_companion(companion_id):
 		return
 
@@ -838,6 +1044,7 @@ func recruit_companion(companion_id: String) -> void:
 	party_order.append(companion_id)
 	if companion_id == "joao":
 		world_state["joao_recruited"] = true
+		world_state["joao_joined_party"] = true
 	state_changed.emit()
 
 
@@ -924,6 +1131,36 @@ func is_overworld_travel_active() -> bool:
 	return not get_overworld_travel_state().is_empty()
 
 
+func start_cutscene(cutscene_id: String, step_index: int = 0) -> void:
+	if cutscene_id.is_empty():
+		return
+	world_state["active_cutscene"] = {
+		"id": cutscene_id,
+		"step_index": step_index
+	}
+
+
+func get_active_cutscene_state() -> Dictionary:
+	return world_state.get("active_cutscene", {}).duplicate(true)
+
+
+func has_active_cutscene() -> bool:
+	var state: Dictionary = world_state.get("active_cutscene", {})
+	return not str(state.get("id", "")).is_empty()
+
+
+func set_active_cutscene_step(step_index: int) -> void:
+	if not has_active_cutscene():
+		return
+	var cutscene_state: Dictionary = world_state.get("active_cutscene", {}).duplicate(true)
+	cutscene_state["step_index"] = max(0, step_index)
+	world_state["active_cutscene"] = cutscene_state
+
+
+func clear_active_cutscene() -> void:
+	world_state["active_cutscene"] = {}
+
+
 func register_battle_outcome(outcome: String) -> void:
 	last_battle_outcome = outcome
 
@@ -951,6 +1188,7 @@ func set_quest_state(quest_id: String, status: String) -> void:
 
 
 func start_quest(quest_id: String) -> void:
+	_initialize_quest_objectives(quest_id)
 	set_quest_state(quest_id, "active")
 
 
@@ -959,15 +1197,263 @@ func get_flag(flag_name: String, default_value = null) -> Variant:
 
 
 func set_flag(flag_name: String, value: Variant) -> void:
+	if flag_name.is_empty():
+		return
 	world_state[flag_name] = value
 	state_changed.emit()
 
 
 func get_quest_journal_text(quest_id: String) -> String:
 	var quest: Dictionary = quest_defs.get(quest_id, {})
+	if quest.is_empty():
+		return ""
 	var journal: Dictionary = quest.get("journal", {})
 	var status: String = get_quest_state(quest_id)
-	return journal.get(status, quest.get("description", ""))
+	if _quest_has_objectives(quest) and (status == "active" or status == "ready_to_turn_in"):
+		var prefix: String = "Feito principal" if str(quest.get("type", "main")) == "main" else "Missao secundaria"
+		var quest_name: String = str(quest.get("name", quest.get("title", quest_id)))
+		var summary: String = _build_quest_objective_summary(quest_id)
+		if not summary.is_empty():
+			return "%s: %s | %s" % [prefix, quest_name, summary]
+	return str(journal.get(status, quest.get("description", "")))
+
+
+func get_dialogue_data(dialogue_id: String) -> Dictionary:
+	return act1_dialogue_defs.get(dialogue_id, {})
+
+
+func get_cutscene_definition(cutscene_id: String) -> Dictionary:
+	return act1_cutscene_defs.get(cutscene_id, {})
+
+
+func get_battle_definition(battle_id: String) -> Dictionary:
+	return act1_battle_defs.get(battle_id, {})
+
+
+func get_battle_barks(battle_id: String) -> Array:
+	var barks: Variant = act1_battle_barks.get(battle_id, [])
+	return barks if typeof(barks) == TYPE_ARRAY else []
+
+
+func build_battle_context(battle_id: String) -> Dictionary:
+	var definition: Dictionary = get_battle_definition(battle_id)
+	if definition.is_empty():
+		return {}
+
+	return {
+		"battle_id": battle_id,
+		"battle_title": _humanize_identifier(_strip_known_prefix(battle_id, "battle_")),
+		"enemy_ids": _expand_act1_battle_enemy_ids(definition),
+		"map_id": str(definition.get("map_id", "")),
+		"player_party": _normalize_companion_ids(definition.get("player_party", [])),
+		"guest_party": _normalize_companion_ids(definition.get("guest_party", [])),
+		"intro_text": _build_act1_battle_intro(definition, battle_id),
+		"victory_actions": _build_act1_battle_victory_actions(battle_id)
+	}
+
+
+func get_quest_objectives(quest_id: String) -> Array[Dictionary]:
+	var quest: Dictionary = quest_defs.get(quest_id, {})
+	var objectives: Array[Dictionary] = []
+	if not _quest_has_objectives(quest):
+		return objectives
+
+	_initialize_quest_objectives(quest_id)
+	var progress: Dictionary = quest_objective_progress.get(quest_id, {})
+	for raw_objective in quest.get("objectives", []):
+		if typeof(raw_objective) != TYPE_DICTIONARY:
+			continue
+		var objective: Dictionary = raw_objective.duplicate(true)
+		var objective_id: String = str(objective.get("id", ""))
+		var required: int = max(1, int(objective.get("required", 1)))
+		var current: int = clampi(int(progress.get(objective_id, 0)), 0, required)
+		objective["required"] = required
+		objective["current"] = current
+		objective["complete"] = current >= required
+		objectives.append(objective)
+	return objectives
+
+
+func advance_quest_objective(quest_id: String, objective_id: String, amount: int = 1) -> void:
+	if quest_id.is_empty() or objective_id.is_empty() or amount <= 0:
+		return
+
+	var quest: Dictionary = quest_defs.get(quest_id, {})
+	if not _quest_has_objectives(quest):
+		return
+
+	var required: int = _get_quest_objective_required(quest, objective_id)
+	if required <= 0:
+		return
+
+	if get_quest_state(quest_id) == "not_started":
+		start_quest(quest_id)
+	else:
+		_initialize_quest_objectives(quest_id)
+
+	var progress: Dictionary = quest_objective_progress.get(quest_id, {})
+	progress[objective_id] = mini(required, int(progress.get(objective_id, 0)) + amount)
+	quest_objective_progress[quest_id] = progress
+
+	if _are_all_quest_objectives_complete(quest_id):
+		if bool(quest.get("auto_complete", false)):
+			complete_quest(quest_id)
+			return
+		if get_quest_state(quest_id) != "completed":
+			set_quest_state(quest_id, "ready_to_turn_in")
+			return
+
+	quest_updated.emit(quest_id, get_quest_state(quest_id))
+	state_changed.emit()
+
+
+func _quest_has_objectives(quest: Dictionary) -> bool:
+	return typeof(quest.get("objectives", [])) == TYPE_ARRAY and not quest.get("objectives", []).is_empty()
+
+
+func _initialize_quest_objectives(quest_id: String) -> void:
+	var quest: Dictionary = quest_defs.get(quest_id, {})
+	if not _quest_has_objectives(quest):
+		return
+
+	var progress: Dictionary = quest_objective_progress.get(quest_id, {})
+	for raw_objective in quest.get("objectives", []):
+		if typeof(raw_objective) != TYPE_DICTIONARY:
+			continue
+		var objective: Dictionary = raw_objective
+		var objective_id: String = str(objective.get("id", ""))
+		if objective_id.is_empty() or progress.has(objective_id):
+			continue
+		progress[objective_id] = 0
+	quest_objective_progress[quest_id] = progress
+
+
+func _get_quest_objective_required(quest: Dictionary, objective_id: String) -> int:
+	for raw_objective in quest.get("objectives", []):
+		if typeof(raw_objective) != TYPE_DICTIONARY:
+			continue
+		var objective: Dictionary = raw_objective
+		if str(objective.get("id", "")) == objective_id:
+			return max(1, int(objective.get("required", 1)))
+	return 0
+
+
+func _are_all_quest_objectives_complete(quest_id: String) -> bool:
+	var objectives: Array[Dictionary] = get_quest_objectives(quest_id)
+	if objectives.is_empty():
+		return false
+	for objective in objectives:
+		if not bool(objective.get("complete", false)):
+			return false
+	return true
+
+
+func _build_quest_objective_summary(quest_id: String) -> String:
+	var objectives: Array[Dictionary] = get_quest_objectives(quest_id)
+	if objectives.is_empty():
+		return ""
+
+	var completed_count: int = 0
+	var pending_texts: Array[String] = []
+	for objective in objectives:
+		if bool(objective.get("complete", false)):
+			completed_count += 1
+			continue
+		var objective_text: String = str(objective.get("text", objective.get("id", "")))
+		var required: int = int(objective.get("required", 1))
+		var current: int = int(objective.get("current", 0))
+		if required > 1:
+			objective_text = "%s (%d/%d)" % [objective_text, current, required]
+		pending_texts.append(objective_text)
+
+	if pending_texts.is_empty():
+		return "Tudo pronto para concluir."
+
+	var summary_parts: Array[String] = pending_texts.slice(0, 2)
+	var summary: String = "; ".join(summary_parts)
+	if pending_texts.size() > summary_parts.size():
+		summary += "; +%d" % (pending_texts.size() - summary_parts.size())
+	return "%d/%d | %s" % [completed_count, objectives.size(), summary]
+
+
+func _expand_act1_battle_enemy_ids(definition: Dictionary) -> Array[String]:
+	var enemy_ids: Array[String] = []
+	for raw_enemy_entry in definition.get("enemies", []):
+		if typeof(raw_enemy_entry) != TYPE_DICTIONARY:
+			continue
+		var enemy_entry: Dictionary = raw_enemy_entry
+		var enemy_id: String = str(enemy_entry.get("enemy_id", ""))
+		var count: int = max(1, int(enemy_entry.get("count", 1)))
+		for _i in range(count):
+			enemy_ids.append(enemy_id)
+	return enemy_ids
+
+
+func _normalize_companion_ids(raw_values: Variant) -> Array[String]:
+	var normalized: Array[String] = []
+	if typeof(raw_values) != TYPE_ARRAY:
+		return normalized
+	for raw_value in raw_values:
+		normalized.append(_resolve_companion_alias(str(raw_value)))
+	return normalized
+
+
+func _build_act1_battle_intro(definition: Dictionary, battle_id: String) -> String:
+	var barks: Array = get_battle_barks(battle_id)
+	if not barks.is_empty():
+		var first_bark: Variant = barks[0]
+		if typeof(first_bark) == TYPE_DICTIONARY:
+			var bark_data: Dictionary = first_bark
+			var speaker: String = str(bark_data.get("speaker", ""))
+			var text: String = str(bark_data.get("text", ""))
+			if not speaker.is_empty():
+				return "%s: %s" % [speaker, text]
+			return text
+
+	match str(definition.get("type", "")):
+		"tutorial":
+			return "Joao mede a vossa disciplina antes da maré mudar."
+		"boss":
+			return "Um inimigo maior ergue-se e prende a respiração do campo."
+		_:
+			return "Erguem-se inimigos diante de vos."
+
+
+func _build_act1_battle_victory_actions(battle_id: String) -> Array:
+	match battle_id:
+		"battle_warehouse_fire":
+			return [
+				{
+					"type": "advance_quest_objective",
+					"quest_id": "mq_003_fogo_no_armazem",
+					"objective_id": "rescue_civilians",
+					"amount": 2
+				},
+				{
+					"type": "advance_quest_objective",
+					"quest_id": "mq_003_fogo_no_armazem",
+					"objective_id": "stop_incendiary",
+					"amount": 1
+				}
+			]
+		_:
+			return []
+
+
+func _strip_known_prefix(value: String, prefix: String) -> String:
+	if value.begins_with(prefix):
+		return value.substr(prefix.length())
+	return value
+
+
+func _humanize_identifier(value: String) -> String:
+	var words: PackedStringArray = value.replace("_", " ").split(" ", false)
+	var formatted_words: Array[String] = []
+	for word in words:
+		if word.is_empty():
+			continue
+		formatted_words.append(word.substr(0, 1).to_upper() + word.substr(1))
+	return " ".join(formatted_words)
 
 
 func apply_actions(actions: Array) -> void:
@@ -977,12 +1463,20 @@ func apply_actions(actions: Array) -> void:
 		match action_type:
 			"start_quest":
 				start_quest(action.get("quest_id", ""))
+			"set_quest":
+				start_quest(action.get("quest_id", ""))
 			"complete_quest":
 				complete_quest(action.get("quest_id", ""))
 			"set_quest_state":
 				set_quest_state(action.get("quest_id", ""), action.get("status", ""))
+			"advance_quest_objective":
+				advance_quest_objective(
+					str(action.get("quest_id", "")),
+					str(action.get("objective_id", "")),
+					int(action.get("amount", 1))
+				)
 			"set_flag":
-				set_flag(action.get("flag", ""), action.get("value"))
+				set_flag(str(action.get("flag", action.get("name", ""))), action.get("value"))
 			"add_item":
 				add_item(action.get("item_id", ""), int(action.get("quantity", 1)))
 			"add_gold":
@@ -990,6 +1484,8 @@ func apply_actions(actions: Array) -> void:
 				state_changed.emit()
 			"recruit_companion":
 				recruit_companion(action.get("companion_id", ""))
+			"unlock_region":
+				_unlock_region(str(action.get("region_id", "")))
 			"heal_party":
 				heal_party()
 			"use_service":
@@ -1004,6 +1500,25 @@ func _get_battle_enemy_ids(context: Dictionary) -> Array[String]:
 	elif not str(context.get("enemy_id", "")).is_empty():
 		enemy_ids.append(str(context.get("enemy_id", "")))
 	return enemy_ids
+
+
+func register_quest_event(kind: String, target: String, amount: int = 1) -> void:
+	if kind.is_empty() or target.is_empty() or amount <= 0:
+		return
+
+	for raw_quest_id in quest_defs.keys():
+		var quest_id: String = str(raw_quest_id)
+		var status: String = get_quest_state(quest_id)
+		if status == "completed":
+			continue
+		for objective in get_quest_objectives(quest_id):
+			if str(objective.get("kind", "")) != kind:
+				continue
+			if str(objective.get("target", "")) != target:
+				continue
+			if bool(objective.get("complete", false)):
+				continue
+			advance_quest_objective(quest_id, str(objective.get("id", "")), amount)
 
 
 func finish_battle_victory(context: Dictionary) -> void:
@@ -1023,6 +1538,10 @@ func finish_battle_victory(context: Dictionary) -> void:
 	gold += total_gold
 	award_player_xp(total_xp)
 	heal_party(12, 5)
+	var battle_id: String = str(context.get("battle_id", ""))
+	if not battle_id.is_empty():
+		register_quest_event("battle", battle_id)
+		register_quest_event("boss_battle", battle_id)
 
 	apply_actions(context.get("victory_actions", []))
 	state_changed.emit()
@@ -1034,11 +1553,33 @@ func complete_quest(quest_id: String) -> void:
 		return
 
 	award_player_xp(int(quest.get("reward_xp", 0)))
-	gold += quest.get("reward_gold", 0)
+	gold += int(quest.get("reward_gold", 0))
 	add_item(quest.get("reward_item", ""), 1)
 	for raw_item_id in quest.get("reward_items", []):
 		add_item(str(raw_item_id), 1)
+	var rewards: Dictionary = quest.get("rewards", {})
+	if typeof(rewards) == TYPE_DICTIONARY:
+		award_player_xp(int(rewards.get("xp", 0)))
+		gold += int(rewards.get("gold", 0))
+		for raw_reward_item_id in rewards.get("items", []):
+			add_item(str(raw_reward_item_id), 1)
+		var reward_flags: Variant = rewards.get("flags", {})
+		if typeof(reward_flags) == TYPE_DICTIONARY:
+			for raw_flag_name in reward_flags.keys():
+				world_state[str(raw_flag_name)] = reward_flags[raw_flag_name]
+		for raw_companion_id in rewards.get("party_members", []):
+			recruit_companion(str(raw_companion_id))
+		for raw_region_id in rewards.get("region_unlocks", []):
+			_unlock_region(str(raw_region_id))
 	set_quest_state(quest_id, "completed")
+	if quest_objective_progress.has(quest_id):
+		var next_progress: Dictionary = quest_objective_progress.get(quest_id, {})
+		for objective in get_quest_objectives(quest_id):
+			next_progress[str(objective.get("id", ""))] = int(objective.get("required", 1))
+		quest_objective_progress[quest_id] = next_progress
+	var next_quest_id: String = str(quest.get("next_quest_id", ""))
+	if not next_quest_id.is_empty() and get_quest_state(next_quest_id) == "not_started":
+		start_quest(next_quest_id)
 
 
 func add_item(item_id: String, quantity: int) -> void:
@@ -1090,6 +1631,7 @@ func to_save_data() -> Dictionary:
 		"inventory": inventory,
 		"gold": gold,
 		"quest_states": quest_states,
+		"quest_objective_progress": quest_objective_progress,
 		"world_state": world_state
 	}
 
@@ -1100,6 +1642,7 @@ func load_from_save_data(data: Dictionary) -> void:
 	inventory = data.get("inventory", [])
 	gold = data.get("gold", 0)
 	quest_states = data.get("quest_states", {})
+	quest_objective_progress = data.get("quest_objective_progress", {})
 	world_state = data.get("world_state", {})
 	current_battle_context = {}
 	last_battle_outcome = ""
@@ -1133,6 +1676,8 @@ func _ensure_runtime_defaults() -> void:
 		party = {"pembah": _build_pembah()}
 	elif party.has("pembah"):
 		party["pembah"] = _normalize_player_data(_merge_member_defaults(_build_pembah(), party["pembah"]))
+	if typeof(quest_objective_progress) != TYPE_DICTIONARY:
+		quest_objective_progress = {}
 	if party_order.is_empty():
 		party_order = ["pembah"]
 	if party.has("joao") and not party_order.has("joao"):
@@ -1167,6 +1712,10 @@ func _ensure_runtime_defaults() -> void:
 		world_state["overworld_travel_state"] = {}
 	if not world_state.has("pending_scene_spawns"):
 		world_state["pending_scene_spawns"] = {}
+	if not world_state.has("active_cutscene"):
+		world_state["active_cutscene"] = {}
+	if not world_state.has("regions_unlocked"):
+		world_state["regions_unlocked"] = {}
 
 	var scene_positions: Dictionary = world_state.get("scene_positions", {})
 	if not scene_positions.has("lisboa"):
@@ -1227,7 +1776,23 @@ func _ensure_runtime_defaults() -> void:
 		world_state["vera_cruz_boss_defeated"] = false
 	if not world_state.has("joao_recruited"):
 		world_state["joao_recruited"] = party.has("joao")
+	if not world_state.has("joao_joined_party"):
+		world_state["joao_joined_party"] = party.has("joao")
+	_apply_world_flag_defaults()
+	for raw_quest_id in quest_defs.keys():
+		var quest_id: String = str(raw_quest_id)
+		if get_quest_state(quest_id) != "not_started":
+			_initialize_quest_objectives(quest_id)
 	world_state["scene_positions"] = scene_positions
+
+
+func _unlock_region(region_id: String) -> void:
+	if region_id.is_empty():
+		return
+	var unlocked_regions: Dictionary = world_state.get("regions_unlocked", {})
+	unlocked_regions[region_id] = true
+	world_state["regions_unlocked"] = unlocked_regions
+	world_state["%s_unlocked" % region_id] = true
 
 
 func _ensure_ocean_state() -> Dictionary:
